@@ -7,6 +7,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
+import com.swdc.codetime.Activator;
+
 public class SWCoreLog
 {
     private SWCoreLog()
@@ -20,17 +22,17 @@ public class SWCoreLog
 
     public static void logErrorMessage(String message)
     {
-        log(new Status(IStatus.ERROR, SWCorePlugin.ID, IStatus.ERROR, message, null));
+        log(new Status(IStatus.ERROR, Activator.PLUGIN_ID, IStatus.ERROR, message, null));
     }
 
     public static void logInfoMessage(String message)
     {
-        log(new Status(IStatus.INFO, SWCorePlugin.ID, IStatus.INFO, message, null));
+        log(new Status(IStatus.INFO, Activator.PLUGIN_ID, IStatus.INFO, message, null));
     }
 
     public static void logWarnningMessage(String message)
     {
-        log(new Status(IStatus.WARNING, SWCorePlugin.ID, IStatus.WARNING, message, null));
+        log(new Status(IStatus.WARNING, Activator.PLUGIN_ID, IStatus.WARNING, message, null));
     }
 
     public static void logWarnning(Throwable e)
@@ -48,7 +50,7 @@ public class SWCoreLog
         }
         else
         {
-            status = new Status(IStatus.WARNING, SWCorePlugin.ID, IStatus.OK, e.getMessage(), e);
+            status = new Status(IStatus.WARNING, Activator.PLUGIN_ID, IStatus.OK, e.getMessage(), e);
         }
         log(status);
     }
@@ -70,7 +72,7 @@ public class SWCoreLog
                 message = e.getMessage();
             if (message == null)
                 message = e.toString();
-            status = new Status(IStatus.ERROR, SWCorePlugin.ID, IStatus.OK, message, e);
+            status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, IStatus.OK, message, e);
         }
         ResourcesPlugin.getPlugin().getLog().log(status);
 //        Display display = SWCorePlugin.getStandardDisplay();
@@ -104,7 +106,7 @@ public class SWCoreLog
         }
         else
         {
-            status = new Status(IStatus.ERROR, SWCorePlugin.ID, IStatus.OK, e.getMessage(), e);
+            status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, IStatus.OK, e.getMessage(), e);
         }
 
         log(status);

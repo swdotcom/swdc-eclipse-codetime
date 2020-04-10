@@ -11,6 +11,8 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 
+import com.swdc.codetime.Activator;
+
 public class SWCoreImages
 {
     private SWCoreImages()
@@ -33,7 +35,7 @@ public class SWCoreImages
     private static URL makeImageURL(String prefix, String name)
     {
         String path = "$nl$/" + prefix + name; //$NON-NLS-1$
-        return FileLocator.find(SWCorePlugin.getDefault().getBundle(), new Path(path), null);
+        return FileLocator.find(Activator.getDefault().getBundle(), new Path(path), null);
     }
 
     public static Image getImage(ImageDescriptor desc)

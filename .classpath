@@ -4,13 +4,5 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="extlibs/gson-2.8.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="lib" path="extlibs/org.eclipse.core.resources.jar"/>
-	<classpathentry kind="lib" path="extlibs/org.eclipse.ui.ide-3.3.2.jar"/>
-	<classpathentry kind="lib" path="extlibs/org.eclipse.ui.workbench.texteditor-3.3.2.jar"/>
-	<classpathentry kind="lib" path="extlibs/org.eclipse.text_3.5.0.jar"/>
-	<classpathentry kind="lib" path="extlibs/commons-codec-1.9.jar"/>
-	<classpathentry kind="lib" path="extlibs/commons-logging-1.2.jar"/>
-	<classpathentry kind="lib" path="extlibs/httpclient-4.5.2.jar"/>
-	<classpathentry kind="lib" path="extlibs/httpcore-4.4.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -4,7 +4,7 @@ import org.eclipse.osgi.util.NLS;
 
 public class SWCoreMessages extends NLS
 {
-    private static final String BUNDLE_NAME = "com.swdc.ide.core.resources"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "com.swdc.codetime.resources"; //$NON-NLS-1$
 
     // public static String PreferencesPage_summary;
     static

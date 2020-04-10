@@ -4,8 +4,8 @@
       <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="com.swdc.ide.core.preferences.InfoPreferencePage"
-            id="com.swdc.ide.core.PreferencesPage"
+            class="com.swdc.codetime.managers.InfoPreferencePage"
+            id="com.swdc.codetime.PreferencesPage"
             name="Code Time">
       </page>
    </extension>
@@ -27,7 +27,7 @@
             allPopups="false"
             locationURI="toolbar:org.eclipse.ui.trim.status">
          <toolbar
-               id="com.swdc.ide.core.toolbar">
+               id="com.swdc.ide.codetime.toolbar">
             <control
                   class="com.swdc.codetime.util.SWCoreStatusBar">
             </control>

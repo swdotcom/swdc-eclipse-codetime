@@ -44,7 +44,7 @@ import com.swdc.codetime.util.SoftwareCoKeystrokeCount.FileInfo;
 public class Activator extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "EclipseCodeTime"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "com.swdc.codetime"; //$NON-NLS-1$
 
 	// The shared instance
 	private static Activator plugin;
@@ -84,6 +84,7 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
+		gson = new Gson();
 	}
 
 	/*
@@ -194,7 +195,7 @@ public class Activator extends AbstractUIPlugin {
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				try {
 					ctMetricsTreeView = window.getActivePage()
-							.findView("com.swdc.ide.core.views.metrics.metricsTreeView");
+							.findView("com.swdc.codetime.tree.metricsTreeView");
 					wcMgr.setTreeView(ctMetricsTreeView);
 				} catch (Exception e) {
 					System.err.println(e);
@@ -259,7 +260,7 @@ public class Activator extends AbstractUIPlugin {
 	public static void displayCodeTimeMetricsTree() {
 		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 		try {
-			window.getActivePage().showView("com.swdc.ide.core.views.metrics.metricsTreeView");
+			window.getActivePage().showView("com.swdc.codetime.tree.metricsTreeView");
 			if (ctMetricsTreeView != null) {
 				ctMetricsTreeView.setFocus();
 				window.getActivePage().activate(ctMetricsTreeView);

@@ -193,7 +193,7 @@ public class SoftwareCoSessionManager {
 	}
 
 	protected File getReadmeFile() {
-		Bundle bundle = Platform.getBundle(SWCorePlugin.ID);
+		Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
 		URL fileURL = bundle.getEntry("files/README.html");
 		File file = null;
 		try {

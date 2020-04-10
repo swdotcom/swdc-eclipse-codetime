@@ -131,7 +131,7 @@ public class SoftwareCoUtils {
 	}
 
 	public static String getVersion() {
-		String version = Platform.getBundle(SWCorePlugin.ID).getVersion().toString();
+		String version = Platform.getBundle(Activator.PLUGIN_ID).getVersion().toString();
 		return version;
 	}
 
