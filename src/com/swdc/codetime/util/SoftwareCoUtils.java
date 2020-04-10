@@ -53,7 +53,7 @@ import org.eclipse.ui.PlatformUI;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
 
@@ -131,7 +131,7 @@ public class SoftwareCoUtils {
 	}
 
 	public static String getVersion() {
-		String version = Platform.getBundle(Activator.PLUGIN_ID).getVersion().toString();
+		String version = Platform.getBundle(CodeTimeActivator.PLUGIN_ID).getVersion().toString();
 		return version;
 	}
 
@@ -212,7 +212,7 @@ public class SoftwareCoUtils {
 					if (jsonStr != null) {
 						Object jsonEl = null;
 						try {
-							jsonEl = Activator.jsonParser.parse(jsonStr);
+							jsonEl = CodeTimeActivator.jsonParser.parse(jsonStr);
 						} catch (Exception e) {
 							LOG.warning("Code Time: Error trying to read and parse: " + e.getMessage());
 						}
@@ -571,7 +571,7 @@ public class SoftwareCoUtils {
 			String overridingJwt) {
 
 		SoftwareResponse softwareResponse = new SoftwareResponse();
-		if (!Activator.SEND_TELEMTRY.get()) {
+		if (!CodeTimeActivator.SEND_TELEMTRY.get()) {
 			softwareResponse.setIsOk(true);
 			return softwareResponse;
 		}

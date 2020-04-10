@@ -6,7 +6,7 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.FileChangeInfo;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
@@ -32,7 +32,7 @@ public class FileAggregateDataManager {
         JsonObject jsonObj = FileManager.getFileContentAsJson(getFileChangeSummaryFile());
         if (jsonObj != null) {
             Type type = new TypeToken<Map<String, FileChangeInfo>>() {}.getType();
-			fileInfoMap = Activator.gson.fromJson(jsonObj, type);
+			fileInfoMap = CodeTimeActivator.gson.fromJson(jsonObj, type);
         } else {
             // create it
             FileManager.writeData(getFileChangeSummaryFile(), fileInfoMap);

@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.FileAggregateDataManager;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.SessionDataManager;
@@ -199,7 +199,7 @@ public class SoftwareCoKeystrokeCount {
             // update the file aggregate info.
             this.updateAggregates();
 
-            final String payload = Activator.gson.toJson(this);
+            final String payload = CodeTimeActivator.gson.toJson(this);
 
             // store to send later
             sessionMgr.storePayload(payload);
@@ -253,7 +253,7 @@ public class SoftwareCoKeystrokeCount {
     }
 	
 	public String getSource() {
-		return Activator.gson.toJson(source);
+		return CodeTimeActivator.gson.toJson(source);
 	}
 	public int getKeystrokes() {
 		return keystrokes;

@@ -41,13 +41,13 @@ import com.swdc.codetime.util.SoftwareCoKeystrokeCount.FileInfo;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends AbstractUIPlugin {
+public class CodeTimeActivator extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.swdc.codetime"; //$NON-NLS-1$
 
 	// The shared instance
-	private static Activator plugin;
+	private static CodeTimeActivator plugin;
 	
 	public static final Logger LOG = Logger.getLogger("Software.com");
 
@@ -83,7 +83,7 @@ public class Activator extends AbstractUIPlugin {
 	/**
 	 * The constructor
 	 */
-	public Activator() {
+	public CodeTimeActivator() {
 		gson = new Gson();
 	}
 
@@ -578,7 +578,7 @@ public class Activator extends AbstractUIPlugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static Activator getDefault() {
+	public static CodeTimeActivator getDefault() {
 		return plugin;
 	}
 

@@ -12,7 +12,7 @@ import org.apache.http.entity.StringEntity;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.FileManager;
 
 public class SoftwareCoMusicManager {
@@ -76,7 +76,7 @@ public class SoftwareCoMusicManager {
 	        		// update the end time on the previous track and send it as well
 	        		currentTrack.addProperty("end", now);
 	        		// send the post to end the previous track
-	        		postTrackInfo(Activator.gson.toJson(currentTrack));
+	        		postTrackInfo(CodeTimeActivator.gson.toJson(currentTrack));
 	        	}
 	        	
 	        	
@@ -87,7 +87,7 @@ public class SoftwareCoMusicManager {
 	        		trackInfo.addProperty("start", now);
 	        		trackInfo.addProperty("local_start", local_start);
 	        		
-	        		postTrackInfo(Activator.gson.toJson(trackInfo));
+	        		postTrackInfo(CodeTimeActivator.gson.toJson(trackInfo));
 	        		
 	        		// update the current track
 		        	cloneTrackInfoToCurrent(trackInfo);
@@ -98,7 +98,7 @@ public class SoftwareCoMusicManager {
 	        		// update the end time on the previous track and send it as well
 	        		currentTrack.addProperty("end", now);
 	        		// send the post to end the previous track
-	        		postTrackInfo(Activator.gson.toJson(currentTrack));
+	        		postTrackInfo(CodeTimeActivator.gson.toJson(currentTrack));
 	        	}
 	        	
 	        	// song has ended, clear out the current track

@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.FileManager;
 
 public class SoftwareCoOfflineManager {
@@ -70,7 +70,7 @@ public class SoftwareCoOfflineManager {
 	public void saveSessionSummaryToDisk() {
 		File f = new File(FileManager.getSessionSummaryFile());
 
-		final String summaryDataJson = Activator.gson.toJson(sessionSummaryData);
+		final String summaryDataJson = CodeTimeActivator.gson.toJson(sessionSummaryData);
 
 		Writer writer = null;
 		try {

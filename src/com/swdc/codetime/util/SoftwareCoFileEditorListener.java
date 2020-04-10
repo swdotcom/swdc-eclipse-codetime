@@ -18,7 +18,7 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 
 /**
  * 
@@ -44,9 +44,9 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 				if (uri != null && uri.getPath() != null) {
 					fileName = uri.getPath();
 					SoftwareCoUtils.lastOpenFile = fileName;
-					String projectName = Activator.getActiveProjectName(fileName);
+					String projectName = CodeTimeActivator.getActiveProjectName(fileName);
 					
-					Activator.initializeKeystrokeObjectGraph(projectName, fileName);
+					CodeTimeActivator.initializeKeystrokeObjectGraph(projectName, fileName);
 				}
 
 				IDocument document = (((ITextEditor) editor).getDocumentProvider()).getDocument(input);
@@ -76,7 +76,7 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 	@Override
 	public void partClosed(IWorkbenchPartReference partRef) {
 		String fileName = this.checkPart(partRef);
-		Activator.handleFileClosedEvent(fileName);
+		CodeTimeActivator.handleFileClosedEvent(fileName);
 	}
 
 	@Override
@@ -87,7 +87,7 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 	@Override
 	public void partOpened(IWorkbenchPartReference partRef) {
 		this.checkPart(partRef);
-		Activator.handleFileOpenedEvent();
+		CodeTimeActivator.handleFileOpenedEvent();
 	}
 
 	@Override

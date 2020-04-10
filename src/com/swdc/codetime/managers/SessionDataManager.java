@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.KeystrokeAggregate;
 import com.swdc.codetime.models.SessionSummary;
 import com.swdc.codetime.util.SoftwareCoUtils;
@@ -56,7 +56,7 @@ public class SessionDataManager {
         }
         
         Type type = new TypeToken<SessionSummary>() {}.getType();
-        SessionSummary summary = Activator.gson.fromJson(jsonObj, type);
+        SessionSummary summary = CodeTimeActivator.gson.fromJson(jsonObj, type);
         return summary;
     }
 

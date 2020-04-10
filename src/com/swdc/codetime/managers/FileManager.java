@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,7 +23,9 @@ import org.apache.http.client.methods.HttpPost;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.swdc.codetime.Activator;
+import com.google.gson.reflect.TypeToken;
+import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.models.SessionSummary;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.codetime.util.SoftwareResponse;
@@ -105,7 +108,7 @@ public class FileManager {
 			return;
 		}
 		File f = new File(file);
-		final String content = Activator.gson.toJson(o);
+		final String content = CodeTimeActivator.gson.toJson(o);
 
 		Writer writer = null;
 		try {
@@ -127,7 +130,7 @@ public class FileManager {
 			return;
 		}
 		File f = new File(file);
-		String content = Activator.gson.toJson(o);
+		String content = CodeTimeActivator.gson.toJson(o);
 		if (SoftwareCoUtils.isWindows()) {
 			content += "\r\n";
 		} else {
@@ -186,7 +189,7 @@ public class FileManager {
 		if (f.exists()) {
 			try {
 				JsonArray jsonArr = FileManager.getFileContentAsJsonArray(file);
-				String payloadData = Activator.gson.toJson(jsonArr);
+				String payloadData = CodeTimeActivator.gson.toJson(jsonArr);
 				SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpPost.METHOD_NAME, payloadData);
 				if (!resp.isOk()) {
 					// add these back to the offline file
@@ -225,7 +228,7 @@ public class FileManager {
 					payloads = payloads.substring(0, payloads.lastIndexOf(","));
 					payloads = "[" + payloads + "]";
 
-					JsonArray jsonArray = (JsonArray) Activator.jsonParser.parse(payloads);
+					JsonArray jsonArray = (JsonArray) CodeTimeActivator.jsonParser.parse(payloads);
 
 					// delete the file
 					deleteFile(file);
@@ -235,7 +238,7 @@ public class FileManager {
 					for (int i = 0; i < jsonArray.size(); i++) {
 						batch.add(jsonArray.get(i));
 						if (i > 0 && i % 50 == 0) {
-							String payloadData = Activator.gson.toJson(batch);
+							String payloadData = CodeTimeActivator.gson.toJson(batch);
 							SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpPost.METHOD_NAME, payloadData);
 							if (!resp.isOk()) {
 								// add these back to the offline file
@@ -245,7 +248,7 @@ public class FileManager {
 						}
 					}
 					if (batch.size() > 0) {
-						String payloadData = Activator.gson.toJson(batch);
+						String payloadData = CodeTimeActivator.gson.toJson(batch);
 						SoftwareResponse resp = SoftwareCoUtils.makeApiCall("/data/batch", HttpPost.METHOD_NAME,
 								payloadData);
 						if (!resp.isOk()) {
@@ -347,7 +350,7 @@ public class FileManager {
 					LOG.info("getSoftwareSessionAsJson: " + content);
 					if (content != null) {
 						// json parse it
-						sessionJson = Activator.jsonParser.parse(content).getAsJsonObject();
+						sessionJson = CodeTimeActivator.jsonParser.parse(content).getAsJsonObject();
 					}
 
 				} catch (Exception e) {

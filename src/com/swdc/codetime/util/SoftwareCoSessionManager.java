@@ -39,7 +39,7 @@ import org.eclipse.ui.ide.IDE;
 import org.osgi.framework.Bundle;
 
 import com.google.gson.JsonObject;
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
 
@@ -193,7 +193,7 @@ public class SoftwareCoSessionManager {
 	}
 
 	protected File getReadmeFile() {
-		Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
+		Bundle bundle = Platform.getBundle(CodeTimeActivator.PLUGIN_ID);
 		URL fileURL = bundle.getEntry("files/README.html");
 		File file = null;
 		try {
@@ -304,7 +304,7 @@ public class SoftwareCoSessionManager {
 		} else if (userStatus.loggedIn) {
 			
 			// show the success prompt
-			Activator.showLoginSuccessPrompt();
+			CodeTimeActivator.showLoginSuccessPrompt();
 			
 			// update the session summary info to update the statusbar and tree
 			new Thread(() -> {

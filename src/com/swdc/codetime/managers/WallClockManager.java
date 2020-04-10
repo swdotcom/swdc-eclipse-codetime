@@ -14,7 +14,7 @@ import org.eclipse.ui.PlatformUI;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.CodeTimeSummary;
 import com.swdc.codetime.models.SessionSummary;
 import com.swdc.codetime.tree.MetricsTreeView;
@@ -164,7 +164,7 @@ public class WallClockManager {
             }
 
             Type type = new TypeToken<SessionSummary>() {}.getType();
-            SessionSummary fetchedSummary = Activator.gson.fromJson(jsonObj, type);
+            SessionSummary fetchedSummary = CodeTimeActivator.gson.fromJson(jsonObj, type);
  
             // clone all
             summary.clone(fetchedSummary);

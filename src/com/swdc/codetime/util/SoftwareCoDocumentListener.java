@@ -7,7 +7,7 @@ package com.swdc.codetime.util;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
 
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 
 /**
  * 
@@ -25,7 +25,7 @@ public class SoftwareCoDocumentListener implements IDocumentListener {
 
 	@Override
 	public void documentChanged(DocumentEvent event) {
-		Activator.handleChangeEvents(event);
+		CodeTimeActivator.handleChangeEvents(event);
 	}
 
 }

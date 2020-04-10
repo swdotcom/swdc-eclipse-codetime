@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 
 public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControlContribution {
 
@@ -26,7 +26,7 @@ public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControl
 	Listener listener = new Listener() {
 		@Override
 		public void handleEvent(Event event) {
-			Activator.displayCodeTimeMetricsTree();
+			CodeTimeActivator.displayCodeTimeMetricsTree();
 		}
 	};
 

@@ -8,7 +8,7 @@ import org.eclipse.core.resources.IProject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.Activator;
+import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.CodeTimeSummary;
 import com.swdc.codetime.models.TimeData;
 import com.swdc.codetime.util.SoftwareCoProject;
@@ -117,7 +117,7 @@ public class TimeDataManager {
     private static List<TimeData> getTimeDataList() {
         JsonArray jsonArr = FileManager.getFileContentAsJsonArray(getTimeDataSummaryFile());
         Type listType = new TypeToken<List<TimeData>>() {}.getType();
-        List<TimeData> timeDataList = Activator.gson.fromJson(jsonArr, listType);
+        List<TimeData> timeDataList = CodeTimeActivator.gson.fromJson(jsonArr, listType);
         if (timeDataList == null) {
             timeDataList = new ArrayList<>();
         }
