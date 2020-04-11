@@ -1,0 +1,5 @@
+steps:
+1) Go to the plugin.xml and click the option [4. Export the plug-in in a format suitable...]
+  - this should go into the repo folder called "target"
+  - i.e <repo>/target/plugins/com.swdc.codetime_1.0.2.jar
+2) Go to the "feature.xml" within the com.swdc.codetime features folder. The folder is actually <repo>/featurs but it's recognized in the IDE as "com.swdc.codetime". Click the option [3. Export the feature in a format suitable ...]
