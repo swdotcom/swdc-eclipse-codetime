@@ -16,206 +16,208 @@ import com.swdc.codetime.util.SoftwareCoUtils;
 
 public class TimeDataManager {
 
-    private static String getTimeDataSummaryFile() {
-        String file = FileManager.getSoftwareDir(true);
-        if (SoftwareCoUtils.isWindows()) {
-            file += "\\projectTimeData.json";
-        } else {
-            file += "/projectTimeData.json";
-        }
-        return file;
-    }
+	private static String getTimeDataSummaryFile() {
+		String file = FileManager.getSoftwareDir(true);
+		if (SoftwareCoUtils.isWindows()) {
+			file += "\\projectTimeData.json";
+		} else {
+			file += "/projectTimeData.json";
+		}
+		return file;
+	}
 
-    public static void clearTimeDataSummary() {
-        FileManager.writeData(getTimeDataSummaryFile(), new JsonArray());
-    }
-    
-    public static void updateEditorSeconds(long editorSeconds) {
-    	SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
-    	// get the current active project
-    	IProject project = SoftwareCoUtils.getActiveProject();
-    	if (project != null) {
-    		// build the keystroke project
-    		SoftwareCoProject keystrokeProj = new SoftwareCoProject(project.getName(), project.getFullPath().toString());
-    		
-    		TimeData td = getTodayTimeDataSummary(keystrokeProj);
-    		
-    		if (td != null) {
-    			td.editor_seconds = td.editor_seconds + editorSeconds;
-    			td.timestamp_local = timesData.local_now;
-    			td.editor_seconds = Math.max(td.editor_seconds, td.session_seconds);
-    			
-    			saveTimeDataSummaryToDisk(td);
-    		}
-    	}
-    }
-    
+	public static void clearTimeDataSummary() {
+		FileManager.writeData(getTimeDataSummaryFile(), new JsonArray());
+	}
 
-    public static void incrementSessionAndFileSeconds(SoftwareCoProject keystrokeProj, long minutesSincePayload) {
+	public static void updateEditorSeconds(long editorSeconds) {
+		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		// get the current active project
+		IProject project = SoftwareCoUtils.getActiveProject();
+		if (project != null) {
+			// build the keystroke project
+			SoftwareCoProject keystrokeProj = new SoftwareCoProject(project.getName(),
+					project.getFullPath().toString());
 
-    	TimeData td = getTodayTimeDataSummary(keystrokeProj);
-    	if (td != null) {
-    		long sessionSeconds = minutesSincePayload * 60;
-    		td.session_seconds = sessionSeconds;
-    		td.file_seconds += 60;
-    		
-    		td.editor_seconds = Math.max(td.editor_seconds, td.session_seconds);
-    		td.file_seconds = Math.min(td.file_seconds, td.session_seconds);
-    		
-    		saveTimeDataSummaryToDisk(td);
-    	}
-    }
-    
-    public static void updateSessionFromSummaryApi(long currentDayMinutes) {
-        SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
-        String day = SoftwareCoUtils.getTodayInStandardFormat();
+			TimeData td = getTodayTimeDataSummary(keystrokeProj);
 
-        CodeTimeSummary ctSummary = getCodeTimeSummary();
-        // find out if there's a diff
-        long diffActiveCodeMinutesToAdd = ctSummary.activeCodeTimeMinutes < currentDayMinutes ?
-                currentDayMinutes - ctSummary.activeCodeTimeMinutes : 0;
+			if (td != null) {
+				td.editor_seconds = td.editor_seconds + editorSeconds;
+				td.timestamp_local = timesData.local_now;
+				td.editor_seconds = Math.max(td.editor_seconds, td.session_seconds);
 
-        IProject activeProject = SoftwareCoUtils.getActiveProject();
-        TimeData td = null;
-        if (activeProject != null) {
-        	SoftwareCoProject project = new SoftwareCoProject(
-                    activeProject.getName(), activeProject.getFullPath().toString());
-            td = getTodayTimeDataSummary(project);
-        } else {
-            // find the 1st one
-            List<TimeData> timeDataList = getTimeDataList();
-            if (timeDataList != null && timeDataList.size() > 0) {
-                for (TimeData timeData : timeDataList) {
-                    if (timeData.day.equals(day)) {
-                        // use this one
-                        td = timeData;
-                        break;
-                    }
-                }
-            }
-        }
+				saveTimeDataSummaryToDisk(td);
+			}
+		}
+	}
 
-        if (td == null) {
-        	SoftwareCoProject project = new SoftwareCoProject(
-                    "Unnamed", "Untitled");
-            td = new TimeData();
-            td.day = day;
-            td.timestamp = timesData.now;
-            td.timestamp_local = timesData.local_now;
-            td.project = project;
-        }
+	public static void incrementSessionAndFileSeconds(SoftwareCoProject keystrokeProj, long sessionSeconds) {
 
-        long secondsToAdd = diffActiveCodeMinutesToAdd * 60;
-        td.session_seconds += secondsToAdd;
-        td.editor_seconds += secondsToAdd;
+		TimeData td = getTodayTimeDataSummary(keystrokeProj);
+		if (td != null) {
+			td.session_seconds = sessionSeconds;
+			td.file_seconds += 60;
 
-        // save the info to disk
-        // make sure editor seconds isn't less
-        saveTimeDataSummaryToDisk(td);
-    }
+			td.editor_seconds = Math.max(td.editor_seconds, td.session_seconds);
+			td.file_seconds = Math.min(td.file_seconds, td.session_seconds);
 
-    private static List<TimeData> getTimeDataList() {
-        JsonArray jsonArr = FileManager.getFileContentAsJsonArray(getTimeDataSummaryFile());
-        Type listType = new TypeToken<List<TimeData>>() {}.getType();
-        List<TimeData> timeDataList = CodeTimeActivator.gson.fromJson(jsonArr, listType);
-        if (timeDataList == null) {
-            timeDataList = new ArrayList<>();
-        }
-        return timeDataList;
-    }
+			saveTimeDataSummaryToDisk(td);
+		}
+	}
 
-    /**
-     * Get the current time data info that is saved on disk. If not found create an empty one.
-     * @return
-     */
-    public static TimeData getTodayTimeDataSummary(SoftwareCoProject p) {
-    	if (p == null || p.directory == null) {
-            return null;
-        }
-        String day = SoftwareCoUtils.getTodayInStandardFormat();
+	public static void updateSessionFromSummaryApi(long currentDayMinutes) {
+		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		String day = SoftwareCoUtils.getTodayInStandardFormat();
 
-        List<TimeData> timeDataList = getTimeDataList();
+		CodeTimeSummary ctSummary = getCodeTimeSummary();
+		// find out if there's a diff
+		long diffActiveCodeMinutesToAdd = ctSummary.activeCodeTimeMinutes < currentDayMinutes
+				? currentDayMinutes - ctSummary.activeCodeTimeMinutes
+				: 0;
 
-        if (timeDataList != null && timeDataList.size() > 0) {
-            for (TimeData timeData : timeDataList) {
-                if (timeData.day.equals(day) && timeData.project.directory.equals(p.directory)) {
-                    // return it
-                    return timeData;
-                }
-            }
-        }
+		IProject activeProject = SoftwareCoUtils.getActiveProject();
+		TimeData td = null;
+		if (activeProject != null) {
+			SoftwareCoProject project = new SoftwareCoProject(activeProject.getName(),
+					activeProject.getFullPath().toString());
+			td = getTodayTimeDataSummary(project);
+		} else {
+			// find the 1st one
+			List<TimeData> timeDataList = getTimeDataList();
+			if (timeDataList != null && timeDataList.size() > 0) {
+				for (TimeData timeData : timeDataList) {
+					if (timeData.day.equals(day)) {
+						// use this one
+						td = timeData;
+						break;
+					}
+				}
+			}
+		}
 
-        SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		if (td == null) {
+			SoftwareCoProject project = new SoftwareCoProject("Unnamed", "Untitled");
+			td = new TimeData();
+			td.day = day;
+			td.timestamp = timesData.now;
+			td.timestamp_local = timesData.local_now;
+			td.project = project;
+		}
 
-        TimeData td = new TimeData();
-        td.day = day;
-        td.timestamp_local = timesData.local_now;
-        td.timestamp = timesData.now;
-        td.project = p.clone();
+		long secondsToAdd = diffActiveCodeMinutesToAdd * 60;
+		td.session_seconds += secondsToAdd;
+		td.editor_seconds += secondsToAdd;
 
-        if (timeDataList == null) {
-            timeDataList = new ArrayList<>();
-        }
+		// save the info to disk
+		// make sure editor seconds isn't less
+		saveTimeDataSummaryToDisk(td);
+	}
 
-        timeDataList.add(td);
-        // write it then return it
-        FileManager.writeData(getTimeDataSummaryFile(), timeDataList);
-        return td;
-    }
+	private static List<TimeData> getTimeDataList() {
+		JsonArray jsonArr = FileManager.getFileContentAsJsonArray(getTimeDataSummaryFile());
+		Type listType = new TypeToken<List<TimeData>>() {
+		}.getType();
+		List<TimeData> timeDataList = CodeTimeActivator.gson.fromJson(jsonArr, listType);
+		if (timeDataList == null) {
+			timeDataList = new ArrayList<>();
+		}
+		return timeDataList;
+	}
 
-    public static void sendOfflineTimeData() {
-    	FileManager.sendJsonArrayData(getTimeDataSummaryFile(), "/data/time");
-    }
-    
-    public static CodeTimeSummary getCodeTimeSummary() {
-        CodeTimeSummary summary = new CodeTimeSummary();
+	/**
+	 * Get the current time data info that is saved on disk. If not found create an
+	 * empty one.
+	 * 
+	 * @return
+	 */
+	public static TimeData getTodayTimeDataSummary(SoftwareCoProject p) {
+		if (p == null || p.directory == null) {
+			return null;
+		}
+		String day = SoftwareCoUtils.getTodayInStandardFormat();
 
-        String day = SoftwareCoUtils.getTodayInStandardFormat();
+		List<TimeData> timeDataList = getTimeDataList();
 
-        List<TimeData> timeDataList = getTimeDataList();
+		if (timeDataList != null && timeDataList.size() > 0) {
+			for (TimeData timeData : timeDataList) {
+				if (timeData.day.equals(day) && timeData.project.directory.equals(p.directory)) {
+					// return it
+					return timeData;
+				}
+			}
+		}
 
-        if (timeDataList != null && timeDataList.size() > 0) {
-            for (TimeData timeData : timeDataList) {
-                if (timeData.day.equals(day)) {
-                    summary.activeCodeTimeMinutes += (timeData.session_seconds / 60);
-                    summary.codeTimeMinutes += (timeData.editor_seconds / 60);
-                    summary.fileTimeMinutes += (timeData.file_seconds / 60);
-                }
-            }
-        }
+		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
 
-        return summary;
-    }
-    
-    private static void saveTimeDataSummaryToDisk(TimeData timeData) {
-        if (timeData == null) {
-            return;
-        }
-        String dir = timeData.project.directory;
-        String day = timeData.day;
+		TimeData td = new TimeData();
+		td.day = day;
+		td.timestamp_local = timesData.local_now;
+		td.timestamp = timesData.now;
+		td.project = p.clone();
 
-        // get the existing list
-        List<TimeData> timeDataList = getTimeDataList();
+		if (timeDataList == null) {
+			timeDataList = new ArrayList<>();
+		}
 
-        // new list to save
-        List<TimeData> listToSave = new ArrayList<>();
+		timeDataList.add(td);
+		// write it then return it
+		FileManager.writeData(getTimeDataSummaryFile(), timeDataList);
+		return td;
+	}
 
-        boolean foundIt = false;
-        if (timeDataList != null && timeDataList.size() > 0) {
-            for (TimeData td : timeDataList) {
-            	if (td.day.equals(day) && td.project.directory.equals(dir)) {
-                    listToSave.add(timeData);
-                    foundIt = true;
-                } else {
-                    listToSave.add(td);
-                }
-            }
-        }
-        if (!foundIt) {
-            listToSave.add(timeData);
-        }
+	public static void sendOfflineTimeData() {
+		FileManager.sendJsonArrayData(getTimeDataSummaryFile(), "/data/time");
+	}
 
-        // write it all
-        FileManager.writeData(getTimeDataSummaryFile(), listToSave);
-    }
+	public static CodeTimeSummary getCodeTimeSummary() {
+		CodeTimeSummary summary = new CodeTimeSummary();
+
+		String day = SoftwareCoUtils.getTodayInStandardFormat();
+
+		List<TimeData> timeDataList = getTimeDataList();
+
+		if (timeDataList != null && timeDataList.size() > 0) {
+			for (TimeData timeData : timeDataList) {
+				if (timeData.day.equals(day)) {
+					summary.activeCodeTimeMinutes += (timeData.session_seconds / 60);
+					summary.codeTimeMinutes += (timeData.editor_seconds / 60);
+					summary.fileTimeMinutes += (timeData.file_seconds / 60);
+				}
+			}
+		}
+
+		return summary;
+	}
+
+	private static void saveTimeDataSummaryToDisk(TimeData timeData) {
+		if (timeData == null) {
+			return;
+		}
+		String dir = timeData.project.directory;
+		String day = timeData.day;
+
+		// get the existing list
+		List<TimeData> timeDataList = getTimeDataList();
+
+		// new list to save
+		List<TimeData> listToSave = new ArrayList<>();
+
+		boolean foundIt = false;
+		if (timeDataList != null && timeDataList.size() > 0) {
+			for (TimeData td : timeDataList) {
+				if (td.day.equals(day) && td.project.directory.equals(dir)) {
+					listToSave.add(timeData);
+					foundIt = true;
+				} else {
+					listToSave.add(td);
+				}
+			}
+		}
+		if (!foundIt) {
+			listToSave.add(timeData);
+		}
+
+		// write it all
+		FileManager.writeData(getTimeDataSummaryFile(), listToSave);
+	}
 }

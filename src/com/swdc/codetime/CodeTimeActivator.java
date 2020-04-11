@@ -37,6 +37,7 @@ import com.swdc.codetime.util.SoftwareCoRepoManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.codetime.util.SoftwareCoKeystrokeCount.FileInfo;
+import com.swdc.codetime.util.SoftwareCoKeystrokeCount.ProcessKeystrokesTimer;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -497,7 +498,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		fileInfo.add += 1;
 		keystrokeCount.setKeystrokes(1);
 		// send the initial payload
-		keystrokeCount.processKeystrokes();
+		new Timer().schedule(new ProcessKeystrokesTimer(keystrokeCount), 1000);
 	}
 
 	public static String getActiveProjectName(String fileName) {

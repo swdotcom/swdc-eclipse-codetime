@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.models.ElapsedTime;
 import com.swdc.codetime.models.KeystrokeAggregate;
 import com.swdc.codetime.models.SessionSummary;
 import com.swdc.codetime.util.SoftwareCoUtils;
@@ -60,11 +61,10 @@ public class SessionDataManager {
         return summary;
     }
 
-    public static void incrementSessionSummary(KeystrokeAggregate aggregate) {
+    public static void incrementSessionSummary(KeystrokeAggregate aggregate, long sessionMinutes) {
         SessionSummary summary = getSessionSummaryData();
 
-        long incrementMinutes = Math.max(1, getMinutesSinceLastPayload());
-        summary.currentDayMinutes = summary.currentDayMinutes + incrementMinutes;
+        summary.currentDayMinutes = summary.currentDayMinutes + sessionMinutes;
 
         summary.currentDayKeystrokes = summary.currentDayKeystrokes + aggregate.keystrokes;
         summary.currentDayLinesAdded = summary.currentDayLinesAdded + aggregate.linesAdded;
@@ -74,19 +74,27 @@ public class SessionDataManager {
         FileManager.writeData(getSessionDataSummaryFile(), summary);
        
     }
+    
+    public static ElapsedTime getTimeBetweenLastPayload() {
+        ElapsedTime eTime = new ElapsedTime();
 
-    public static long getMinutesSinceLastPayload() {
-        long minutesSinceLastPayload = 1;
+        long sessionSeconds = 0;
+        long elapsedSeconds = 0;
+
         long lastPayloadEnd = FileManager.getNumericItem("latestPayloadTimestampEndUtc", 0L);
         if (lastPayloadEnd > 0) {
             SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
-            long diffInSec = timesData.now - lastPayloadEnd;
+            elapsedSeconds = timesData.now - lastPayloadEnd;
             long sessionThresholdSeconds = 60 * 15;
-            if (diffInSec > 0 && diffInSec <= sessionThresholdSeconds) {
-                minutesSinceLastPayload = diffInSec / 60;
+            if (elapsedSeconds > 0 && elapsedSeconds <= sessionThresholdSeconds) {
+                sessionSeconds = elapsedSeconds / 60;
             }
+            sessionSeconds = Math.max(60, sessionSeconds);
         }
 
-        return Math.max(1, minutesSinceLastPayload);
+        eTime.sessionSeconds = sessionSeconds;
+        eTime.elapsedSeconds = elapsedSeconds;
+
+        return eTime;
     }
 }

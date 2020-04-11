@@ -32,7 +32,7 @@ public class WallClockManager {
 	private Timer newDayCheckerTimer;
 
 	private IViewPart treeView;
-	
+
 	private boolean isActive = true;
 
 	private static boolean dispatching = false;
@@ -58,27 +58,27 @@ public class WallClockManager {
 	}
 
 	private void init() {
-		
+
 		// check if the app is active
 		PlatformUI.getWorkbench().addWindowListener(new IWindowListener() {
-			
+
 			@Override
 			public void windowOpened(IWorkbenchWindow arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void windowDeactivated(IWorkbenchWindow arg0) {
 				isActive = false;
 			}
-			
+
 			@Override
 			public void windowClosed(IWorkbenchWindow arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void windowActivated(IWorkbenchWindow arg0) {
 				isActive = true;
@@ -121,60 +121,59 @@ public class WallClockManager {
 				FileManager.setNumericItem("latestPayloadTimestampEndUtc", 0);
 
 				dispatchStatusViewUpdate();
-				
+
 				new Thread(() -> {
-	                try {
-	                    Thread.sleep(1000 * 70);
-	                    updateSessionSummaryFromServer();
-	                }
-	                catch (Exception e){
-	                    System.err.println(e);
-	                }
-	            }).start();
+					try {
+						Thread.sleep(1000 * 70);
+						updateSessionSummaryFromServer();
+					} catch (Exception e) {
+						System.err.println(e);
+					}
+				}).start();
 			}
 		}
 	}
-	
+
 	public void updateSessionSummaryFromServer() {
-        SessionSummary summary = SessionDataManager.getSessionSummaryData();
+		SessionSummary summary = SessionDataManager.getSessionSummaryData();
 
-        String jwt = FileManager.getItem("jwt");
-        String api = "/sessions/summary?refresh=true";
-        SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
-        if (resp.isOk()) {
-            JsonObject jsonObj = resp.getJsonObj();
+		String jwt = FileManager.getItem("jwt");
+		String api = "/sessions/summary?refresh=true";
+		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
+		if (resp.isOk()) {
+			JsonObject jsonObj = resp.getJsonObj();
 
-            JsonElement lastUpdatedToday = jsonObj.get("lastUpdatedToday");
-            if (lastUpdatedToday != null) {
-                // make sure it's a boolean and not a number
-                if (!lastUpdatedToday.getAsJsonPrimitive().isBoolean()) {
-                    // set it to boolean
-                    boolean newVal = lastUpdatedToday.getAsInt() == 0 ? false : true;
-                    jsonObj.addProperty("lastUpdatedToday", newVal);
-                }
-            }
-            JsonElement inFlow = jsonObj.get("inFlow");
-            if (inFlow != null) {
-                // make sure it's a boolean and not a number
-                if (!inFlow.getAsJsonPrimitive().isBoolean()) {
-                    // set it to boolean
-                    boolean newVal = inFlow.getAsInt() == 0 ? false : true;
-                    jsonObj.addProperty("inFlow", newVal);
-                }
-            }
+			JsonElement lastUpdatedToday = jsonObj.get("lastUpdatedToday");
+			if (lastUpdatedToday != null) {
+				// make sure it's a boolean and not a number
+				if (!lastUpdatedToday.getAsJsonPrimitive().isBoolean()) {
+					// set it to boolean
+					boolean newVal = lastUpdatedToday.getAsInt() == 0 ? false : true;
+					jsonObj.addProperty("lastUpdatedToday", newVal);
+				}
+			}
+			JsonElement inFlow = jsonObj.get("inFlow");
+			if (inFlow != null) {
+				// make sure it's a boolean and not a number
+				if (!inFlow.getAsJsonPrimitive().isBoolean()) {
+					// set it to boolean
+					boolean newVal = inFlow.getAsInt() == 0 ? false : true;
+					jsonObj.addProperty("inFlow", newVal);
+				}
+			}
 
-            Type type = new TypeToken<SessionSummary>() {}.getType();
-            SessionSummary fetchedSummary = CodeTimeActivator.gson.fromJson(jsonObj, type);
- 
-            // clone all
-            summary.clone(fetchedSummary);
-            
-            TimeDataManager.updateSessionFromSummaryApi(summary.currentDayMinutes);
+			Type type = new TypeToken<SessionSummary>() {
+			}.getType();
+			SessionSummary fetchedSummary = CodeTimeActivator.gson.fromJson(jsonObj, type);
 
+			// clone all
+			summary.clone(fetchedSummary);
 
-            // save the file
+			TimeDataManager.updateSessionFromSummaryApi(summary.currentDayMinutes);
+
+			// save the file
 			FileManager.writeData(SessionDataManager.getSessionDataSummaryFile(), summary);
-			
+
 			new Thread(() -> {
 				try {
 					Thread.sleep(1000 * 2);
@@ -183,8 +182,8 @@ public class WallClockManager {
 					System.err.println(e);
 				}
 			}).start();
-        }
-    }
+		}
+	}
 
 	private class UpdateWallClockTimeTask extends TimerTask {
 		public void run() {
@@ -219,7 +218,7 @@ public class WallClockManager {
 						System.err.println(e);
 					}
 				}).start();
-				
+
 			}
 		}
 		dispatching = false;

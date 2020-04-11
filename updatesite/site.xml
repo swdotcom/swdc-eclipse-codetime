@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.swdc.codetime.feature_1.0.0.202004102320.jar" id="com.swdc.codetime.feature" version="1.0.0.202004102320">
+   <feature url="features/com.swdc.codetime_1.0.2.jar" id="com.swdc.codetime" version="1.0.2">
       <category name="com.swdc.codetime"/>
    </feature>
-   <category-def name="com.swdc.codetime" label="Code Time"/>
+   <category-def name="com.swdc.codetime" label="Code Time">
+      <description>
+         Insights into how you code.
+      </description>
+   </category-def>
 </site>
