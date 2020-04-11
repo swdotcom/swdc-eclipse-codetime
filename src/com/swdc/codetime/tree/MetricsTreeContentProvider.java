@@ -304,7 +304,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		// menu and metric roots
 		MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem", "paw.png");
 		mNodeList.add(webDashboardItem);
-		MetricsTreeNode generateDashboardItem = new MetricsTreeNode("Generate dashboard", "generateDashboardItem",
+		MetricsTreeNode generateDashboardItem = new MetricsTreeNode("View summary", "generateDashboardItem",
 				"dashboard.png");
 		mNodeList.add(generateDashboardItem);
 		MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics", "toggleStatusTextItem",

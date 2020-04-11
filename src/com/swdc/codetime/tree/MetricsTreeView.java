@@ -131,12 +131,16 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
-					Object[] expandedEls = tv.getExpandedElements();
-					contentProvider.refreshData();
-					if (expandedEls != null) {
-						tv.setExpandedElements(expandedEls);
+					try {
+						Object[] expandedEls = tv.getExpandedElements();
+						contentProvider.refreshData();
+						if (expandedEls != null) {
+							tv.setExpandedElements(expandedEls);
+						}
+						tv.refresh();
+					} catch (Exception e) {
+						//
 					}
-					tv.refresh();
 				}
 			});
 

@@ -19,7 +19,7 @@ public class SWCoreImages
     {
     }
 
-    public final static String          ICONS_PATH      = "icons/";                         //$NON-NLS-1$
+    public final static String          ICONS_PATH      = "icons/"; //$NON-NLS-1$
     private final static ImageRegistry  PLUGIN_REGISTRY = new ImageRegistry();
     public static final ImageDescriptor DESC_SW_ICON    = create(ICONS_PATH, "sw.png");
     
@@ -35,6 +35,7 @@ public class SWCoreImages
     private static URL makeImageURL(String prefix, String name)
     {
         String path = "$nl$/" + prefix + name; //$NON-NLS-1$
+    	// String path = "platform:/plugin/som.swdc.codetime/" + prefix + name;
         return FileLocator.find(CodeTimeActivator.getDefault().getBundle(), new Path(path), null);
     }
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.swdc.codetime.feature"
+      label="Code Time"
+      version="1.0.0.qualifier"
+      provider-name="Software.com">
+
+   <description url="http://www.example.com/description">
+      Code Time is an open source plugin for automatic programming metrics and time-tracking.
+
+The Code Time web app has data visualizations and settings you can customize, such as your work hours and rates per project for advanced time tracking. You can also connect Google Calendar to visualize your Code Time vs. meetings in a single calendar.
+
+You can connect multiple code editors on multiple devices using the same email account.
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      Copyright (c) 2018 Software.co Technologies, Inc. All Rights
+   </copyright>
+
+   <license url="http://www.example.com/license">
+      Reproduction of this material is strictly forbidden unless prior written permission is obtained from Software.co Technologies, Inc.
+   </license>
+
+</feature>

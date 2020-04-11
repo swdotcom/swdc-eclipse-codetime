@@ -270,12 +270,6 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void launchCodeTimeMetricsDashboard() {
-		// fetch content and open it
-		IProject p = SoftwareCoUtils.getActiveProject();
-		if (p == null) {
-			return;
-		}
-
 		JsonObject sessionSummary = FileManager.getSessionSummaryFileAsJson();
 		fetchCodeTimeMetricsDashboard(sessionSummary);
 
