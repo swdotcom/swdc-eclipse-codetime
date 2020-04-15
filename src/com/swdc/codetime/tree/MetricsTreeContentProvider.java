@@ -52,7 +52,6 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	
 	private void updateSignupButtons() {
 		if (SoftwareCoUtils.isLoggedIn() && showingLoginButtons) {
-			System.out.println("REMOVING SIGNUP BUTTONS");
 			// remove the login button nodes
 			
 			MetricsTreeNode[] nodes = contentMap.get(ROOT_KEY);

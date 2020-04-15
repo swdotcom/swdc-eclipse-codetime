@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.swdc.codetime_1.0.2.jar" id="com.swdc.codetime" version="1.0.2">
+   <feature url="features/com.swdc.codetime_1.0.3.jar" id="com.swdc.codetime" version="1.0.3">
       <category name="com.swdc.codetime"/>
    </feature>
    <category-def name="com.swdc.codetime" label="Code Time">

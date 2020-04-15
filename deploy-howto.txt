@@ -1,7 +1,18 @@
 steps:
-1) Go to the plugin.xml and click the option [4. Export the plug-in in a format suitable...]
-  - this should go into the repo folder called "target"
-  - i.e <repo>/target/plugins/com.swdc.codetime_1.0.2.jar
-2) Go to the "feature.xml" within the com.swdc.codetime features folder. The folder is actually <repo>/featurs but it's recognized in the IDE as "com.swdc.codetime". Click the option [3. Export the feature in a format suitable ...]
-3) Go to the com.swdc.codetime.updatesite site.xml and click the Build All button
+1) Build the com.swdc.codetime_<version>.jar to the target/plugins by
+   selecting the option "[4. Export the plug-in in a format suitable...]"
+   within the plugin.xml
+   - refresh the project
+2) Go to the "feature.xml" within com.swdc.codetime.
+   Update the version to the same version of the plugin you built.
+   Click the option "[3. Export the feature in a format suitable ...]"
+   and choose the plugin version you just built.
+   - refresh the project
+3) Go to the com.swdc.codetime.updatesite site.xml
+   Bring in the feature/version that you exported into the
+   com.swdc.codetime category by selecting the "Add Feature" button.
+   Select the jar you created from the feature and add.
+   Select the "Build All" button.
+   - refresh the project
+3) You can delete the older version feature and plugin jar files
 4) Push the updates

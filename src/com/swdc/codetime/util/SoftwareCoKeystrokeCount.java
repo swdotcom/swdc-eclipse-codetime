@@ -8,8 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.FileAggregateDataManager;
@@ -96,9 +94,6 @@ public class SoftwareCoKeystrokeCount {
 			this.start = timesData.now;
 			this.local_start = timesData.local_now;
 			this.timezone = timesData.timezone;
-
-			// start the keystroke processor 1 minute timer
-			new Timer().schedule(new ProcessKeystrokesTimer(this), 1000 * 60);
 		}
 
 		// create one and return the one just created
@@ -186,20 +181,20 @@ public class SoftwareCoKeystrokeCount {
 		return false;
 	}
 	
-	protected static void processKeystrokes(SoftwareCoKeystrokeCount keystrokeCount) {
-		if (keystrokeCount.hasData()) {
+	public void processKeystrokes() {
+		if (this.hasData()) {
 
 			SoftwareCoSessionManager sessionMgr = SoftwareCoSessionManager.getInstance();
 
 			ElapsedTime eTime = SessionDataManager.getTimeBetweenLastPayload();
 
 			// end the file end times.
-			keystrokeCount.endUnendedFiles(eTime.elapsedSeconds, eTime.sessionSeconds);
+			this.endUnendedFiles(eTime.elapsedSeconds, eTime.sessionSeconds);
 
 			// update the file aggregate info.
-			keystrokeCount.updateAggregates(eTime.sessionSeconds);
+			this.updateAggregates(eTime.sessionSeconds);
 
-			final String payload = CodeTimeActivator.gson.toJson(keystrokeCount);
+			final String payload = CodeTimeActivator.gson.toJson(this);
 
 			// store to send later
 			sessionMgr.storePayload(payload);
@@ -209,20 +204,9 @@ public class SoftwareCoKeystrokeCount {
 			FileManager.setNumericItem("latestPayloadTimestampEndUtc", timesData.now);
 		}
 
-		keystrokeCount.resetData();
+		this.resetData();
 		
 		WallClockManager.getInstance().dispatchStatusViewUpdate();
-	}
-	
-	public static class ProcessKeystrokesTimer extends TimerTask {
-		SoftwareCoKeystrokeCount keystrokeCount;
-		
-		public ProcessKeystrokesTimer(SoftwareCoKeystrokeCount keystrokeCountCls) {
-			this.keystrokeCount = keystrokeCountCls;
-		}
-		public void run() {
-			processKeystrokes(keystrokeCount);
-		}
 	}
 
 	private void updateAggregates(long sessionSeconds) {

@@ -209,7 +209,6 @@ public class WallClockManager {
 
 			// refresh the tree
 			if (treeView != null) {
-				System.out.println("REFRESHING THE TREE VIEW");
 				new Thread(() -> {
 					try {
 						Thread.sleep(1000);

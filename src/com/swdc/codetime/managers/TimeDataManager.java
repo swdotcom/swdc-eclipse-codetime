@@ -52,10 +52,9 @@ public class TimeDataManager {
 	}
 
 	public static void incrementSessionAndFileSeconds(SoftwareCoProject keystrokeProj, long sessionSeconds) {
-
 		TimeData td = getTodayTimeDataSummary(keystrokeProj);
 		if (td != null) {
-			td.session_seconds = sessionSeconds;
+			td.session_seconds += sessionSeconds;
 			td.file_seconds += 60;
 
 			td.editor_seconds = Math.max(td.editor_seconds, td.session_seconds);

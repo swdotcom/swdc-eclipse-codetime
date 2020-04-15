@@ -5,6 +5,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,7 +38,6 @@ import com.swdc.codetime.util.SoftwareCoRepoManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.codetime.util.SoftwareCoKeystrokeCount.FileInfo;
-import com.swdc.codetime.util.SoftwareCoKeystrokeCount.ProcessKeystrokesTimer;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -65,7 +65,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	// private keystroke processor timer and client manager
 	private Timer timer;
-	private Timer kpmFetchTimer;
 	private Timer userStatusTimer;
 	private Timer sendOfflineDataTimer;
 	private Timer repoCommitsTimer;
@@ -188,6 +187,10 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				// send payloads every 30 minutes
 				sendOfflineDataTimer = new Timer();
 				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), one_min * 2, one_min * 15);
+				
+				// keystroke payload timer
+				timer = new Timer();
+				timer.scheduleAtFixedRate(new ProcessKeystrokePayloadTask(), one_min, one_min);
 
 				// start the wallclock
 				WallClockManager wcMgr = WallClockManager.getInstance();
@@ -230,11 +233,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		if (timer != null) {
 			timer.cancel();
 			timer = null;
-		}
-
-		if (kpmFetchTimer != null) {
-			kpmFetchTimer.cancel();
-			kpmFetchTimer = null;
 		}
 
 		if (repoCommitsTimer != null) {
@@ -444,9 +442,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	private class ProcessUserStatusTask extends TimerTask {
 		public void run() {
-			boolean sessionFileExists = SoftwareCoSessionManager.softwareSessionFileExists();
-			boolean hasJwt = SoftwareCoSessionManager.jwtExists();
-			if (!SoftwareCoUtils.isLoggedIn() || !sessionFileExists || !hasJwt) {
+			if (!SoftwareCoUtils.isLoggedIn()) {
 				SoftwareCoUtils.getUserStatus();
 			}
 		}
@@ -474,6 +470,15 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		}
 	}
 	
+	private class ProcessKeystrokePayloadTask extends TimerTask {
+		public void run() {
+			List<SoftwareCoKeystrokeCount> list = keystrokeMgr.getKeystrokeCounts();
+			for (SoftwareCoKeystrokeCount keystrokeCount : list) {
+				keystrokeCount.processKeystrokes();
+			}
+		}
+	}
+	
 	private class ProcessRepoUsersJobsTask extends TimerTask {
 		public void run() {
 			SoftwareCoUtils.sendHeartbeat("HOURLY");
@@ -498,7 +503,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		fileInfo.add += 1;
 		keystrokeCount.setKeystrokes(1);
 		// send the initial payload
-		new Timer().schedule(new ProcessKeystrokesTimer(keystrokeCount), 1000);
+		keystrokeCount.processKeystrokes();
 	}
 
 	public static String getActiveProjectName(String fileName) {

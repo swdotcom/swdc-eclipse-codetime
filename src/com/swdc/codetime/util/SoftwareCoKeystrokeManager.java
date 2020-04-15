@@ -47,6 +47,16 @@ public class SoftwareCoKeystrokeManager {
         }
         return null;
     }
+    
+    public List<SoftwareCoKeystrokeCount> getKeystrokeCounts() {
+    	List<SoftwareCoKeystrokeCount> list = new ArrayList<>();
+    	if (keystrokeCountWrapperList != null && keystrokeCountWrapperList.size() > 0) {
+    		for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
+                list.add(wrapper.getKeystrokeCount());
+            }
+    	}
+    	return list;
+    }
 
     public void setKeystrokeCount(String projectName, SoftwareCoKeystrokeCount keystrokeCount, String fileName) {
         for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
