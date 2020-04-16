@@ -209,15 +209,7 @@ public class WallClockManager {
 
 			// refresh the tree
 			if (treeView != null) {
-				new Thread(() -> {
-					try {
-						Thread.sleep(1000);
-						((MetricsTreeView) treeView).refreshTree();
-					} catch (Exception e) {
-						System.err.println(e);
-					}
-				}).start();
-
+				((MetricsTreeView) treeView).refreshTree();
 			}
 		}
 		dispatching = false;

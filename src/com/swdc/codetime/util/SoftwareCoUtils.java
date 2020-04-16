@@ -954,5 +954,15 @@ public class SoftwareCoUtils {
 		}
 		return content + "" + data;
 	}
+	
+	public static boolean isGitProject(String projectDir) {
+        if (projectDir == null || projectDir.equals("")) {
+            return false;
+        }
+
+        String gitFile = projectDir + File.separator + ".git";
+        File f = new File(gitFile);
+        return f.exists();
+    }
 
 }

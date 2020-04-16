@@ -86,8 +86,8 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 
 	@Override
 	public void partOpened(IWorkbenchPartReference partRef) {
-		this.checkPart(partRef);
-		CodeTimeActivator.handleFileOpenedEvent();
+		String fileName = this.checkPart(partRef);
+		CodeTimeActivator.handleFileOpenedEvent(fileName);
 	}
 
 	@Override

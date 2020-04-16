@@ -78,7 +78,8 @@ public class SessionDataManager {
     public static ElapsedTime getTimeBetweenLastPayload() {
         ElapsedTime eTime = new ElapsedTime();
 
-        long sessionSeconds = 0;
+        // default to 60 seconds
+        long sessionSeconds = 60;
         long elapsedSeconds = 0;
 
         long lastPayloadEnd = FileManager.getNumericItem("latestPayloadTimestampEndUtc", 0L);
@@ -87,7 +88,7 @@ public class SessionDataManager {
             elapsedSeconds = timesData.now - lastPayloadEnd;
             long sessionThresholdSeconds = 60 * 15;
             if (elapsedSeconds > 0 && elapsedSeconds <= sessionThresholdSeconds) {
-                sessionSeconds = elapsedSeconds / 60;
+                sessionSeconds = elapsedSeconds;
             }
             sessionSeconds = Math.max(60, sessionSeconds);
         }

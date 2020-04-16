@@ -94,9 +94,15 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		
+		// add the document listener
+		editorListener = new SoftwareCoFileEditorListener();
+			
+		// create the keystroke manager
 		keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
 
-		editorListener = new SoftwareCoFileEditorListener();
+		
+		// initialize the plugin features
 		earlyStartup();
 	}
 
@@ -289,8 +295,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		}
 	}
 
-	public static void handleFileOpenedEvent() {
-		String fileName = getCurrentFileName();
+	public static void handleFileOpenedEvent(String fileName) {
 		String projectName = getActiveProjectName(fileName);
 		if (fileName == null) {
 			return;
@@ -472,9 +477,11 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	
 	private class ProcessKeystrokePayloadTask extends TimerTask {
 		public void run() {
-			List<SoftwareCoKeystrokeCount> list = keystrokeMgr.getKeystrokeCounts();
-			for (SoftwareCoKeystrokeCount keystrokeCount : list) {
-				keystrokeCount.processKeystrokes();
+			if (keystrokeMgr != null) {
+				List<SoftwareCoKeystrokeCount> list = keystrokeMgr.getKeystrokeCounts();
+				for (SoftwareCoKeystrokeCount keystrokeCount : list) {
+					keystrokeCount.processKeystrokes();
+				}
 			}
 		}
 	}

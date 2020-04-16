@@ -11,8 +11,11 @@ steps:
 3) Go to the com.swdc.codetime.updatesite site.xml
    Bring in the feature/version that you exported into the
    com.swdc.codetime category by selecting the "Add Feature" button.
+   Update the version number in this xml if it doesn't automatically update.
    Select the jar you created from the feature and add.
    Select the "Build All" button.
    - refresh the project
 3) You can delete the older version feature and plugin jar files
 4) Push the updates
+5) Copy the updates folder to the S3 bucket
+6) Increment the version number in the marketplace UI
