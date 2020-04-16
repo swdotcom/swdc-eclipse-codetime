@@ -2,8 +2,8 @@
 
 [Code Time](https://www.software.com/code-time) is an open source plugin for automatic programming metrics and time-tracking.
 
-![Marketplace](https://img.shields.io/jetbrains/plugin/v/10687-code-time.svg)
-![Installs](https://img.shields.io/jetbrains/plugin/d/10687-code-time)
+![Marketplace](https://img.shields.io/eclipse-marketplace/v/code-time)
+![Installs](https://img.shields.io/eclipse-marketplace/dt/code-time)
 
 ## Getting started
 
@@ -19,7 +19,7 @@ You can connect multiple code editors on multiple devices using the same email a
 
 ![Code Time for IntelliJ status bar](https://swdc-intellij.s3-us-west-1.amazonaws.com/status-bar.png)
 
-Your status bar shows you in real-time how many hours and minutes you code each day.
+Your status bar shows you in real-time how many hours and minutes you code each day. A rocket will appear if your active code time exceeds your daily average on this day of the week.
 
 **3. Check out your coding activity**
 
@@ -27,15 +27,15 @@ To see an overview of your coding activity and project metrics, open the **Code 
 
 ![Code Time for IntelliJ side bar](https://swdc-intellij.s3-us-west-1.amazonaws.com/side-bar.png)
 
-In your **Activity Metrics**, your _editor time_ is the total time you have spent in your editor today. Your _code time_ is the total time you have been typing in your editor today. Each metric shows how you compare today to your average and the global average. Each average is calculated by day of week over the last 90 days (e.g. a Friday average is an average of all previous Fridays).
+In your **Activity Metrics**, your _code time_ is the total time you have spent in your editor today. Your _active code time_ is the total time you have been typing in your editor today. Each metric shows how you compare today to your average and the global average. Each average is calculated by day of week over the last 90 days (e.g. a Friday average is an average of all previous Fridays).
 
 You can also see your top files today by KPM (keystrokes per minute), keystrokes, and code time.
 
-Your **Project Metrics** provides a breakdown for the current open project. The _Open changes_ section shows how many lines you have added and deleted before you commit them and the _Committed today_ section summarizes your commits today.
+If you have a Git repository open, **Contributors** provides a breakdown of contributors to the current open project and their latest commits.
 
 **4. Generate your Code Time dashboard**
 
-At the end of your first day, open Code Time in your side bar and click _Generate dashboard_ to open your dashboard in a new editor tab. Your dashboard summarizes your coding data—such as your code time by project, lines of code, and keystrokes per minute—today, yesterday, last week, and over the last 90 days.
+At the end of your first day, open Code Time in your side bar and click _View summary_ to open your dashboard in a new editor tab. Your dashboard summarizes your coding data—such as your code time by project, lines of code, and keystrokes per minute—today, yesterday, last week, and over the last 90 days.
 
 ![Code Time for IntelliJ dashboard](https://swdc-intellij.s3-us-west-1.amazonaws.com/editor-dashboard.png)
 
