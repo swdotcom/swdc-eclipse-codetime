@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
 import org.apache.http.client.methods.HttpPost;
@@ -32,6 +33,8 @@ public class FileManager {
 	public static final Logger LOG = Logger.getLogger("FileManager");
 
 	private static JsonObject sessionJson = null;
+	private static JsonParser parser = new JsonParser();
+	private static Semaphore semaphore = new Semaphore(1);
 
 	public static String getSessionSummaryFile() {
 		String file = getSoftwareDir(true);
@@ -107,17 +110,19 @@ public class FileManager {
 		File f = new File(file);
 		final String content = CodeTimeActivator.gson.toJson(o);
 
-		Writer writer = null;
-		try {
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8")));
-			writer.write(content);
-		} catch (IOException e) {
-			LOG.warning("Code Time: Error writing content: " + e.getMessage());
-		} finally {
+		synchronized(semaphore) {
+			Writer writer = null;
 			try {
-				writer.close();
-			} catch (Exception ex) {
-				/* ignore */
+				writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8")));
+				writer.write(content);
+			} catch (IOException e) {
+				LOG.warning("Code Time: Error writing content: " + e.getMessage());
+			} finally {
+				try {
+					writer.close();
+				} catch (Exception ex) {
+					/* ignore */
+				}
 			}
 		}
 	}
@@ -150,11 +155,17 @@ public class FileManager {
 	}
 
 	public static JsonArray getFileContentAsJsonArray(String file) {
-		JsonParser parser = new JsonParser();
 		try {
-			Object obj = parser.parse(new FileReader(file));
-			JsonArray jsonArray = parser.parse(obj.toString()).getAsJsonArray();
-			return jsonArray;
+			synchronized(semaphore) {
+				Object obj = parser.parse(new FileReader(file));
+				if (obj != null) {
+					JsonArray jsonArray = (JsonArray)obj;
+					return jsonArray;
+				} else {
+					LOG.warning("Code Time: Null data for file: " + file);
+				}
+			}
+			
 		} catch (Exception e) {
 			LOG.warning("Code Time: Error trying to read and parse " + file + ": " + e.getMessage());
 		}
@@ -162,11 +173,14 @@ public class FileManager {
 	}
 
 	public static JsonObject getFileContentAsJson(String file) {
-		JsonParser parser = new JsonParser();
 		try {
-			Object obj = parser.parse(new FileReader(file));
-			JsonObject jsonArray = parser.parse(obj.toString()).getAsJsonObject();
-			return jsonArray;
+			synchronized(semaphore) {
+				Object obj = parser.parse(new FileReader(file));
+				if (obj != null) {
+					JsonObject jsonObj = (JsonObject)obj;
+					return jsonObj;
+				}
+			}
 		} catch (Exception e) {
 			LOG.warning("Code Time: Error trying to read and parse " + file + ": " + e.getMessage());
 		}

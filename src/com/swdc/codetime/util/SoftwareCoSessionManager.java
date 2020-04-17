@@ -120,8 +120,13 @@ public class SoftwareCoSessionManager {
 		Calendar cal = Calendar.getInstance();
 		int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
 		Writer writer = null;
+		
+		// append the summary content
+		// Our service is temporarily unavailable
+		String summaryInfoContent = SoftwareCoOfflineManager.getInstance().getSessionSummaryInfoFileContent();
+		boolean hasServiceError = summaryInfoContent == null || summaryInfoContent.equals("") || summaryInfoContent.indexOf("unavailable") != -1 ? true : false;
 
-		if (lastDayOfMonth == 0 || lastDayOfMonth != dayOfMonth) {
+		if (hasServiceError || lastDayOfMonth == 0 || lastDayOfMonth != dayOfMonth) {
 			lastDayOfMonth = dayOfMonth;
 			String api = "/dashboard?linux=" + SoftwareCoUtils.isLinux() + "&showToday=false";
 			String dashboardSummary = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null).getJsonStr();
@@ -172,14 +177,13 @@ public class SoftwareCoSessionManager {
 			dashboardContent += "\n";
 		}
 
-		// append the summary content
-		String summaryInfoContent = SoftwareCoOfflineManager.getInstance().getSessionSummaryInfoFileContent();
+		
 		if (summaryInfoContent != null) {
 			dashboardContent += summaryInfoContent;
 		}
 
 		// write the dashboard content to the dashboard file
-		FileManager.saveFileContent(dashboardContent, dashboardFile);
+		FileManager.saveFileContent(dashboardFile, dashboardContent);
 	}
 
 	public static void launchSoftwareTopForty() {
@@ -271,6 +275,8 @@ public class SoftwareCoSessionManager {
 
 	public static void launchCodeTimeMetricsDashboard() {
 		JsonObject sessionSummary = FileManager.getSessionSummaryFileAsJson();
+		
+		// fetch the dashboard content and write it before displaying it
 		fetchCodeTimeMetricsDashboard(sessionSummary);
 
 		String codeTimeFile = FileManager.getCodeTimeDashboardFile();

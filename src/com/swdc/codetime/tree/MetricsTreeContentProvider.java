@@ -84,36 +84,31 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		MetricsTreeNode[] nodes = contentMap.get(ROOT_KEY);
 		
 		List<MetricsTreeNode> tmp = new ArrayList<>();
-		if (hasIdentifier) {
-			// check to see if we need to add it or change the identifier label
-			boolean foundIt = false;
-			for (MetricsTreeNode node : nodes) {
-				if (!node.getId().equals("contributionSummary") &&
-						!node.getId().equals("contributorSeparator")) {
-					// add the non contributor summary node back
-					tmp.add(node);
-				} else if (node.getLabel().equals(resourceInfo.identifier)) {
-					// we've found it and the identifier is the same, add this one back
-					tmp.add(node);
-					foundIt = true;
+		
+		// add the contributor summary information if it's available and
+		// it wasn't in the previous view, or if it was and the label has changed
+		// then change it, or if it's not longer available then remove it
+		for (MetricsTreeNode node : nodes) {
+			if (node.getId().equals("contributionSummary")) {
+				if (hasIdentifier) {
+					// check to see if the label should change?
+					if (!node.getLabel().equals(resourceInfo.identifier)) {
+						// it changed, change the label
+						MetricsTreeNode contributionSummaryReportItem = new MetricsTreeNode(
+								resourceInfo.identifier, "contributionSummary", "github.png");
+						tmp.add(contributionSummaryReportItem);
+					} else {
+						// nothing's changed, add it back
+						tmp.add(node);
+					}
 				}
-			}
-			if (!foundIt) {
-				// add it at the end
-				MetricsTreeNode contributorSepItem = new MetricsTreeNode("", "contributorSeparator");
-				contributorSepItem.setSeparator(true);
-				tmp.add(contributorSepItem);
-				MetricsTreeNode contributionSummaryReportItem = new MetricsTreeNode(
-						resourceInfo.identifier, "contributionSummary", "github.png");
-				tmp.add(contributionSummaryReportItem);
-			}
-		} else {
-			// don't add the contributor nodes back, no identifier
-			for (MetricsTreeNode node : nodes) {
-				if (!node.getId().equals("contributionSummary") &&
-						!node.getId().equals("contributorSeparator")) {
+			} else if (node.getId().equals("contrib-separator") || node.getId().equals("contributionSummaryTitle")) {
+				if (hasIdentifier) {
+					// still has an identifier, add the separator
 					tmp.add(node);
 				}
+			} else {
+				tmp.add(node);
 			}
 		}
 		
@@ -345,14 +340,15 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		mNodeList.add(committedTodayItem);
 		
 		if (hasIdentifier) {
-			MetricsTreeNode contributorSepItem = new MetricsTreeNode("", "contributorSeparator");
+			MetricsTreeNode contributorSepItem = new MetricsTreeNode("", "contrib-separator");
 			contributorSepItem.setSeparator(true);
 			mNodeList.add(contributorSepItem);
+			MetricsTreeNode projectSummaryTitle = new MetricsTreeNode("Project Summary", "contributionSummaryTitle");
+			mNodeList.add(projectSummaryTitle);
 			MetricsTreeNode contributionSummaryReportItem = new MetricsTreeNode(
 					resourceInfo.identifier, "contributionSummary", "github.png");
 			mNodeList.add(contributionSummaryReportItem);
 		}
-		
 
 		MetricsTreeNode[] roots = Arrays.copyOf(mNodeList.toArray(), mNodeList.size(), MetricsTreeNode[].class);
 		contentMap.put(ROOT_KEY, roots);
