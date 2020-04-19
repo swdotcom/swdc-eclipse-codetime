@@ -51,7 +51,7 @@ public class TimeDataManager {
 		}
 	}
 
-	public static void incrementSessionAndFileSeconds(SoftwareCoProject keystrokeProj, long sessionSeconds) {
+	public static TimeData incrementSessionAndFileSeconds(SoftwareCoProject keystrokeProj, long sessionSeconds) {
 		TimeData td = getTodayTimeDataSummary(keystrokeProj);
 		if (td != null) {
 			td.session_seconds += sessionSeconds;
@@ -62,6 +62,7 @@ public class TimeDataManager {
 
 			saveTimeDataSummaryToDisk(td);
 		}
+		return td;
 	}
 
 	public static void updateSessionFromSummaryApi(long currentDayMinutes) {

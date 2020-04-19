@@ -915,6 +915,12 @@ public class SoftwareCoUtils {
 		String day = dateFormat.format(new Date(timesData.now * 1000));
 		return day;
 	}
+	
+	public static String getFormattedDay(long unixSeconds) {
+        SimpleDateFormat formatDay = new SimpleDateFormat("YYYY-MM-dd");
+        String day = formatDay.format(new Date(unixSeconds * 1000));
+        return day;
+    }
 
 	public static String getDashboardRow(String label, String value) {
 		String content = getDashboardLabel(label) + " : " + getDashboardValue(value) + "\n";

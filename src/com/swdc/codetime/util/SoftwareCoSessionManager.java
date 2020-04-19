@@ -102,6 +102,7 @@ public class SoftwareCoSessionManager {
 		String dataStoreFile = FileManager.getSoftwareDataStoreFile();
 		File f = new File(dataStoreFile);
 		try {
+			SWCoreLog.logInfoMessage("Code Time: Storing keystroke stats");
 			Writer output;
 			output = new BufferedWriter(new FileWriter(f, true)); // clears file every time
 			output.append(payload);
