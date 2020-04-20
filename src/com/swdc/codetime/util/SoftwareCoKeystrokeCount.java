@@ -148,9 +148,12 @@ public class SoftwareCoKeystrokeCount {
                 lastKpm.cumulative_session_seconds == 0) {
                 lastKpm = null;
             }
-            if (lastKpm != null &&
-                    SoftwareCoUtils.getFormattedDay(lastKpm.start).equals(SoftwareCoUtils.getFormattedDay(this.start))) {
-                lastKpm = null;
+            if (lastKpm != null) {
+            	String kpmDay = SoftwareCoUtils.getFormattedDay(lastKpm.start);
+            	String thisDay = SoftwareCoUtils.getFormattedDay(this.start);
+            	if (!kpmDay.equals(thisDay)) {
+            		lastKpm = null;
+            	}
             }
         }
 

@@ -2,7 +2,7 @@
 <feature
       id="com.swdc.codetime"
       label="Code Time"
-      version="1.0.7"
+      version="1.0.8"
       provider-name="Software.com">
 
    <description url="http://www.example.com/description">
