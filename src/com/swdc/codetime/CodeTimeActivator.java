@@ -201,6 +201,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				// start the wallclock
 				WallClockManager wcMgr = WallClockManager.getInstance();
 				wcMgr.updateSessionSummaryFromServer();
+				
+				// initialize the lastSavedKeystrokeStats
+				FileManager.updateLastSavedKeystrokesStats();
 
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				try {

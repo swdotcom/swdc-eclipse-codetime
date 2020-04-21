@@ -142,51 +142,40 @@ public class SoftwareCoKeystrokeCount {
         this.new_day = lastPayloadEnd == 0 ? 1 : 0;
 
         // get the current payloads so we can compare our last cumulative seconds
-        SoftwareCoKeystrokeCount lastKpm = FileManager.getLastSavedKeystrokeStats();
-        if (lastKpm != null) {
-            if (lastKpm.cumulative_editor_seconds == 0 ||
-                lastKpm.cumulative_session_seconds == 0) {
-                lastKpm = null;
-            }
-            if (lastKpm != null) {
-            	String kpmDay = SoftwareCoUtils.getFormattedDay(lastKpm.start);
-            	String thisDay = SoftwareCoUtils.getFormattedDay(this.start);
-            	if (!kpmDay.equals(thisDay)) {
-            		lastKpm = null;
-            	}
+        SoftwareCoKeystrokeCount lastPayload = FileManager.getLastSavedKeystrokeStats();
+        boolean initiateNewDayCheck = false;
+        if (lastPayload != null) {
+            String lastKpmDay = SoftwareCoUtils.getFormattedDay(lastPayload.local_start);
+            String thisDay = SoftwareCoUtils.getFormattedDay(this.local_start);
+            if (!lastKpmDay.equals(thisDay)) {
+                // don't use the last kpm since the day is different
+                lastPayload = null;
+                initiateNewDayCheck = true;
+                td = null;
             }
         }
 
-        cumulative_session_seconds = 60;
-        cumulative_editor_seconds = 60;
+        if (initiateNewDayCheck) {
+            // clear out data from the previous day
+            WallClockManager.getInstance().newDayChecker();
+        }
+
+        this.cumulative_session_seconds = 60;
+        this.cumulative_editor_seconds = 60;
 
         if (td != null) {
             this.cumulative_editor_seconds = td.editor_seconds;
             this.cumulative_session_seconds = td.session_seconds;
-            if (lastKpm != null) {
-                // editor seconds check
-                if (lastKpm.cumulative_editor_seconds > cumulative_editor_seconds) {
-                    long diff = lastKpm.cumulative_editor_seconds - cumulative_editor_seconds;
-                    cumulative_editor_seconds = lastKpm.cumulative_editor_seconds + 60;
-                    this.editor_seconds_error = "TimeData has lower editor seconds than last saved keystroke data by " + diff + " seconds";
-                }
-                // session seconds check
-                if (lastKpm.cumulative_session_seconds > cumulative_session_seconds) {
-                    long diff = lastKpm.cumulative_session_seconds - cumulative_session_seconds;
-                    cumulative_session_seconds = lastKpm.cumulative_session_seconds + 60;
-                    this.session_seconds_error = "TimeData has lower session seconds than last saved keystroke data by " + diff + " seconds";
-                }
-            }
-        } else if (lastKpm != null) {
+        } else if (lastPayload != null) {
             // no time data found, project null error
             this.project_null_error = "TimeData not found using " + this.project.directory + " for editor and session seconds";
-            cumulative_editor_seconds = lastKpm.cumulative_editor_seconds + 60;
-            cumulative_session_seconds = lastKpm.cumulative_session_seconds + 60;
+            cumulative_editor_seconds = lastPayload.cumulative_editor_seconds + 60;
+            cumulative_session_seconds = lastPayload.cumulative_session_seconds + 60;
         }
 
         if (cumulative_editor_seconds < cumulative_session_seconds) {
             long diff = cumulative_session_seconds - cumulative_editor_seconds;
-            if (diff > 45) {
+            if (diff > 30) {
                 this.editor_seconds_error = "Cumulative editor seconds is behind session seconds by " + diff + " seconds";
             }
             cumulative_editor_seconds = cumulative_session_seconds;

@@ -96,41 +96,48 @@ public class WallClockManager {
 
 	private class NewDayCheckerTask extends TimerTask {
 		public void run() {
-			String currentDay = FileManager.getItem("currentDay");
-			String day = SoftwareCoUtils.getTodayInStandardFormat();
-			if (!day.equals(currentDay)) {
-				// send the payloads
-				FileManager.sendBatchData(FileManager.getSoftwareDataStoreFile(), "/data/batch");
+			newDayChecker();
+		}
+	}
+	
+	public void newDayChecker() {
+		String currentDay = FileManager.getItem("currentDay");
+		String day = SoftwareCoUtils.getTodayInStandardFormat();
+		if (!day.equals(currentDay)) {
+			// send the payloads
+			FileManager.sendBatchData(FileManager.getSoftwareDataStoreFile(), "/data/batch");
 
-				// send the time data
-				TimeDataManager.sendOfflineTimeData();
+			// send the time data
+			TimeDataManager.sendOfflineTimeData();
 
-				// send the events data
-				EventManager.sendOfflineEvents();
+			// send the events data
+			EventManager.sendOfflineEvents();
+			
+			// clear the lastSavedKeystrokestats
+			FileManager.clearLastSavedKeystrokestats();
 
-				// clear the wc time and the session summary and the file change info summary
-				clearWcTime();
-				SessionDataManager.clearSessionSummaryData();
-				TimeDataManager.clearTimeDataSummary();
-				FileAggregateDataManager.clearFileChangeInfoSummaryData();
+			// clear the wc time and the session summary and the file change info summary
+			clearWcTime();
+			SessionDataManager.clearSessionSummaryData();
+			TimeDataManager.clearTimeDataSummary();
+			FileAggregateDataManager.clearFileChangeInfoSummaryData();
 
-				// update the current day
-				FileManager.setItem("currentDay", day);
+			// update the current day
+			FileManager.setItem("currentDay", day);
 
-				// update the last payload timestamp
-				FileManager.setNumericItem("latestPayloadTimestampEndUtc", 0);
+			// update the last payload timestamp
+			FileManager.setNumericItem("latestPayloadTimestampEndUtc", 0);
 
-				dispatchStatusViewUpdate();
+			dispatchStatusViewUpdate();
 
-				new Thread(() -> {
-					try {
-						Thread.sleep(1000 * 70);
-						updateSessionSummaryFromServer();
-					} catch (Exception e) {
-						System.err.println(e);
-					}
-				}).start();
-			}
+			new Thread(() -> {
+				try {
+					Thread.sleep(5000);
+					updateSessionSummaryFromServer();
+				} catch (Exception e) {
+					System.err.println(e);
+				}
+			}).start();
 		}
 	}
 

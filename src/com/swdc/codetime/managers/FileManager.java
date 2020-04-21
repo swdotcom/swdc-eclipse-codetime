@@ -50,6 +50,10 @@ public class FileManager {
         return lastSavedKeystrokeStats;
     }
 	
+	public static void clearLastSavedKeystrokestats() {
+		lastSavedKeystrokeStats = null;
+	}
+	
 	public static SoftwareCoKeystrokeCount updateLastSavedKeystrokesStats() {
         List<SoftwareCoKeystrokeCount> list = convertPayloadsToList(getKeystrokePayloads());
         if (list != null && list.size() > 0) {
