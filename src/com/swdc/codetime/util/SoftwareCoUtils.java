@@ -908,6 +908,12 @@ public class SoftwareCoUtils {
 		TimesData timesData = new TimesData();
 		return timesData;
 	}
+	
+	public static boolean isNewDay() {
+		String currentDay = FileManager.getItem("currentDay");
+		String day = SoftwareCoUtils.getTodayInStandardFormat();
+		return (!day.equals(currentDay)) ? true : false;
+	}
 
 	public static String getTodayInStandardFormat() {
 		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();

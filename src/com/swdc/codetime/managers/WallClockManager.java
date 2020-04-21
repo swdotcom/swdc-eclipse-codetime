@@ -101,9 +101,7 @@ public class WallClockManager {
 	}
 	
 	public void newDayChecker() {
-		String currentDay = FileManager.getItem("currentDay");
-		String day = SoftwareCoUtils.getTodayInStandardFormat();
-		if (!day.equals(currentDay)) {
+		if (SoftwareCoUtils.isNewDay()) {
 			// send the payloads
 			FileManager.sendBatchData(FileManager.getSoftwareDataStoreFile(), "/data/batch");
 
@@ -123,6 +121,7 @@ public class WallClockManager {
 			FileAggregateDataManager.clearFileChangeInfoSummaryData();
 
 			// update the current day
+			String day = SoftwareCoUtils.getTodayInStandardFormat();
 			FileManager.setItem("currentDay", day);
 
 			// update the last payload timestamp

@@ -3,7 +3,7 @@
    <description name="Code Time" url="https://eclipse-update-site.s3-us-west-1.amazonaws.com/updatesite/site.xml">
       Code Time Update Site
    </description>
-   <feature url="features/com.swdc.codetime_1.0.9.jar" id="com.swdc.codetime" version="1.0.9">
+   <feature url="features/com.swdc.codetime_1.1.0.jar" id="com.swdc.codetime" version="1.1.0">
       <category name="com.swdc.codetime"/>
    </feature>
    <category-def name="com.swdc.codetime" label="Code Time">
