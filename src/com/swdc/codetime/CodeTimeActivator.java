@@ -77,7 +77,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static IViewPart ctMetricsTreeView = null;
 
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
-	public static final String WORKSPACE_NAME = SoftwareCoUtils.generateToken();
 
 	private static final IWorkbench workbench = PlatformUI.getWorkbench();
 

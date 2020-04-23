@@ -89,6 +89,7 @@ public class SoftwareCoUtils {
 	public final static int pluginId = 3;
 
 	private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+	private static String workspace_name = null;
 	
 	private static long DAYS_IN_SECONDS = 60 * 60 * 24;
 	
@@ -111,6 +112,13 @@ public class SoftwareCoUtils {
 		httpClient = HttpClientBuilder.create().build();
 
 		executorService = Executors.newCachedThreadPool();
+	}
+	
+	public static String getWorkspaceName() {
+		if (workspace_name == null) {
+			workspace_name = SoftwareCoUtils.generateToken();
+		}
+		return workspace_name;
 	}
 
 	public static boolean isLoggedIn() {

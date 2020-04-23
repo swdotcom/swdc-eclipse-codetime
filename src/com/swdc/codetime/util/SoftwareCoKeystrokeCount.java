@@ -146,7 +146,7 @@ public class SoftwareCoKeystrokeCount {
             }
         }
         
-        this.workspace_name = CodeTimeActivator.WORKSPACE_NAME;
+        this.workspace_name = SoftwareCoUtils.getWorkspaceName();
 
         this.cumulative_session_seconds = 60;
         this.cumulative_editor_seconds = 60;
