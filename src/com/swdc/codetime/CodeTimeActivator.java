@@ -49,7 +49,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	// The shared instance
 	private static CodeTimeActivator plugin;
-	
+
 	public static final Logger LOG = Logger.getLogger("Software.com");
 
 	public static JsonParser jsonParser = new JsonParser();
@@ -77,9 +77,10 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static IViewPart ctMetricsTreeView = null;
 
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
+	public static final String WORKSPACE_NAME = SoftwareCoUtils.generateToken();
 
 	private static final IWorkbench workbench = PlatformUI.getWorkbench();
-	
+
 	/**
 	 * The constructor
 	 */
@@ -89,19 +90,20 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+	 * 
+	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.
+	 * BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		
+
 		// add the document listener
 		editorListener = new SoftwareCoFileEditorListener();
-			
+
 		// create the keystroke manager
 		keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
 
-		
 		// initialize the plugin features
 		earlyStartup();
 	}
@@ -163,7 +165,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 				// initialize document listener
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-				
+
 				// listen for file changes
 				window.getPartService().addPartListener(editorListener);
 			}
@@ -183,17 +185,17 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				// run the hourly timer
 				repoCommitsTimer = new Timer();
 				repoCommitsTimer.scheduleAtFixedRate(new ProcessCommitJobsTask(), one_min * 3, one_min * 25);
-				
+
 				repoUserTimer = new Timer();
 				repoUserTimer.scheduleAtFixedRate(new ProcessRepoUsersJobsTask(), one_min * 4, one_min * 30);
 
 				userStatusTimer = new Timer();
-				userStatusTimer.scheduleAtFixedRate(new ProcessUserStatusTask(), one_min, forty_min);
+				userStatusTimer.scheduleAtFixedRate(new ProcessUserStatusTask(), one_min * 15, forty_min);
 
-				// send payloads every 30 minutes
+				// send payloads every 15 minutes
 				sendOfflineDataTimer = new Timer();
-				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), one_min * 2, one_min * 15);
-				
+				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), 1000 * 30, one_min * 15);
+
 				// keystroke payload timer
 				timer = new Timer();
 				timer.scheduleAtFixedRate(new ProcessKeystrokePayloadTask(), one_min, one_min);
@@ -201,14 +203,13 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				// start the wallclock
 				WallClockManager wcMgr = WallClockManager.getInstance();
 				wcMgr.updateSessionSummaryFromServer();
-				
+
 				// initialize the lastSavedKeystrokeStats
-				FileManager.updateLastSavedKeystrokesStats();
+				FileManager.getLastSavedKeystrokeStats();
 
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				try {
-					ctMetricsTreeView = window.getActivePage()
-							.findView("com.swdc.codetime.tree.metricsTreeView");
+					ctMetricsTreeView = window.getActivePage().findView("com.swdc.codetime.tree.metricsTreeView");
 					wcMgr.setTreeView(ctMetricsTreeView);
 				} catch (Exception e) {
 					System.err.println(e);
@@ -221,7 +222,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
 		keystrokeMgr = null;
@@ -248,17 +251,17 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			repoCommitsTimer.cancel();
 			repoCommitsTimer = null;
 		}
-		
+
 		if (userStatusTimer != null) {
 			userStatusTimer.cancel();
 			userStatusTimer = null;
 		}
-		
+
 		if (sendOfflineDataTimer != null) {
 			sendOfflineDataTimer.cancel();
 			sendOfflineDataTimer = null;
 		}
-		
+
 		if (repoUserTimer != null) {
 			repoUserTimer.cancel();
 			repoUserTimer = null;
@@ -291,7 +294,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 					//
 				}
 			}
-			
+
 			return count;
 		} catch (Exception e) {
 			return 0;
@@ -477,7 +480,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 		}
 	}
-	
+
 	private class ProcessKeystrokePayloadTask extends TimerTask {
 		public void run() {
 			if (keystrokeMgr != null) {
@@ -488,7 +491,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			}
 		}
 	}
-	
+
 	private class ProcessRepoUsersJobsTask extends TimerTask {
 		public void run() {
 			SoftwareCoUtils.sendHeartbeat("HOURLY");
@@ -521,7 +524,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		if (project != null) {
 			return project.getName();
 		}
-		return "None";
+		return "Unnamed";
 	}
 
 	private static String getCurrentFileName() {
@@ -555,7 +558,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	protected static void showOfflinePrompt() {
 		String infoMsg = "Our service is temporarily unavailable. We will try to reconnect again "
 				+ "in 10 minutes. Your status bar will not update at this time.";
-		
+
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				MessageDialog dialog = new MessageDialog(
@@ -571,7 +574,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			}
 		});
 	}
-	
+
 	public static void showLoginSuccessPrompt() {
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {

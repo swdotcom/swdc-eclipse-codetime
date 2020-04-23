@@ -16,9 +16,6 @@ public class SoftwareCoProject {
 	public SoftwareCoProject(String name, String directory) {
 		this.name = name;
 		this.directory = directory;
-		
-		// get the resource information
-		this.resource = GitUtil.getResourceInfo(directory);
 	}
 	
 	public SoftwareCoProject clone() {

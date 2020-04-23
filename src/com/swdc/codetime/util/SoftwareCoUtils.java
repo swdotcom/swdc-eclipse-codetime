@@ -238,13 +238,15 @@ public class SoftwareCoUtils {
 	}
 	
 	public static SoftwareCoProject getActiveKeystrokeProject() {
-		IProject project = getActiveProject();
-		if (project != null) {
+		IProject iproj = getActiveProject();
+		if (iproj != null) {
 			// build the keystroke project
-			IPath locationPath = project.getLocation();
-			String pathStr = locationPath.toString();
-			String name = project.getName();
-			return new SoftwareCoProject(name, pathStr);
+			String directory = iproj.getLocationURI().getPath();
+			if (directory == null || directory.equals("")) {
+				directory = iproj.getLocation().toString();
+			}
+			String name = iproj.getName();
+			return new SoftwareCoProject(name, directory);
 		}
 		return null;
 	}

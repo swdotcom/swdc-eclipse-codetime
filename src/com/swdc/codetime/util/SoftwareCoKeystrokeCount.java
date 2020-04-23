@@ -18,6 +18,7 @@ import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.models.ElapsedTime;
 import com.swdc.codetime.models.FileChangeInfo;
 import com.swdc.codetime.models.KeystrokeAggregate;
+import com.swdc.codetime.models.ResourceInfo;
 import com.swdc.codetime.models.TimeData;
 
 public class SoftwareCoKeystrokeCount {
@@ -41,10 +42,8 @@ public class SoftwareCoKeystrokeCount {
 	public long cumulative_editor_seconds = 0;
     public long cumulative_session_seconds = 0;
     public long elapsed_seconds = 0;
-    public int new_day = 0; // 1 or zero to denote new day or not
+    public String workspace_name = "";
     public String project_null_error = "";
-    public String editor_seconds_error = "";
-    public String session_seconds_error = "";
 
 	public SoftwareCoKeystrokeCount() {
 		this.version = SoftwareCoUtils.getVersion();
@@ -66,10 +65,8 @@ public class SoftwareCoKeystrokeCount {
 		this.cumulative_editor_seconds = 0;
 		this.elapsed_seconds = 0;
 		this.cumulative_session_seconds = 0;
-		this.new_day = 0;
+		this.workspace_name = "";
 		this.project_null_error = "";
-		this.editor_seconds_error = "";
-		this.session_seconds_error = "";
 	}
 
 	public static class FileInfo {
@@ -149,9 +146,7 @@ public class SoftwareCoKeystrokeCount {
             }
         }
         
-        // add the cumulative data
-        long lastPayloadEnd = FileManager.getNumericItem("latestPayloadTimestampEndUtc", 0L);
-        this.new_day = lastPayloadEnd == 0 ? 1 : 0;
+        this.workspace_name = CodeTimeActivator.WORKSPACE_NAME;
 
         this.cumulative_session_seconds = 60;
         this.cumulative_editor_seconds = 60;
@@ -167,10 +162,6 @@ public class SoftwareCoKeystrokeCount {
         }
 
         if (cumulative_editor_seconds < cumulative_session_seconds) {
-            long diff = cumulative_session_seconds - cumulative_editor_seconds;
-            if (diff > 30) {
-                this.editor_seconds_error = "Cumulative editor seconds is behind session seconds by " + diff + " seconds";
-            }
             cumulative_editor_seconds = cumulative_session_seconds;
         }
     }
@@ -228,10 +219,23 @@ public class SoftwareCoKeystrokeCount {
 	public void processKeystrokes() {
 		if (this.hasData()) {
 			
-			// make sure a project is available
-            if (this.project == null || this.project.directory == null || this.project.directory.equals("")) {
-                this.project = new SoftwareCoProject("Unnamed", "Untitled");
-            }
+			// make sure we have a valid project
+			SoftwareCoProject activeProject = SoftwareCoUtils.getActiveKeystrokeProject();
+			if (this.project == null|| this.project.directory == null ||
+					this.project.directory.equals("") ||
+					this.project.directory.equals("Untitled")) {
+				this.setProject(activeProject);
+			}
+			
+			// get the resource identifier info
+			if (!this.getProject().directory.equals("Untitled")) {
+				// get the resource information
+				ResourceInfo resourceInfo = GitUtil.getResourceInfo(this.getProject().directory);
+				if (resourceInfo != null) {
+					this.getProject().resource = resourceInfo;
+					this.getProject().identifier = resourceInfo.identifier;
+				}
+			}
 
 			ElapsedTime eTime = SessionDataManager.getTimeBetweenLastPayload();
 

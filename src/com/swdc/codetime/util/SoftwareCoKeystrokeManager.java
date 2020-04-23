@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IPath;
 
 public class SoftwareCoKeystrokeManager {
 
@@ -66,26 +67,30 @@ public class SoftwareCoKeystrokeManager {
             }
         }
         
-        SoftwareCoProject project = keystrokeCount.getProject();
-
-		IProject iproj = SoftwareCoUtils.getFileProject(fileName);
-		String projectDirectory = (iproj != null)? iproj.getLocation().toString() : "";
-		
-		if (project == null) {
-			project = new SoftwareCoProject( projectName, projectDirectory );
-			keystrokeCount.setProject( project );
-		} else if (project.name == null || project.name.equals("")) {
-			project.directory = projectDirectory;
-			project.name = projectName;
-		} else if ((project.directory == null || project.directory.equals("")) && !projectDirectory.equals("")) {
-			project.directory = projectDirectory;
-		}
+        // not found by project
+        // create the project based on the incoming projectName and fileName
+        IProject iproj = SoftwareCoUtils.getFileProject(fileName);
+        
+        SoftwareCoProject project = null;
+        if (iproj != null) {
+        	// awesome, we found the workspace project. use it
+        	String directory = iproj.getLocationURI().getPath();
+			if (directory == null || directory.equals("")) {
+				directory = iproj.getLocation().toString();
+			}
+			String name = iproj.getName();
+			project = new SoftwareCoProject(name, directory);
+        } else {
+        	project = new SoftwareCoProject("Unnamed", "Untitled");
+        }
+        keystrokeCount.setProject(project);
+        
 
         // didn't find it, time to create a wrapper
         KeystrokeCountWrapper wrapper = new KeystrokeCountWrapper();
         wrapper.setKeystrokeCount(keystrokeCount);
         wrapper.setLastUpdateTime(System.currentTimeMillis());
-        wrapper.setProjectName(projectName);
+        wrapper.setProjectName(project.name);
         keystrokeCountWrapperList.add(wrapper);
     }
 

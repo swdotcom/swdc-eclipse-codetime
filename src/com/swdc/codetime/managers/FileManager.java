@@ -42,25 +42,17 @@ public class FileManager {
 	private static Semaphore semaphore = new Semaphore(1);
 	private static SoftwareCoKeystrokeCount lastSavedKeystrokeStats = null;
 	
-	public static SoftwareCoKeystrokeCount getLastSavedKeystrokeStats() {
-        if (lastSavedKeystrokeStats == null) {
-            // build it then return it
-        	lastSavedKeystrokeStats = updateLastSavedKeystrokesStats();
-        }
-        return lastSavedKeystrokeStats;
-    }
-	
 	public static void clearLastSavedKeystrokestats() {
 		lastSavedKeystrokeStats = null;
 	}
 	
-	public static SoftwareCoKeystrokeCount updateLastSavedKeystrokesStats() {
+	public static SoftwareCoKeystrokeCount getLastSavedKeystrokeStats() {
         List<SoftwareCoKeystrokeCount> list = convertPayloadsToList(getKeystrokePayloads());
         if (list != null && list.size() > 0) {
             list.sort((o1, o2) -> o2.start < o1.start ? -1 : o2.start > o1.start ? 1 : 0);
-            return list.get(0);
+            lastSavedKeystrokeStats = list.get(0);
         }
-        return null;
+        return lastSavedKeystrokeStats;
     }
 
 	public static String getSessionSummaryFile() {
