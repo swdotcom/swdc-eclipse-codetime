@@ -181,11 +181,11 @@ public class SoftwareCoRepoManager {
 				}
 
 				if (commits != null && commits.size() > 0) {
-					// send it in batches of 25
+					int batch_size = 10;
 					JsonArray batch = new JsonArray();
 					for (int i = 0; i < commits.size(); i++) {
 						batch.add(commits.get(i));
-						if (i > 0 && i % 25 == 0) {
+						if (i > 0 && i % batch_size == 0) {
 							this.processCommits(batch, resource.identifier, resource.tag, resource.branch);
 							batch = new JsonArray();
 						}

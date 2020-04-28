@@ -263,10 +263,11 @@ public class FileManager {
 					deleteFile(file);
 
 					JsonArray batch = new JsonArray();
+					int batch_size = 5;
 					// go through the array about 50 at a time
 					for (int i = 0; i < jsonArray.size(); i++) {
 						batch.add(jsonArray.get(i));
-						if (i > 0 && i % 50 == 0) {
+						if (i > 0 && i % batch_size == 0) {
 							String payloadData = CodeTimeActivator.gson.toJson(batch);
 							SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpPost.METHOD_NAME, payloadData);
 							if (!resp.isOk()) {
