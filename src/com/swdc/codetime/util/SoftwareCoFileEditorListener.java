@@ -45,7 +45,7 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 					fileName = uri.getPath();
 					SoftwareCoUtils.lastOpenFile = fileName;
 					String projectName = CodeTimeActivator.getActiveProjectName(fileName);
-					
+
 					CodeTimeActivator.initializeKeystrokeObjectGraph(projectName, fileName);
 				}
 

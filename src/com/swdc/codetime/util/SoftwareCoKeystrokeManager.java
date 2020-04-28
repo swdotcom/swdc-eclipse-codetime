@@ -31,13 +31,14 @@ public class SoftwareCoKeystrokeManager {
 		return instance;
 	}
 
-    public void resetData(String projectName) {
+    public void resetData() {
         for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
-            if (wrapper.getProjectName() != null && projectName.equals(wrapper.getProjectName())) {
+            if (wrapper != null && wrapper.getKeystrokeCount() != null) {
                 wrapper.getKeystrokeCount().resetData();
                 break;
             }
         }
+        keystrokeCountWrapperList.clear();
     }
 
     public SoftwareCoKeystrokeCount getKeystrokeCount(String projectName) {

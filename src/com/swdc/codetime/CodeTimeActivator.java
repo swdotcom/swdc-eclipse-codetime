@@ -64,7 +64,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static SoftwareCoKeystrokeManager keystrokeMgr;
 
 	// private keystroke processor timer and client manager
-	private Timer timer;
+	private static Timer keystrokesTimer;
 	private Timer userStatusTimer;
 	private Timer sendOfflineDataTimer;
 	private Timer repoCommitsTimer;
@@ -195,10 +195,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				sendOfflineDataTimer = new Timer();
 				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), 1000 * 30, one_min * 15);
 
-				// keystroke payload timer
-				timer = new Timer();
-				timer.scheduleAtFixedRate(new ProcessKeystrokePayloadTask(), one_min, one_min);
-
 				// start the wallclock
 				WallClockManager wcMgr = WallClockManager.getInstance();
 				wcMgr.updateSessionSummaryFromServer();
@@ -241,9 +237,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		//
 		// Kill the timers
 		//
-		if (timer != null) {
-			timer.cancel();
-			timer = null;
+		if (keystrokesTimer != null) {
+			keystrokesTimer.cancel();
+			keystrokesTimer = null;
 		}
 
 		if (repoCommitsTimer != null) {
@@ -425,6 +421,11 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			// Update the manager with the newly created KeystrokeCount object
 			//
 			keystrokeMgr.setKeystrokeCount(projectName, keystrokeCount, fileName);
+			
+			// keystroke payload timer
+			keystrokesTimer = new Timer();
+			ProcessKeystrokePayloadTask task = new ProcessKeystrokePayloadTask();
+			keystrokesTimer.schedule(task, 1000 * 60);
 		} else {
 			//
 			// update the end time for files that don't match the incoming fileName
@@ -436,6 +437,19 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		rootDir = (keystrokeCount != null && keystrokeCount.getProject() != null)
 				? keystrokeCount.getProject().directory
 				: null;
+	}
+	
+	protected static class ProcessKeystrokePayloadTask extends TimerTask {
+		public void run() {
+			if (keystrokeMgr != null) {
+				List<SoftwareCoKeystrokeCount> list = keystrokeMgr.getKeystrokeCounts();
+				for (SoftwareCoKeystrokeCount keystrokeCount : list) {
+					keystrokeCount.processKeystrokes();
+				}
+				
+				keystrokeMgr.resetData();
+			}
+		}
 	}
 
 	private void initializeUserInfo(boolean initializedUser) {
@@ -477,17 +491,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			// send the events data
 			EventManager.sendOfflineEvents();
 
-		}
-	}
-
-	private class ProcessKeystrokePayloadTask extends TimerTask {
-		public void run() {
-			if (keystrokeMgr != null) {
-				List<SoftwareCoKeystrokeCount> list = keystrokeMgr.getKeystrokeCounts();
-				for (SoftwareCoKeystrokeCount keystrokeCount : list) {
-					keystrokeCount.processKeystrokes();
-				}
-			}
 		}
 	}
 

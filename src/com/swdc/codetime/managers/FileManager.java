@@ -37,7 +37,6 @@ public class FileManager {
 
 	public static final Logger LOG = Logger.getLogger("FileManager");
 
-	private static JsonObject sessionJson = null;
 	private static JsonParser parser = new JsonParser();
 	private static Semaphore semaphore = new Semaphore(1);
 	private static SoftwareCoKeystrokeCount lastSavedKeystrokeStats = null;
@@ -330,7 +329,7 @@ public class FileManager {
 	}
 
 	public static String getItem(String key) {
-		sessionJson = getSoftwareSessionAsJson();
+		JsonObject sessionJson = getSoftwareSessionAsJson();
 		if (sessionJson != null && sessionJson.has(key) && !sessionJson.get(key).isJsonNull()) {
 			return sessionJson.get(key).getAsString();
 		}
@@ -338,7 +337,7 @@ public class FileManager {
 	}
 
 	public static void setNumericItem(String key, long val) {
-		sessionJson = getSoftwareSessionAsJson();
+		JsonObject sessionJson = getSoftwareSessionAsJson();
 		sessionJson.addProperty(key, val);
 
 		String content = sessionJson.toString();
@@ -348,7 +347,7 @@ public class FileManager {
 	}
 
 	public static void setItem(String key, String val) {
-		sessionJson = getSoftwareSessionAsJson();
+		JsonObject sessionJson = getSoftwareSessionAsJson();
 		sessionJson.addProperty(key, val);
 
 		String content = sessionJson.toString();
@@ -359,7 +358,7 @@ public class FileManager {
 	}
 
 	public static long getNumericItem(String key, Long defaultVal) {
-		sessionJson = getSoftwareSessionAsJson();
+		JsonObject sessionJson = getSoftwareSessionAsJson();
 		if (sessionJson != null && sessionJson.has(key) && !sessionJson.get(key).isJsonNull()) {
 			return sessionJson.get(key).getAsLong();
 		}
@@ -367,31 +366,29 @@ public class FileManager {
 	}
 
 	public static synchronized JsonObject getSoftwareSessionAsJson() {
-		if (sessionJson == null) {
 
-			String sessionFile = getSoftwareSessionFile(true);
-			File f = new File(sessionFile);
-			if (f.exists()) {
-				try {
-					Path p = Paths.get(sessionFile);
+		JsonObject sessionJson = new JsonObject();
+		String sessionFile = getSoftwareSessionFile(true);
+		File f = new File(sessionFile);
+		if (f.exists()) {
+			try {
+				Path p = Paths.get(sessionFile);
 
-					byte[] encoded = Files.readAllBytes(p);
-					String content = new String(encoded, Charset.defaultCharset());
-					LOG.info("getSoftwareSessionAsJson: " + content);
-					if (content != null) {
-						// json parse it
-						sessionJson = CodeTimeActivator.jsonParser.parse(content).getAsJsonObject();
-					}
-
-				} catch (Exception e) {
-					SWCoreLog.logErrorMessage("Code Time: Error trying to read and json parse the session file.");
-					SWCoreLog.logException(e);
-
+				byte[] encoded = Files.readAllBytes(p);
+				String content = new String(encoded, Charset.defaultCharset());
+				if (content != null) {
+					// json parse it
+					sessionJson = CodeTimeActivator.jsonParser.parse(content).getAsJsonObject();
 				}
+
+			} catch (Exception e) {
+				SWCoreLog.logErrorMessage("Code Time: Error trying to read and json parse the session file.");
+				SWCoreLog.logException(e);
+
 			}
-			if (sessionJson == null) {
-				sessionJson = new JsonObject();
-			}
+		}
+		if (sessionJson == null) {
+			sessionJson = new JsonObject();
 		}
 		return sessionJson;
 	}

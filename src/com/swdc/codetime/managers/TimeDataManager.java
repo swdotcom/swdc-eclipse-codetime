@@ -86,7 +86,7 @@ public class TimeDataManager {
 			List<TimeData> timeDataList = getTimeDataList();
 			if (timeDataList != null && timeDataList.size() > 0) {
 				for (TimeData timeData : timeDataList) {
-					if (timeData.day.equals(day)) {
+					if (timeData != null && timeData.day != null && timeData.day.equals(day)) {
 						// use this one
 						td = timeData;
 						break;
@@ -140,7 +140,9 @@ public class TimeDataManager {
 
 		if (timeDataList != null && timeDataList.size() > 0) {
 			for (TimeData timeData : timeDataList) {
-				if (timeData.day.equals(day) && timeData.project.directory.equals(p.directory)) {
+				if (timeData != null && timeData.day != null && timeData.project != null &&
+						timeData.project.directory != null &&
+						timeData.day.equals(day) && timeData.project.directory.equals(p.directory)) {
 					// return it
 					return timeData;
 				}
@@ -202,7 +204,9 @@ public class TimeDataManager {
         if (timeDataList != null && timeDataList.size() > 0) {
             for (int i = timeDataList.size() - 1; i >= 0; i--) {
                 TimeData td = timeDataList.get(i);
-                if (td.day.equals(day) && td.project.directory.equals(dir)) {
+                if (td != null && td.day != null && td.project != null &&
+                		td.project.directory != null &&
+                				td.day.equals(day) && td.project.directory.equals(dir)) {
                     timeDataList.remove(i);
                     break;
                 }
