@@ -1,16 +1,12 @@
 package com.swdc.codetime;
 
-import java.io.File;
+
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -28,16 +24,17 @@ import org.osgi.framework.BundleContext;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.swdc.codetime.managers.EventManager;
+import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
-import com.swdc.codetime.util.SoftwareCoKeystrokeCount;
+import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
 import com.swdc.codetime.util.SoftwareCoRepoManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
-import com.swdc.codetime.util.SoftwareCoKeystrokeCount.FileInfo;
+import com.swdc.codetime.util.KeystrokePayload.FileInfo;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -174,9 +171,8 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				SWCoreLog.logInfoMessage("Code Time: Loaded v" + version + " on platform: " + SWT.getPlatform());
 
 				SoftwareCoUtils.setStatusLineMessage("Code Time", "paw.png", "Loaded v" + version);
-
-				// store the activate event
-				EventManager.createCodeTimeEvent("resource", "load", "EditorActivate");
+				
+				EventTrackerManager.getInstance().trackEditorAction("editor", "activate");
 
 				long one_min = 1000 * 60;
 				long forty_min = one_min * 40;
@@ -224,7 +220,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	public void stop(BundleContext context) throws Exception {
 		keystrokeMgr = null;
 
-		EventManager.createCodeTimeEvent("resource", "unload", "EditorDeactivate");
+		EventTrackerManager.getInstance().trackEditorAction("editor", "deactivate");
 
 		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (window != null && window.getPartService() != null) {
@@ -276,26 +272,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		}
 	}
 
-	protected static int getLineCount(String fileName) {
-		try {
-			Path path = Paths.get(fileName);
-			int count = 0;
-			synchronized (path) {
-				Stream<String> stream = Files.lines(path);
-				count = (int) stream.count();
-				try {
-					stream.close();
-				} catch (Exception e) {
-					//
-				}
-			}
-
-			return count;
-		} catch (Exception e) {
-			return 0;
-		}
-	}
-
 	public static void handleFileOpenedEvent(String fileName) {
 		String projectName = getActiveProjectName(fileName);
 		if (fileName == null) {
@@ -304,14 +280,16 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 		initializeKeystrokeObjectGraph(projectName, fileName);
 
-		SoftwareCoKeystrokeCount keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		fileInfo.open += 1;
-		int documentLineCount = getLineCount(fileName);
+		int documentLineCount = SoftwareCoUtils.getLineCount(fileName);
 		fileInfo.lines = documentLineCount;
 
 		SWCoreLog.logInfoMessage("Code Time: file opened: " + fileName);
+		
+		EventTrackerManager.getInstance().trackEditorAction("file", "open", fileName);
 	}
 
 	public static void handleFileClosedEvent(String fileName) {
@@ -322,12 +300,14 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 		initializeKeystrokeObjectGraph(projectName, fileName);
 
-		SoftwareCoKeystrokeCount keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		fileInfo.close += 1;
 
 		SWCoreLog.logInfoMessage("Code Time: file closed: " + fileName);
+		
+		EventTrackerManager.getInstance().trackEditorAction("file", "open", fileName);
 	}
 
 	/**
@@ -343,7 +323,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		// make sure keystrokeCount is available
 		initializeKeystrokeObjectGraph(projectName, fileName);
 
-		SoftwareCoKeystrokeCount keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		if (keystrokeCount == null) {
 			return;
 		}
@@ -353,16 +333,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 		String syntax = fileInfo.syntax;
 		if (syntax == null || syntax.equals("")) {
-			// get the grammar
-			try {
-				File file = new File(fileName);
-				if (file != null && file.getName().contains(".")) {
-					String ext = file.getName().substring(file.getName().lastIndexOf(".") + 1);
-					fileInfo.syntax = ext;
-				}
-			} catch (Exception e) {
-				//
-			}
+			syntax = SoftwareCoUtils.getSyntax(fileName);
 		}
 
 		if (!isNewLine) {
@@ -372,6 +343,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			if (numKeystrokes > 1) {
 				// It's a copy and paste event
 				fileInfo.paste += 1;
+				fileInfo.charsPasted += numKeystrokes;
 				LOG.info("Code Time: Copy+Paste incremented");
 			} else if (numKeystrokes < 0) {
 				// It's a character delete event
@@ -409,19 +381,19 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	}
 
 	public static void initializeKeystrokeObjectGraph(String projectName, String fileName) {
-		SoftwareCoKeystrokeCount keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		if (keystrokeCount == null) {
 			//
 			// Create one since it hasn't been created yet
 			// and set the start time (in seconds)
 			//
-			keystrokeCount = new SoftwareCoKeystrokeCount();
+			keystrokeCount = new KeystrokePayload();
 
 			//
 			// Update the manager with the newly created KeystrokeCount object
 			//
 			keystrokeMgr.setKeystrokeCount(projectName, keystrokeCount, fileName);
-			
+
 			// keystroke payload timer
 			keystrokesTimer = new Timer();
 			ProcessKeystrokePayloadTask task = new ProcessKeystrokePayloadTask();
@@ -438,15 +410,15 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				? keystrokeCount.getProject().directory
 				: null;
 	}
-	
+
 	protected static class ProcessKeystrokePayloadTask extends TimerTask {
 		public void run() {
 			if (keystrokeMgr != null) {
-				List<SoftwareCoKeystrokeCount> list = keystrokeMgr.getKeystrokeCounts();
-				for (SoftwareCoKeystrokeCount keystrokeCount : list) {
+				List<KeystrokePayload> list = keystrokeMgr.getKeystrokeCounts();
+				for (KeystrokePayload keystrokeCount : list) {
 					keystrokeCount.processKeystrokes();
 				}
-				
+
 				keystrokeMgr.resetData();
 			}
 		}
@@ -511,7 +483,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		// make sure keystrokeCount is available
 		initializeKeystrokeObjectGraph(projectName, fileName);
 
-		SoftwareCoKeystrokeCount keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		// increment the specific file keystroke value

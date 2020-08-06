@@ -29,7 +29,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.util.SWCoreLog;
-import com.swdc.codetime.util.SoftwareCoKeystrokeCount;
+import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.codetime.util.SoftwareResponse;
 
@@ -39,14 +39,14 @@ public class FileManager {
 
 	private static JsonParser parser = new JsonParser();
 	private static Semaphore semaphore = new Semaphore(1);
-	private static SoftwareCoKeystrokeCount lastSavedKeystrokeStats = null;
+	private static KeystrokePayload lastSavedKeystrokeStats = null;
 	
 	public static void clearLastSavedKeystrokestats() {
 		lastSavedKeystrokeStats = null;
 	}
 	
-	public static SoftwareCoKeystrokeCount getLastSavedKeystrokeStats() {
-        List<SoftwareCoKeystrokeCount> list = convertPayloadsToList(getKeystrokePayloads());
+	public static KeystrokePayload getLastSavedKeystrokeStats() {
+        List<KeystrokePayload> list = convertPayloadsToList(getKeystrokePayloads());
         if (list != null && list.size() > 0) {
             list.sort((o1, o2) -> o2.start < o1.start ? -1 : o2.start > o1.start ? 1 : 0);
             lastSavedKeystrokeStats = list.get(0);
@@ -394,13 +394,13 @@ public class FileManager {
 		return sessionJson;
 	}
 	
-	private static List<SoftwareCoKeystrokeCount> convertPayloadsToList(String payloads) {
+	private static List<KeystrokePayload> convertPayloadsToList(String payloads) {
         if (payloads != null && !payloads.equals("")) {
             JsonArray jsonArray = (JsonArray) CodeTimeActivator.jsonParser.parse(payloads);
             if (jsonArray != null && jsonArray.size() > 0) {
-				Type type = new TypeToken<List<SoftwareCoKeystrokeCount>>() {
+				Type type = new TypeToken<List<KeystrokePayload>>() {
                 }.getType();
-                List<SoftwareCoKeystrokeCount> list = CodeTimeActivator.gson.fromJson(jsonArray, type);
+                List<KeystrokePayload> list = CodeTimeActivator.gson.fromJson(jsonArray, type);
 
                 return list;
             }

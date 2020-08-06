@@ -12,6 +12,8 @@ public class ResourceInfo {
 	public String branch = "";
 	public String tag = "";
 	public String email = "";
+	public String repoName = "";
+    public String ownerId = "";
 	public List<TeamMember> members = new ArrayList<TeamMember>();
 	
 	public ResourceInfo clone() {
@@ -21,6 +23,8 @@ public class ResourceInfo {
         info.tag = this.tag;
         info.email = this.email;
         info.members = this.members;
+        info.repoName = this.repoName;
+        info.ownerId = this.ownerId;
         return info;
     }
 	
@@ -30,6 +34,8 @@ public class ResourceInfo {
 		jsonObj.addProperty("identifier", this.identifier);
 		jsonObj.addProperty("tag", this.tag);
 		jsonObj.addProperty("branch", this.branch);
+		jsonObj.addProperty("repoName", this.repoName);
+		jsonObj.addProperty("ownerId", this.ownerId);
 		return jsonObj;
 	}
 	

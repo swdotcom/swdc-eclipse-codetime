@@ -55,7 +55,11 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 
 		MetricsTreeNode[] initEls = contentProvider.getInitialExpandedElements();
 		if (initEls != null) {
-			tv.setExpandedElements(initEls);
+			try {
+				tv.setExpandedElements(initEls);
+			} catch (Exception e) {
+				//
+			}
 		}
 
 		tv.addTreeListener(new ITreeViewerListener() {
