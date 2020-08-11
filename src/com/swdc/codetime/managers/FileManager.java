@@ -396,14 +396,16 @@ public class FileManager {
 	
 	private static List<KeystrokePayload> convertPayloadsToList(String payloads) {
         if (payloads != null && !payloads.equals("")) {
-            JsonArray jsonArray = (JsonArray) CodeTimeActivator.jsonParser.parse(payloads);
-            if (jsonArray != null && jsonArray.size() > 0) {
-				Type type = new TypeToken<List<KeystrokePayload>>() {
-                }.getType();
-                List<KeystrokePayload> list = CodeTimeActivator.gson.fromJson(jsonArray, type);
-
-                return list;
-            }
+        	try {
+	            JsonArray jsonArray = (JsonArray) CodeTimeActivator.jsonParser.parse(payloads);
+	            if (jsonArray != null && jsonArray.size() > 0) {
+					Type type = new TypeToken<List<KeystrokePayload>>() {
+	                }.getType();
+	                return CodeTimeActivator.gson.fromJson(jsonArray, type);
+	            }
+        	} catch (Exception e) {
+        		LOG.warning("Error reading the payloads");
+        	}
         }
         return new ArrayList<>();
     }

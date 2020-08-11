@@ -202,7 +202,8 @@ public class SoftwareCoSessionManager {
 
 	protected File getReadmeFile() {
 		Bundle bundle = Platform.getBundle(CodeTimeActivator.PLUGIN_ID);
-		URL fileURL = bundle.getEntry("files/README.html");
+		// URL fileURL = bundle.getEntry("files/README.html");
+		URL fileURL = bundle.getEntry("README.md");
 		File file = null;
 		try {
 			file = new File(FileLocator.resolve(fileURL).toURI());
@@ -223,24 +224,20 @@ public class SoftwareCoSessionManager {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 
 		URI uri = f.toURI();
-		String editorSupport = "org.eclipse.ui.browser.editorSupport";
+		// String editorSupport = "org.eclipse.ui.browser.editorSupport";
 		String genericEditor = "org.eclipse.ui.genericeditor.GenericEditor";
 		String defaultEditor = "org.eclipse.ui.DefaultTextEditor";
 		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 		IWorkbenchPage page = window.getActivePage();
 
 		try {
-			IDE.openEditor(page, uri, editorSupport, true);
-		} catch (Exception e) {
+			IDE.openEditor(page, uri, defaultEditor, true);
+		} catch (Exception e1) {
 			try {
-				IDE.openEditor(page, uri, defaultEditor, true);
-			} catch (Exception e1) {
-				try {
-					IDE.openEditor(page, uri, genericEditor, true);
-				} catch (Exception e2) {
-					SWCoreLog.logErrorMessage(
-							"Code Time: unable to launch editor to view code time metrics, error: " + e.getMessage());
-				}
+				IDE.openEditor(page, uri, genericEditor, true);
+			} catch (Exception e2) {
+				SWCoreLog.logErrorMessage(
+						"Code Time: unable to launch editor to view code time metrics, error: " + e2.getMessage());
 			}
 		}
 		

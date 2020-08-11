@@ -29,7 +29,7 @@ public class EventTrackerManager {
 
 	public static EventTrackerManager getInstance() {
 		if (instance == null) {
-			synchronized(EventTrackerManager.class) {
+			synchronized (EventTrackerManager.class) {
 				if (instance == null) {
 					instance = new EventTrackerManager();
 				}
@@ -115,7 +115,7 @@ public class EventTrackerManager {
 		event.pluginEntity = this.getPluginEntity();
 		event.projectEntity = this.getProjectEntity();
 		event.fileEntity = this.getFileEntityFromFileName(full_file_name);
-		ResourceInfo resourceInfo = GitUtil.getResourceInfo(event.project_directory, false);
+		ResourceInfo resourceInfo = GitUtil.getResourceInfo(event.projectEntity.project_directory, false);
 		event.repoEntity = this.getRepoEntity(resourceInfo);
 
 		trackerMgr.trackEditorAction(event);

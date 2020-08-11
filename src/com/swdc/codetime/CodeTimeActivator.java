@@ -94,12 +94,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		super.start(context);
 		plugin = this;
 
-		// add the document listener
-		editorListener = new SoftwareCoFileEditorListener();
-
-		// create the keystroke manager
-		keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
-
 		// initialize the plugin features
 		earlyStartup();
 	}
@@ -161,6 +155,12 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 				// initialize document listener
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+				
+				// add the document listener
+				editorListener = new SoftwareCoFileEditorListener();
+
+				// create the keystroke manager
+				keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
 
 				// listen for file changes
 				window.getPartService().addPartListener(editorListener);
