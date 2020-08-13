@@ -76,6 +76,8 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
 
 	private static final IWorkbench workbench = PlatformUI.getWorkbench();
+	
+	public static ProcessKeystrokePayloadTask task = null;
 
 	/**
 	 * The constructor
@@ -383,6 +385,11 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	public static void initializeKeystrokeObjectGraph(String projectName, String fileName) {
 		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		if (keystrokeCount == null) {
+			if (task != null) {
+				// cancel the previous timer
+				task.cancel();
+				task = null;
+			}
 			//
 			// Create one since it hasn't been created yet
 			// and set the start time (in seconds)
@@ -396,7 +403,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 			// keystroke payload timer
 			keystrokesTimer = new Timer();
-			ProcessKeystrokePayloadTask task = new ProcessKeystrokePayloadTask();
+			task = new ProcessKeystrokePayloadTask();
 			keystrokesTimer.schedule(task, 1000 * 60);
 		} else {
 			//
@@ -411,7 +418,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				: null;
 	}
 
-	protected static class ProcessKeystrokePayloadTask extends TimerTask {
+	public static class ProcessKeystrokePayloadTask extends TimerTask {
 		public void run() {
 			if (keystrokeMgr != null) {
 				List<KeystrokePayload> list = keystrokeMgr.getKeystrokeCounts();
