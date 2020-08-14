@@ -309,7 +309,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 		SWCoreLog.logInfoMessage("Code Time: file closed: " + fileName);
 		
-		EventTrackerManager.getInstance().trackEditorAction("file", "open", fileName);
+		EventTrackerManager.getInstance().trackEditorAction("file", "close", fileName);
 	}
 
 	/**

@@ -1,6 +1,8 @@
 package com.swdc.codetime.tree;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -20,15 +22,30 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
+import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.ReportManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
+import com.swdc.snowplow.tracker.entities.UIElementEntity;
+import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 public class MetricsTreeView extends ViewPart implements ISelectionListener {
 
 	private MetricsTreeContentProvider contentProvider;
 	private MetricsTreeLabelProvider labelProvider;
 	private TreeViewer tv;
+	
+	protected static List<String> toggleItems = Arrays.asList("ct_codetime_toggle_node",
+            "ct_active_codetime_toggle_node",
+            "ct_lines_added_toggle_node",
+            "ct_lines_removed_toggle_node",
+            "ct_keystrokes_toggle_node",
+            "ct_files_changed_toggle_node",
+            "ct_top_files_by_kpm_toggle_node",
+            "ct_top_files_by_keystrokes_toggle_node",
+            "ct_top_files_by_codetime_toggle_node",
+            "ct_open_changes_toggle_node",
+            "ct_committed_today_toggle_node");
 
 	public MetricsTreeView() {
 		super();
@@ -66,12 +83,22 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 
 			@Override
 			public void treeExpanded(TreeExpansionEvent event) {
-				// MetricsTreeNode node = (MetricsTreeNode) event.getElement();
+				MetricsTreeNode node = (MetricsTreeNode) event.getElement();
+				if (node != null) {
+					String label = node.getLabel();
+					String toggleName = getToggleItem(label);
+					sendNodeToggleEvent(toggleName);
+				}
 			}
 
 			@Override
 			public void treeCollapsed(TreeExpansionEvent event) {
-				// MetricsTreeNode node = (MetricsTreeNode) event.getElement();
+				MetricsTreeNode node = (MetricsTreeNode) event.getElement();
+				if (node != null) {
+					String label = node.getLabel();
+					String toggleName = getToggleItem(label);
+					sendNodeToggleEvent(toggleName);
+				}
 			}
 		});
 
@@ -85,11 +112,11 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 						MetricsTreeNode node = (MetricsTreeNode) selection.getFirstElement();
 						String id = node.getId();
 						if (id.equals("generateDashboardItem")) {
-							SoftwareCoSessionManager.launchCodeTimeMetricsDashboard();
+							SoftwareCoSessionManager.launchCodeTimeMetricsDashboard(UIInteractionType.click);
 						} else if (id.equals("webDashboardItem")) {
-							SoftwareCoSessionManager.launchWebDashboard();
+							SoftwareCoSessionManager.launchWebDashboard(UIInteractionType.click);
 						} else if (id.equals("toggleStatusTextItem")) {
-							SoftwareCoUtils.toggleStatusBarText();
+							SoftwareCoUtils.toggleStatusBarText(UIInteractionType.click);
 						} else if (id.equals("submitFeedbackItem")) {
 							SoftwareCoUtils.submitFeedback();
 						} else if (id.equals("learnMoreItem")) {
@@ -149,6 +176,28 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 			});
 
 		}
+	}
+
+	protected String getToggleItem(String label) {
+		String normalizedLabel = label.replaceAll("\\s+", "");
+        for (String toggleItem : toggleItems) {
+            // strip off "ct_" and "_toggle_node" and replace the "_" with ""
+            String normalizedToggleItem = toggleItem.replace("ct_", "").replace("_toggle_node", "").replaceAll("_", "");
+            if (normalizedLabel.toLowerCase().indexOf(normalizedToggleItem) != -1) {
+                return toggleItem;
+            }
+        }
+        return null;
+    }
+	
+	protected void sendNodeToggleEvent(String toggleItemName) {
+		if (toggleItemName != null) {
+            UIElementEntity uiElementEntity = new UIElementEntity();
+            uiElementEntity.element_location = "ct_metrics_tree";
+            uiElementEntity.element_name = toggleItemName;
+            uiElementEntity.cta_text = toggleItemName;
+            EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, uiElementEntity);
+        }
 	}
 
 }

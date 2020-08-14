@@ -112,8 +112,8 @@ public class ReportManager {
         elementEntity.element_name = "ct_contributor_repo_identifier_btn";
         elementEntity.element_location = "ct_contributors_tree";
         elementEntity.color = null;
-        elementEntity.cta_text = "View your commit report";
-        elementEntity.icon_name = "repo";
+        elementEntity.cta_text = "redacted";
+        elementEntity.icon_name = null;
         EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
     }
 

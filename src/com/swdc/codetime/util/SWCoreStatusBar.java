@@ -12,6 +12,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.managers.EventTrackerManager;
+import com.swdc.snowplow.tracker.entities.UIElementEntity;
+import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControlContribution {
 
@@ -23,6 +26,14 @@ public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControl
 		@Override
 		public void handleEvent(Event event) {
 			CodeTimeActivator.displayCodeTimeMetricsTree();
+			
+			UIElementEntity elementEntity = new UIElementEntity();
+	        elementEntity.element_name = "ct_status_bar_metrics_btn";
+	        elementEntity.element_location = "ct_status_bar";
+	        elementEntity.color = "blue";
+	        elementEntity.cta_text = "Status bar metrics";
+	        elementEntity.icon_name = "clock";
+	        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 		}
 	};
 

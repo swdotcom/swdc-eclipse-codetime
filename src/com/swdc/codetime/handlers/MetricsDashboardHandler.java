@@ -6,13 +6,14 @@ import org.eclipse.core.commands.ExecutionException;
 
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
+import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 public class MetricsDashboardHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 
-		SoftwareCoSessionManager.launchWebDashboard();
+		SoftwareCoSessionManager.launchWebDashboard(UIInteractionType.keyboard);
 		return null;
 	}
 

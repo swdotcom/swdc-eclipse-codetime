@@ -73,14 +73,8 @@ public class SoftwareCoUtils {
 
 	public static final Logger LOG = Logger.getLogger("SoftwareCoUtils");
 	// set the api endpoint to use
-	// "http://localhost:5000", "https://qaapi.software.com",
-	// "https://stagingapi.software.com", "https://api.software.com"
-
 	private final static String PROD_API_ENDPOINT = "https://api.software.com";
 	// set the launch url to use
-	// "http://localhost:3000", "https://qa.software.com",
-	// "https://staging.software.com", "https://app.software.com"
-
 	private final static String PROD_URL_ENDPOINT = "https://app.software.com";
 
 	// set the api endpoint to use
@@ -443,25 +437,26 @@ public class SoftwareCoUtils {
 			UIElementEntity elementEntity = new UIElementEntity();
 	        elementEntity.element_name = "ct_submit_feedback_btn";
 	        elementEntity.element_location = "ct_menu_tree";
-	        elementEntity.color = null;
+	        elementEntity.color = "green";
 	        elementEntity.cta_text = "Submit feedback";
-	        elementEntity.icon_name = "envelope";
+	        elementEntity.icon_name = "text-bubble";
 	        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 		} catch (Exception e) {
 			SWCoreLog.logException(e);
 		}
 	}
 
-	public static void toggleStatusBarText() {
+	public static void toggleStatusBarText(UIInteractionType type) {
+		String cta_text = !showStatusText ? "Show status bar metrics" : "Hide status bar metrics";
 		showStatusText = !showStatusText;
 		WallClockManager.getInstance().dispatchStatusViewUpdate();
 		
 		UIElementEntity elementEntity = new UIElementEntity();
-        elementEntity.element_name = "ct_toggle_status_bar_metrics_btn";
-        elementEntity.element_location = "ct_menu_tree";
-        elementEntity.color = "blue";
-        elementEntity.cta_text = "Toggle the Code Time status bar metrics text";
-        elementEntity.icon_name = "slash-eye";
+        elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_toggle_status_bar_metrics_btn" : "ct_toggle_status_bar_metrics_cmd";
+        elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
+        elementEntity.color = type.equals(UIInteractionType.click) ? "blue" : null;
+        elementEntity.cta_text = cta_text;
+        elementEntity.icon_name = type.equals(UIInteractionType.click) ? "slash-eye" : null;
         EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 	}
 
