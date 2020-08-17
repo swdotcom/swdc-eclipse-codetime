@@ -43,8 +43,8 @@ public class EventTrackerManager {
 	}
 
 	private void init() {
-		trackerMgr = new TrackerManager(SoftwareCoUtils.api_endpoint, "CodeTime", SoftwareCoUtils.pluginName);
-		ready = true;
+		// trackerMgr = new TrackerManager(SoftwareCoUtils.api_endpoint, "CodeTime", SoftwareCoUtils.pluginName);
+		// ready = true;
 	}
 
 	public void trackCodeTimeEvent(KeystrokePayload payload) {
@@ -56,12 +56,18 @@ public class EventTrackerManager {
 		Map<String, FileInfo> fileInfoDataSet = payload.getFileInfos();
 		for (FileInfo fileInfoData : fileInfoDataSet.values()) {
 			CodetimeEvent event = new CodetimeEvent();
+			
+			// new attributes
+			event.characters_added = fileInfoData.characters_added;
+			event.characters_deleted = fileInfoData.characters_deleted;
+			event.single_adds = fileInfoData.single_adds;
+			event.single_deletes = fileInfoData.single_deletes;
+			event.multi_deletes = fileInfoData.multi_deletes;
+			event.multi_adds = fileInfoData.multi_adds;
+			event.auto_indents = fileInfoData.auto_indents;
+			event.replacements = fileInfoData.replacements;
 
 			event.keystrokes = fileInfoData.keystrokes;
-			event.chars_added = fileInfoData.add;
-			event.chars_deleted = fileInfoData.delete;
-			event.pastes = fileInfoData.paste;
-			event.chars_pasted = fileInfoData.charsPasted;
 			event.lines_added = fileInfoData.linesAdded;
 			event.lines_deleted = fileInfoData.linesRemoved;
 

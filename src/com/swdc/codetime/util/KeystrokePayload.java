@@ -71,18 +71,18 @@ public class KeystrokePayload {
 	}
 
 	public static class FileInfo {
-		public Integer add = 0;
-		public Integer paste = 0;
-		public Integer charsPasted = 0;
-		public Integer open = 0;
-		public Integer close = 0;
-		public Integer delete = 0;
-		public Integer length = 0;
-		public Integer netkeys = 0;
-		public Integer lines = 0;
-		public Integer linesAdded = 0;
-		public Integer linesRemoved = 0;
-		public Integer keystrokes = 0;
+		public int add = 0;
+		public int paste = 0;
+		public int charsPasted = 0;
+		public int open = 0;
+		public int close = 0;
+		public int delete = 0;
+		public int length = 0;
+		public int netkeys = 0;
+		public int lines = 0;
+		public int linesAdded = 0;
+		public int linesRemoved = 0;
+		public int keystrokes = 0;
 		public String syntax = "";
 		public long start = 0;
 		public long end = 0;
@@ -91,6 +91,28 @@ public class KeystrokePayload {
 		public long duration_seconds = 0;
 		public String fsPath = "";
 		public String name = "";
+		// new attributes for snowplow
+		public int characters_added = 0; // chars added
+		public int characters_deleted = 0; // chars deleted
+		public int single_deletes = 0; // single char or single line delete
+		public int multi_deletes = 0; // multi char or multi line delete
+		public int single_adds = 0; // single char or single line add
+		public int multi_adds = 0; // multi char or multi line add
+		public int auto_indents = 0;
+		public int replacements = 0;
+		@Override
+		public String toString() {
+			return "FileInfo [add=" + add + ", paste=" + paste + ", charsPasted=" + charsPasted + ", open=" + open
+					+ "\n, close=" + close + ", delete=" + delete + ", length=" + length + ", netkeys=" + netkeys
+					+ "\n, lines=" + lines + ", linesAdded=" + linesAdded + ", linesRemoved=" + linesRemoved
+					+ "\n, keystrokes=" + keystrokes + ", syntax=" + syntax + ", start=" + start + ", end=" + end
+					+ "\n, local_start=" + local_start + ", local_end=" + local_end + ", duration_seconds="
+					+ duration_seconds + "\n, fsPath=" + fsPath + ", name=" + name + ", characters_added="
+					+ characters_added + "\n, characters_deleted=" + characters_deleted + ", single_deletes="
+					+ single_deletes + "\n, multi_deletes=" + multi_deletes + ", single_adds=" + single_adds
+					+ "\n, multi_adds=" + multi_adds + ", auto_indents=" + auto_indents + ", replacements=" + replacements
+					+ "]";
+		}
 	}
 	
 	public Map<String, FileInfo> getFileInfos() {
@@ -201,7 +223,6 @@ public class KeystrokePayload {
 		// tally the metrics to set the keystrokes for each source key
 		Map<String, FileInfo> fileInfoDataSet = this.source;
 		for (FileInfo data : fileInfoDataSet.values()) {
-			data.keystrokes = data.add + data.paste + data.delete + data.linesAdded + data.linesRemoved;
 			keystrokesTally += data.keystrokes;
 		}
 
@@ -393,9 +414,12 @@ public class KeystrokePayload {
 
 	@Override
 	public String toString() {
-		return "SoftwareCoKeystrokeCount [type=" + type + ", pluginId=" + pluginId + ", source=" + source
-				+ ", keystrokes=" + keystrokes + ", start=" + start + ", local_start=" + local_start + ", timezone="
-				+ timezone + ", project=" + project + ", version=" + version + "]";
+		return "KeystrokePayload [type=" + type + ", pluginId=" + pluginId + ", source=" + source + ", keystrokes="
+				+ keystrokes + ", start=" + start + ", local_start=" + local_start + ", project=" + project
+				+ ", version=" + version + ", os=" + os + ", timezone=" + timezone + ", cumulative_editor_seconds="
+				+ cumulative_editor_seconds + ", cumulative_session_seconds=" + cumulative_session_seconds
+				+ ", elapsed_seconds=" + elapsed_seconds + ", workspace_name=" + workspace_name
+				+ ", project_null_error=" + project_null_error + "]";
 	}
 
 }

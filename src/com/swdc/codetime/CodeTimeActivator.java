@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.DocumentEvent;
@@ -16,6 +17,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -27,14 +29,14 @@ import com.swdc.codetime.managers.EventManager;
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
+import com.swdc.codetime.util.KeystrokePayload;
+import com.swdc.codetime.util.KeystrokePayload.FileInfo;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
-import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
 import com.swdc.codetime.util.SoftwareCoRepoManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
-import com.swdc.codetime.util.KeystrokePayload.FileInfo;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -58,7 +60,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static SoftwareCoFileEditorListener editorListener;
 
 	// managers used by the static processing method
-	private static SoftwareCoKeystrokeManager keystrokeMgr;
+	private static SoftwareCoKeystrokeManager keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();;
 
 	// private keystroke processor timer and client manager
 	private static Timer keystrokesTimer;
@@ -152,20 +154,28 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			}
 
 			protected void initializePluginWhenReady(boolean initializedUser) {
+				activateListener();
+				
 				// initialize plugin tasks
 				initializePlugin(initializedUser);
-
+			}
+			
+			protected void activateListener() {
 				// initialize document listener
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-				
-				// add the document listener
-				editorListener = new SoftwareCoFileEditorListener();
-
-				// create the keystroke manager
-				keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
-
-				// listen for file changes
-				window.getPartService().addPartListener(editorListener);
+				if (window != null && window.getPartService().getActivePart() != null) {
+					IWorkbenchPartReference partRef = window.getPartService().getActivePartReference();
+					// listen for file changes
+					window.getPartService().addPartListener(new SoftwareCoFileEditorListener(partRef));
+				} else {
+					// call again in a few seconds
+					new Timer().schedule(new TimerTask() {
+		                @Override
+		                public void run() {
+		                	activateListener();
+		                }
+		            }, 3000);
+				}
 			}
 
 			protected void initializePlugin(boolean initializedUser) {
@@ -311,6 +321,28 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		
 		EventTrackerManager.getInstance().trackEditorAction("file", "close", fileName);
 	}
+	
+	public static void handleBeforeChangeEvent(DocumentEvent docEvent) {
+		// get filename
+		String fileName = getCurrentFileName();
+		// get the project name
+		String projectName = getActiveProjectName(fileName);
+		// make sure keystrokeCount is available
+		initializeKeystrokeObjectGraph(projectName, fileName);
+		
+		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		if (keystrokeCount == null || docEvent == null || docEvent.getText() == null) {
+			return;
+		}
+		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
+		
+		if (docEvent.getDocument() != null) {
+			fileInfo.lines = docEvent.getDocument().getNumberOfLines();
+		} else {
+			int documentLineCount = SoftwareCoUtils.getLineCount(fileName);
+			fileInfo.lines = documentLineCount;
+		}
+	}
 
 	/**
 	 * Take the changed document metadata and process them.
@@ -322,64 +354,80 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		String fileName = getCurrentFileName();
 		// get the project name
 		String projectName = getActiveProjectName(fileName);
-		// make sure keystrokeCount is available
-		initializeKeystrokeObjectGraph(projectName, fileName);
 
 		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
-		if (keystrokeCount == null) {
+		if (keystrokeCount == null || docEvent == null || docEvent.getText() == null) {
 			return;
 		}
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
-
-		boolean isNewLine = (docEvent.getText().matches("\n.*") || docEvent.getText().matches("\r\n.*")) ? true : false;
-
-		String syntax = fileInfo.syntax;
-		if (syntax == null || syntax.equals("")) {
-			syntax = SoftwareCoUtils.getSyntax(fileName);
+		
+		if (StringUtils.isBlank(fileInfo.syntax)) {
+			fileInfo.syntax = SoftwareCoUtils.getSyntax(fileName);
 		}
-
-		if (!isNewLine) {
-			int numKeystrokes = (docEvent.getText() != null && docEvent.getText().length() > 0)
-					? docEvent.getText().length()
-					: docEvent.getLength() / -1;
-			if (numKeystrokes > 1) {
-				// It's a copy and paste event
-				fileInfo.paste += 1;
-				fileInfo.charsPasted += numKeystrokes;
-				LOG.info("Code Time: Copy+Paste incremented");
-			} else if (numKeystrokes < 0) {
-				// It's a character delete event
-				fileInfo.delete += 1;
-				LOG.info("Code Time: Delete incremented");
-			} else if (numKeystrokes == 1) {
-				// increment the specific file keystroke value
-				fileInfo.add += 1;
-				LOG.info("Code Time: KPM incremented");
-			}
+		
+		updateFileInfoMetrics(docEvent, fileInfo);
+	}
+	
+	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo) {
+		
+		String text = docEvent.getText();
+		int new_line_count = 0;
+		if (docEvent.getDocument() != null) {
+			new_line_count = docEvent.getDocument().getNumberOfLines();
+			fileInfo.length = docEvent.getDocument().getLength();
 		}
-
-		keystrokeCount.setKeystrokes(keystrokeCount.getKeystrokes() + 1);
-
-		int documentLineCount = -1;
-		try {
-			documentLineCount = docEvent.getDocument().getNumberOfLines();
-			if (documentLineCount >= 0) {
-				int savedLines = fileInfo.lines.intValue();
-				if (savedLines > 0) {
-					int diff = documentLineCount - savedLines;
-					if (diff < 0) {
-						fileInfo.linesRemoved += Math.abs(diff);
-						LOG.info("Code Time: linesRemoved incremented");
-					} else if (diff > 0) {
-						fileInfo.linesAdded += diff;
-						LOG.info("Code Time: linesAdded incremented");
-					}
-				}
-				fileInfo.lines = documentLineCount;
-			}
-		} catch (Exception e) {
-			//
+		
+		int numKeystrokes = (text.length() > 0)
+				? text.length()
+				: docEvent.getLength() / -1;
+			
+				
+		// matches at least 1 newline character
+		boolean hasNewLine = text.matches("[\r\n]");
+		// contains newline characters within the text
+		int pastedLinesAdded = hasNewLine ? text.split(".*[\r\n]+").length : 0;
+		boolean hasAutoIndent = text.matches("[\t]");
+		
+		
+		// event updates
+		if (hasAutoIndent) {
+			// it's an auto indent action
+			fileInfo.auto_indents += 1;
+		} else if (hasNewLine && pastedLinesAdded == 0) {
+			// it's a single new line action (single_adds)
+			fileInfo.single_adds += 1;
+			fileInfo.linesAdded += 1;
+		} else if (pastedLinesAdded > 0) {
+			// it's a multi line paste action (multi_adds)
+			fileInfo.linesAdded += pastedLinesAdded;
+			fileInfo.paste += 1;
+			fileInfo.multi_adds += 1;
+			fileInfo.characters_added += (numKeystrokes - pastedLinesAdded);
+		} else if (numKeystrokes > 1) {
+			// pasted characters (multi_adds)
+			fileInfo.multi_adds += 1;
+			fileInfo.characters_added += numKeystrokes;
+		} else if (numKeystrokes == 1) {
+			// it's a single keystroke action (single_adds)
+			fileInfo.add += 1;
+			fileInfo.single_adds += 1;
+			fileInfo.characters_added += 1;
+		} else if (numKeystrokes < -1) {
+			// it's a multi character delete action (multi_deletes)
+			fileInfo.linesRemoved += fileInfo.lines - new_line_count;
+			fileInfo.multi_deletes += 1;
+			fileInfo.characters_deleted += Math.abs(numKeystrokes);
+		} else if (numKeystrokes == -1) {
+			// it's a single character delete action (single_deletes)
+			fileInfo.delete += 1;
+			fileInfo.single_deletes += 1;
+			fileInfo.characters_deleted += 1;
 		}
+		
+		fileInfo.lines = new_line_count;
+		fileInfo.keystrokes += 1;
+		
+		System.out.println(fileInfo.toString());
 	}
 
 	public static void initializeKeystrokeObjectGraph(String projectName, String fileName) {
@@ -441,6 +489,19 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		}
 
 		SoftwareCoUtils.sendHeartbeat("INITIALIZED");
+		
+		String readmeDisplayed = FileManager.getItem("eclipse_CtReadme");
+		
+        if (readmeDisplayed == null || Boolean.valueOf(readmeDisplayed) == false) {
+            try {
+				SoftwareCoSessionManager.getInstance().launchReadmeFile();
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+            FileManager.setItem("eclipse_CtReadme", "true");
+            
+            CodeTimeActivator.displayCodeTimeMetricsTree();
+        }
 	}
 
 	private class ProcessUserStatusTask extends TimerTask {
