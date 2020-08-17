@@ -103,16 +103,14 @@ public class KeystrokePayload {
 		@Override
 		public String toString() {
 			return "FileInfo [add=" + add + ", paste=" + paste + ", charsPasted=" + charsPasted + ", open=" + open
-					+ "\n, close=" + close + ", delete=" + delete + ", length=" + length + ", netkeys=" + netkeys
-					+ "\n, lines=" + lines + ", linesAdded=" + linesAdded + ", linesRemoved=" + linesRemoved
-					+ "\n, keystrokes=" + keystrokes + ", syntax=" + syntax + ", start=" + start + ", end=" + end
-					+ "\n, local_start=" + local_start + ", local_end=" + local_end + ", duration_seconds="
-					+ duration_seconds + "\n, fsPath=" + fsPath + ", name=" + name + ", characters_added="
-					+ characters_added + "\n, characters_deleted=" + characters_deleted + ", single_deletes="
-					+ single_deletes + "\n, multi_deletes=" + multi_deletes + ", single_adds=" + single_adds
-					+ "\n, multi_adds=" + multi_adds + ", auto_indents=" + auto_indents + ", replacements=" + replacements
-					+ "]";
+					+ "\n, close=" + close + ", delete=" + delete + ", length=" + length + ", lines=" + lines
+					+ "\n, linesAdded=" + linesAdded + ", linesRemoved=" + linesRemoved + ", keystrokes=" + keystrokes
+					+ "\n, syntax=" + syntax + ", characters_added=" + characters_added + ", characters_deleted="
+					+ characters_deleted + "\n, single_deletes=" + single_deletes + ", multi_deletes=" + multi_deletes
+					+ "\n, single_adds=" + single_adds + ", multi_adds=" + multi_adds + ", auto_indents=" + auto_indents
+					+ "\n, replacements=" + replacements + "]";
 		}
+
 	}
 	
 	public Map<String, FileInfo> getFileInfos() {

@@ -426,8 +426,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		
 		fileInfo.lines = new_line_count;
 		fileInfo.keystrokes += 1;
-		
-		System.out.println(fileInfo.toString());
 	}
 
 	public static void initializeKeystrokeObjectGraph(String projectName, String fileName) {
