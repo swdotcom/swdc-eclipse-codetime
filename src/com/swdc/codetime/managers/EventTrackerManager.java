@@ -43,8 +43,8 @@ public class EventTrackerManager {
 	}
 
 	private void init() {
-		trackerMgr = new TrackerManager(SoftwareCoUtils.api_endpoint, "CodeTime", SoftwareCoUtils.pluginName);
-		ready = true;
+		// trackerMgr = new TrackerManager(SoftwareCoUtils.api_endpoint, "CodeTime", SoftwareCoUtils.pluginName);
+		// ready = true;
 	}
 
 	public void trackCodeTimeEvent(KeystrokePayload payload) {

@@ -12,7 +12,7 @@ public class SoftwareLoginHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 
-		SoftwareCoSessionManager.launchLogin("onboard");
+		SoftwareCoSessionManager.launchLogin("email");
 		return null;
 	}
 
