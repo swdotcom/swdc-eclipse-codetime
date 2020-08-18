@@ -1,16 +1,18 @@
 steps:
-1) Build the com.swdc.codetime_<version>.jar to the target/plugins by
+1) Build the com.swdc.codetime_<version>.jar to the "target" directory by
    selecting the option "[4. Export the plug-in in a format suitable...]"
    within the plugin.xml
    - refresh the project
 2) Go to the "feature.xml" within com.swdc.codetime.
-   Update the version to the same version of the plugin you built.
+   Update the version to the same version of the plugin you built and set the directory to the "feature" directory.
    Click the option "[3. Export the feature in a format suitable ...]"
    and choose the plugin version you just built.
    - refresh the project
-3) Go to the com.swdc.codetime.updatesite site.xml
+3) Go to the com.swdc.codetime.updatesite site.xml.
+   Remove the current older feature listed under com.swdc.codetime.
+   Highlight com.swdc.codetime and select "Add Feature..."
    Bring in the feature/version that you exported into the
-   com.swdc.codetime category by selecting the "Add Feature" button.
+   com.swdc.codetime category.
    Update the version number in this xml if it doesn't automatically update.
    Select the jar you created from the feature and add.
    Select the "Build All" button.
@@ -19,3 +21,6 @@ steps:
 4) Push the updates
 5) Copy the updates folder to the S3 bucket
 6) Increment the version number in the marketplace UI
+
+This is the install URL for eclipse users:
+https://eclipse-update-site.s3-us-west-1.amazonaws.com/updatesite/site.xml
