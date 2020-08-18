@@ -4,7 +4,7 @@ steps:
    within the plugin.xml
    - refresh the project
 2) Go to the "feature.xml" within com.swdc.codetime.
-   Update the version to the same version of the plugin you built.
+   Update the version to the same version of the plugin you built to the features dir.
    Click the option "[3. Export the feature in a format suitable ...]"
    and choose the plugin version you just built.
    - refresh the project
