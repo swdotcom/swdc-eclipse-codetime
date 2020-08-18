@@ -7,6 +7,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IProject;
@@ -60,7 +62,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static SoftwareCoFileEditorListener editorListener;
 
 	// managers used by the static processing method
-	private static SoftwareCoKeystrokeManager keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();;
+	private static SoftwareCoKeystrokeManager keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
+	
+	private static final Pattern NEW_LINE_PATTERN = Pattern.compile("\n");
 
 	// private keystroke processor timer and client manager
 	private static Timer keystrokesTimer;
@@ -385,26 +389,30 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		// matches at least 1 newline character
 		boolean hasNewLine = text.matches("[\r\n]");
 		// contains newline characters within the text
-		int pastedLinesAdded = hasNewLine ? text.split(".*[\r\n]+").length : 0;
+		int linesAdded = getNewlineCount(text);
+		if (linesAdded > 1) {
+            // if it's 2, it's actually 3 lines as all we're doing is counting the \n chars
+            linesAdded += 1;
+        }
 		boolean hasAutoIndent = text.matches("[\t]");
-		
 		
 		// event updates
 		if (hasAutoIndent) {
 			// it's an auto indent action
 			fileInfo.auto_indents += 1;
-		} else if (hasNewLine && pastedLinesAdded == 0) {
+		} else if (hasNewLine && linesAdded == 0) {
 			// it's a single new line action (single_adds)
 			fileInfo.single_adds += 1;
 			fileInfo.linesAdded += 1;
-		} else if (pastedLinesAdded > 0) {
+		} else if (linesAdded > 0) {
 			// it's a multi line paste action (multi_adds)
-			fileInfo.linesAdded += pastedLinesAdded;
+			fileInfo.linesAdded += linesAdded;
 			fileInfo.paste += 1;
 			fileInfo.multi_adds += 1;
-			fileInfo.characters_added += (numKeystrokes - pastedLinesAdded);
+			fileInfo.characters_added += Math.abs(numKeystrokes - linesAdded);
 		} else if (numKeystrokes > 1) {
 			// pasted characters (multi_adds)
+			fileInfo.paste += 1;
 			fileInfo.multi_adds += 1;
 			fileInfo.characters_added += numKeystrokes;
 		} else if (numKeystrokes == 1) {
@@ -414,7 +422,10 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			fileInfo.characters_added += 1;
 		} else if (numKeystrokes < -1) {
 			// it's a multi character delete action (multi_deletes)
-			fileInfo.linesRemoved += fileInfo.lines - new_line_count;
+			int linesDeleted = fileInfo.lines - new_line_count;
+			if (linesDeleted > 0) {
+				fileInfo.linesRemoved += fileInfo.lines - new_line_count;
+			}
 			fileInfo.multi_deletes += 1;
 			fileInfo.characters_deleted += Math.abs(numKeystrokes);
 		} else if (numKeystrokes == -1) {
@@ -427,6 +438,18 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		fileInfo.lines = new_line_count;
 		fileInfo.keystrokes += 1;
 	}
+	
+	private static int getNewlineCount(String text) {
+        if (text == null) {
+            return 0;
+        }
+        Matcher matcher = NEW_LINE_PATTERN.matcher(text);
+        int count = 0;
+        while(matcher.find()) {
+            count++;
+        }
+        return count;
+    }
 
 	public static void initializeKeystrokeObjectGraph(String projectName, String fileName) {
 		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);

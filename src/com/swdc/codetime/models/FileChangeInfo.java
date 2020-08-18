@@ -11,7 +11,6 @@ public class FileChangeInfo {
     public long add = 0L;
     public long netkeys = 0L;
     public long paste = 0L;
-    public long charsPasted = 0L;
     public long open = 0L;
     public long close = 0L;
     public long delete = 0L;
@@ -34,7 +33,6 @@ public class FileChangeInfo {
         this.keystrokes += fileInfo.keystrokes;
         this.netkeys += fileInfo.netkeys;
         this.paste += fileInfo.paste;
-        this.charsPasted += fileInfo.charsPasted;
         this.open += fileInfo.open;
         this.close += fileInfo.close;
         this.delete += fileInfo.delete;

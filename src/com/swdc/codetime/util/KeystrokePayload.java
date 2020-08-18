@@ -73,7 +73,6 @@ public class KeystrokePayload {
 	public static class FileInfo {
 		public int add = 0;
 		public int paste = 0;
-		public int charsPasted = 0;
 		public int open = 0;
 		public int close = 0;
 		public int delete = 0;
@@ -102,7 +101,7 @@ public class KeystrokePayload {
 		public int replacements = 0;
 		@Override
 		public String toString() {
-			return "FileInfo [add=" + add + ", paste=" + paste + ", charsPasted=" + charsPasted + ", open=" + open
+			return "FileInfo [add=" + add + ", paste=" + paste + ", open=" + open
 					+ "\n, close=" + close + ", delete=" + delete + ", length=" + length + ", lines=" + lines
 					+ "\n, linesAdded=" + linesAdded + ", linesRemoved=" + linesRemoved + ", keystrokes=" + keystrokes
 					+ "\n, syntax=" + syntax + ", characters_added=" + characters_added + ", characters_deleted="
