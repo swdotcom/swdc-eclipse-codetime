@@ -72,12 +72,12 @@
       <command
             categoryId="com.swdc.codetime.commands.category"
             id="com.swdc.codetime.commands.metrics.codetime"
-            name="Code time dashboard">
+            name="View summary">
       </command>
       <command
             categoryId="com.swdc.codetime.commands.category"
             id="com.swdc.codetime.commands.metrics.dashboard"
-            name="Web dashboard">
+            name="See advanced metrics">
       </command>
       <command
             categoryId="com.swdc.codetime.commands.category"

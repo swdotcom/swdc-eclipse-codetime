@@ -6,6 +6,8 @@ public class RepoInfo {
     public String branch = "";
     public String email = "";
     public String tag = "";
+    public String repoName = "";
+    public String ownerId = "";
 
 }
 

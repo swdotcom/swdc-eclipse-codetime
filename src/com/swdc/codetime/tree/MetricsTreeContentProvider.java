@@ -17,6 +17,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 
 import com.swdc.codetime.managers.FileAggregateDataManager;
+import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
 import com.swdc.codetime.models.CodeTimeSummary;
@@ -52,16 +53,39 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	
 	private void updateSignupButtons() {
 		if (SoftwareCoUtils.isLoggedIn() && showingLoginButtons) {
-			// remove the login button nodes
+			// now add these to the connected node
+			MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem", "paw.png");
 			
+			MetricsTreeNode generateDashboardItem = new MetricsTreeNode("View summary", "generateDashboardItem",
+					"dashboard.png");
+			
+			MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics", "toggleStatusTextItem",
+					"visible.png");
+			
+			MetricsTreeNode learnMoreItem = new MetricsTreeNode("Learn more", "learnMoreItem", "readme.png");
+			
+			MetricsTreeNode submitFeedbackItem = new MetricsTreeNode("Submit feedback", "submitFeedbackItem",
+					"message.png");
+			
+			// remove the login button nodes
 			MetricsTreeNode[] nodes = contentMap.get(ROOT_KEY);
 			List<MetricsTreeNode> tmp = new ArrayList<>();
 			for (MetricsTreeNode node : nodes) {
 				if (!node.getId().equals("googleSignupItem") &&
 					!node.getId().equals("githubSignupItem") &&
 					!node.getId().equals("emailSignupItem") &&
+					!node.getId().equals("webDashboardItem") &&
+					!node.getId().equals("generateDashboardItem") &&
+					!node.getId().equals("toggleStatusTextItem") &&
+					!node.getId().equals("learnMoreItem") &&
+					!node.getId().equals("submitFeedbackItem") &&
 					!node.getId().equals("signupSeparator")) {
 					tmp.add(node);
+				} else if (node.getId().equals("googleSignupItem")) {
+					MetricsTreeNode signedUpAsItem = getSignedUpNode();
+					tmp.add(signedUpAsItem);
+					MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem, toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
+					contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
 				}
 			}
 			MetricsTreeNode[] newRootNodes = Arrays.copyOf(tmp.toArray(), tmp.size(), MetricsTreeNode[].class);
@@ -282,6 +306,20 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 		List<MetricsTreeNode> rootNodes = new ArrayList<>();
 		
+		// menu and metric roots
+		MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem", "paw.png");
+		
+		MetricsTreeNode generateDashboardItem = new MetricsTreeNode("View summary", "generateDashboardItem",
+				"dashboard.png");
+		
+		MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics", "toggleStatusTextItem",
+				"visible.png");
+		
+		MetricsTreeNode learnMoreItem = new MetricsTreeNode("Learn more", "learnMoreItem", "readme.png");
+		
+		MetricsTreeNode submitFeedbackItem = new MetricsTreeNode("Submit feedback", "submitFeedbackItem",
+				"message.png");
+		
 		if (!SoftwareCoUtils.isLoggedIn()) {
 			showingLoginButtons = true;
 			MetricsTreeNode googleLoginItem = new MetricsTreeNode("Sign up with Google", "googleSignupItem", "google.png");
@@ -293,22 +331,21 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 			MetricsTreeNode signupMenuSepItem = new MetricsTreeNode("", "signupSeparator");
 			signupMenuSepItem.setSeparator(true);
 			mNodeList.add(signupMenuSepItem);
+			
+			mNodeList.add(webDashboardItem);
+			mNodeList.add(generateDashboardItem);
+			mNodeList.add(toggleStatusTextItem);
+			mNodeList.add(learnMoreItem);
+			mNodeList.add(submitFeedbackItem);
+		} else {
+			MetricsTreeNode signedUpAsItem = getSignedUpNode();
+			mNodeList.add(signedUpAsItem);
+			
+			MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem, toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
+			contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
 		}
 
-		// menu and metric roots
-		MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem", "paw.png");
-		mNodeList.add(webDashboardItem);
-		MetricsTreeNode generateDashboardItem = new MetricsTreeNode("View summary", "generateDashboardItem",
-				"dashboard.png");
-		mNodeList.add(generateDashboardItem);
-		MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics", "toggleStatusTextItem",
-				"visible.png");
-		mNodeList.add(toggleStatusTextItem);
-		MetricsTreeNode learnMoreItem = new MetricsTreeNode("Learn more", "learnMoreItem", "readme.png");
-		mNodeList.add(learnMoreItem);
-		MetricsTreeNode submitFeedbackItem = new MetricsTreeNode("Submit feedback", "submitFeedbackItem",
-				"message.png");
-		mNodeList.add(submitFeedbackItem);
+		
 		MetricsTreeNode menuSepItem = new MetricsTreeNode("", "menu-separator");
 		menuSepItem.setSeparator(true);
 		mNodeList.add(menuSepItem);
@@ -442,7 +479,6 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 			initialExpandedElements[0] = editorTimeItem;
 			initialExpandedElements[1] = codeTimeItem;
 		}
-
 	}
 
 	private void addStatChangeNodes(MetricsTreeNode parent, String type, List<MetricsTreeNode> rootNodes) {
@@ -572,6 +608,14 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		boolean flag = contentMap.containsKey(id);
 		return flag;
 	}
+	
+	private MetricsTreeNode getSignedUpNode() {
+		String signupUpAsLabel = FileManager.getItem("name");
+		String authType = FileManager.getItem("authType");
+		String iconName = authType.equals("google") ? "google.png" : authType.equals("github") ? "github.png" : "icons8-envelope-16.png";
+		MetricsTreeNode signedUpAsItem = new MetricsTreeNode(signupUpAsLabel, "signedUpAsButton", iconName);
+		return signedUpAsItem;
+	}
 
 	private MetricsTreeNode getElement(String id) {
 		for (String key : contentMap.keySet()) {
@@ -605,8 +649,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 			@Override
 			public int compare(Map.Entry<String, FileChangeInfo> entryA, Map.Entry<String, FileChangeInfo> entryB) {
 
-				Long a = new Long(entryA.getValue().kpm);
-				Long b = new Long(entryB.getValue().kpm);
+				Long a = entryA.getValue().kpm;
+				Long b = entryB.getValue().kpm;
 				return a.compareTo(b);
 			}
 		});
@@ -621,8 +665,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 			@Override
 			public int compare(Map.Entry<String, FileChangeInfo> entryA, Map.Entry<String, FileChangeInfo> entryB) {
 
-				Long a = new Long(entryA.getValue().keystrokes);
-				Long b = new Long(entryB.getValue().keystrokes);
+				Long a = entryA.getValue().keystrokes;
+				Long b = entryB.getValue().keystrokes;
 				return a.compareTo(b);
 			}
 		});
@@ -636,8 +680,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		Collections.sort(entryList, new Comparator<Map.Entry<String, FileChangeInfo>>() {
 			@Override
 			public int compare(Map.Entry<String, FileChangeInfo> entryA, Map.Entry<String, FileChangeInfo> entryB) {
-				Long a = new Long(entryA.getValue().duration_seconds);
-				Long b = new Long(entryB.getValue().duration_seconds);
+				Long a = entryA.getValue().duration_seconds;
+				Long b = entryB.getValue().duration_seconds;
 				return a.compareTo(b);
 			}
 		});

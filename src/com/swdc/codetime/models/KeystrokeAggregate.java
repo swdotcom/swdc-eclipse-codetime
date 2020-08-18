@@ -1,6 +1,6 @@
 package com.swdc.codetime.models;
 
-import com.swdc.codetime.util.SoftwareCoKeystrokeCount.FileInfo;
+import com.swdc.codetime.util.KeystrokePayload.FileInfo;
 
 public class KeystrokeAggregate {
     public int add = 0;

@@ -28,7 +28,14 @@ import com.swdc.codetime.CodeTimeActivator;
  */
 public class SoftwareCoFileEditorListener implements IPartListener2 {
 
-	private static Set<IDocument> documentSet = new HashSet<IDocument>();
+	private static Set<String> documentSet = new HashSet<String>();
+	
+	public SoftwareCoFileEditorListener(IWorkbenchPartReference partRef) {
+		if (partRef != null) {
+			// initialize it
+			checkPart(partRef);
+		}
+	}
 
 	private String checkPart(IWorkbenchPartReference partRef) {
 		String fileName = null;
@@ -50,15 +57,15 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 				}
 
 				IDocument document = (((ITextEditor) editor).getDocumentProvider()).getDocument(input);
-				this.addDocumentListener(document);
+				this.addDocumentListener(fileName, document);
 			}
 		}
 		return fileName;
 	}
 
-	public void addDocumentListener(IDocument document) {
-		if (document != null && !documentSet.contains(document)) {
-			documentSet.add(document);
+	public void addDocumentListener(String fileName, IDocument document) {
+		if (!documentSet.contains(fileName)) {
+			documentSet.add(fileName);
 			document.addDocumentListener(new SoftwareCoDocumentListener());
 		}
 	}

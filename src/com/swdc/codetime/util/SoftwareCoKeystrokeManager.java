@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IPath;
 
 public class SoftwareCoKeystrokeManager {
 
@@ -41,7 +40,7 @@ public class SoftwareCoKeystrokeManager {
         keystrokeCountWrapperList.clear();
     }
 
-    public SoftwareCoKeystrokeCount getKeystrokeCount(String projectName) {
+    public KeystrokePayload getKeystrokeCount(String projectName) {
         for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
             if (wrapper.getProjectName() != null && projectName.equals(wrapper.getProjectName())) {
                 return wrapper.getKeystrokeCount();
@@ -50,8 +49,8 @@ public class SoftwareCoKeystrokeManager {
         return null;
     }
     
-    public List<SoftwareCoKeystrokeCount> getKeystrokeCounts() {
-    	List<SoftwareCoKeystrokeCount> list = new ArrayList<>();
+    public List<KeystrokePayload> getKeystrokeCounts() {
+    	List<KeystrokePayload> list = new ArrayList<>();
     	if (keystrokeCountWrapperList != null && keystrokeCountWrapperList.size() > 0) {
     		for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
                 list.add(wrapper.getKeystrokeCount());
@@ -60,7 +59,7 @@ public class SoftwareCoKeystrokeManager {
     	return list;
     }
 
-    public void setKeystrokeCount(String projectName, SoftwareCoKeystrokeCount keystrokeCount, String fileName) {
+    public void setKeystrokeCount(String projectName, KeystrokePayload keystrokeCount, String fileName) {
         for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
             if (wrapper.getProjectName() != null && projectName.equals(wrapper.getProjectName())) {
                 wrapper.setKeystrokeCount(keystrokeCount);
@@ -117,16 +116,16 @@ public class SoftwareCoKeystrokeManager {
 	
 	public class KeystrokeCountWrapper {
 		// KeystrokeCount cache metadata
-		protected SoftwareCoKeystrokeCount keystrokeCount;
+		protected KeystrokePayload keystrokeCount;
 		protected String projectName;
 		protected long lastUpdateTime = 0; // in millis
 		protected int currentTextLength = 0;
 		
-		public SoftwareCoKeystrokeCount getKeystrokeCount() {
+		public KeystrokePayload getKeystrokeCount() {
             return keystrokeCount;
         }
 
-        public void setKeystrokeCount(SoftwareCoKeystrokeCount keystrokeCount) {
+        public void setKeystrokeCount(KeystrokePayload keystrokeCount) {
             this.keystrokeCount = keystrokeCount;
         }
 

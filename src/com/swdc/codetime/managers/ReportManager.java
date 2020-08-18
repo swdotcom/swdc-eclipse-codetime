@@ -17,11 +17,11 @@ import com.swdc.codetime.util.GitUtil;
 import com.swdc.codetime.util.SoftwareCoProject;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
+import com.swdc.snowplow.tracker.entities.UIElementEntity;
+import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 public class ReportManager {
 
-    private static int DASHBOARD_LABEL_WIDTH = 28;
-    private static int DASHBOARD_VALUE_WIDTH = 36;
     private static int DASHBOARD_COL_WIDTH = 21;
     private static int DASHBOARD_LRG_COL_WIDTH = 38;
     private static int TABLE_WIDTH = 80;
@@ -107,6 +107,14 @@ public class ReportManager {
         }
 
         SoftwareCoSessionManager.launchFile(file);
+        
+        UIElementEntity elementEntity = new UIElementEntity();
+        elementEntity.element_name = "ct_contributor_repo_identifier_btn";
+        elementEntity.element_location = "ct_contributors_tree";
+        elementEntity.color = null;
+        elementEntity.cta_text = "redacted";
+        elementEntity.icon_name = null;
+        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
     }
 
     private static String getRowNumberData(String title, long userStat, long contribStat) {
@@ -130,43 +138,6 @@ public class ReportManager {
             sb.append("-");
         }
         sb.append("\n");
-        return sb.toString();
-    }
-
-    private static String getDashboardRow(String label, String value, boolean isSectionHeader) {
-        int spacesRequired = DASHBOARD_LABEL_WIDTH - label.length();
-        String spaces = getSpaces(spacesRequired);
-        String dashboardVal = getDashboardValue(value, isSectionHeader);
-        StringBuffer sb = new StringBuffer();
-        sb.append(label).append(spaces).append(dashboardVal).append("\n");
-        int currLen = sb.length();
-        sb.append(getBorder(currLen));
-        return sb.toString();
-    }
-
-    private static String getDashboardValue(String value, boolean isSectionHeader) {
-        int spacesRequired = DASHBOARD_VALUE_WIDTH - value.length() - 2;
-        String spaces = getSpaces(spacesRequired);
-        if (!isSectionHeader) {
-            // show the : divider
-            return ": " + spaces + "" + value;
-        }
-        // we won't show the column divider
-        return "  " + spaces + "" + value;
-    }
-
-    private static String getDashboardBottomBorder() {
-        int borderLen = DASHBOARD_LABEL_WIDTH + DASHBOARD_VALUE_WIDTH;
-        String border = getBorder(borderLen);
-        // add an additional newline
-        return border + "\n";
-    }
-
-    private static String getSectionHeader(String label) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(label).append("\n");
-        int borderLen = DASHBOARD_LABEL_WIDTH + DASHBOARD_VALUE_WIDTH;
-        sb.append(getBorder(borderLen));
         return sb.toString();
     }
 

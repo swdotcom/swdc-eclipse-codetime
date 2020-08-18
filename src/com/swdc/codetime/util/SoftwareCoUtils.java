@@ -13,6 +13,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -33,7 +36,9 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -54,8 +59,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
+import com.swdc.codetime.models.FileDetails;
+import com.swdc.snowplow.tracker.entities.UIElementEntity;
+import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 public class SoftwareCoUtils {
 
@@ -64,14 +73,8 @@ public class SoftwareCoUtils {
 
 	public static final Logger LOG = Logger.getLogger("SoftwareCoUtils");
 	// set the api endpoint to use
-	// "http://localhost:5000", "https://qaapi.software.com",
-	// "https://stagingapi.software.com", "https://api.software.com"
-
 	private final static String PROD_API_ENDPOINT = "https://api.software.com";
 	// set the launch url to use
-	// "http://localhost:3000", "https://qa.software.com",
-	// "https://staging.software.com", "https://app.software.com"
-
 	private final static String PROD_URL_ENDPOINT = "https://app.software.com";
 
 	// set the api endpoint to use
@@ -87,12 +90,13 @@ public class SoftwareCoUtils {
 	// sublime = 1, vs code = 2, eclipse = 3, intellij = 4, visual studio = 6, atom
 	// = 7
 	public final static int pluginId = 3;
+	public final static String pluginName = "Code Time";
 
 	private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 	private static String workspace_name = null;
-	
+
 	private static long DAYS_IN_SECONDS = 60 * 60 * 24;
-	
+
 	public static String lastOpenFile = "";
 
 	public static ExecutorService executorService;
@@ -113,7 +117,7 @@ public class SoftwareCoUtils {
 
 		executorService = Executors.newCachedThreadPool();
 	}
-	
+
 	public static String getWorkspaceName() {
 		if (workspace_name == null) {
 			workspace_name = SoftwareCoUtils.generateToken();
@@ -244,7 +248,7 @@ public class SoftwareCoUtils {
 		}
 		return responseInfo;
 	}
-	
+
 	public static SoftwareCoProject getActiveKeystrokeProject() {
 		IProject iproj = getActiveProject();
 		if (iproj != null) {
@@ -290,6 +294,63 @@ public class SoftwareCoUtils {
 			}
 		}
 		return null;
+	}
+
+	public static FileDetails getFileDetails(String fullFileName) {
+		FileDetails fileDetails = new FileDetails();
+		if (StringUtils.isNotBlank(fullFileName)) {
+			fileDetails.full_file_name = fullFileName;
+			IProject p = getFileProject(fullFileName);
+			if (p != null) {
+				String directory = p.getLocationURI().getPath();
+				if (directory == null || directory.equals("")) {
+					directory = p.getLocation().toString();
+				}
+				fileDetails.project_directory = directory;
+				fileDetails.project_name = p.getName();
+			}
+
+			File f = new File(fullFileName);
+
+			if (f.exists()) {
+				fileDetails.character_count = f.length();
+				fileDetails.file_name = f.getName();
+				if (StringUtils.isNotBlank(fileDetails.project_directory)) {
+					// strip out the project_file_name
+					fileDetails.project_file_name = fullFileName.split(fileDetails.project_directory)[1];
+				} else {
+					fileDetails.project_file_name = fullFileName;
+				}
+				fileDetails.line_count = SoftwareCoUtils.getLineCount(fullFileName);
+
+				fileDetails.syntax = getSyntax(fullFileName);
+			}
+		}
+
+		return fileDetails;
+	}
+	
+	public static int getLineCount(String fileName) {
+        Stream<String> stream = null;
+        try {
+            Path path = Paths.get(fileName);
+            stream = Files.lines(path);
+            return (int) stream.count();
+        } catch (Exception e) {
+            return 0;
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (Exception e) {
+                    //
+                }
+            }
+        }
+    }
+	
+	public static String getSyntax(String fileName) {
+		return com.google.common.io.Files.getFileExtension(fileName);
 	}
 
 	private static String getStringRepresentation(HttpEntity res) throws IOException {
@@ -373,14 +434,30 @@ public class SoftwareCoUtils {
 		try {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser()
 					.openURL(new URL("mailto:cody@software.com"));
+			UIElementEntity elementEntity = new UIElementEntity();
+	        elementEntity.element_name = "ct_submit_feedback_btn";
+	        elementEntity.element_location = "ct_menu_tree";
+	        elementEntity.color = "green";
+	        elementEntity.cta_text = "Submit feedback";
+	        elementEntity.icon_name = "text-bubble";
+	        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 		} catch (Exception e) {
 			SWCoreLog.logException(e);
 		}
 	}
 
-	public static void toggleStatusBarText() {
+	public static void toggleStatusBarText(UIInteractionType type) {
+		String cta_text = !showStatusText ? "Show status bar metrics" : "Hide status bar metrics";
 		showStatusText = !showStatusText;
 		WallClockManager.getInstance().dispatchStatusViewUpdate();
+		
+		UIElementEntity elementEntity = new UIElementEntity();
+        elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_toggle_status_bar_metrics_btn" : "ct_toggle_status_bar_metrics_cmd";
+        elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
+        elementEntity.color = type.equals(UIInteractionType.click) ? "blue" : null;
+        elementEntity.cta_text = cta_text;
+        elementEntity.icon_name = type.equals(UIInteractionType.click) ? "slash-eye" : null;
+        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 	}
 
 	public static void setStatusLineMessage(final String statusMsg, final String iconName, final String tooltip) {
@@ -858,67 +935,67 @@ public class SoftwareCoUtils {
 	}
 
 	public static Date atStartOfWeek(long local_now) {
-        // find out how many days to go back
-        int daysBack = 0;
-        Calendar cal = Calendar.getInstance();
-        if (cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY) {
-            int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-            while (dayOfWeek != Calendar.SUNDAY) {
-                daysBack++;
-                dayOfWeek -= 1;
-            }
-        } else {
-            daysBack = 7;
-        }
+		// find out how many days to go back
+		int daysBack = 0;
+		Calendar cal = Calendar.getInstance();
+		if (cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY) {
+			int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+			while (dayOfWeek != Calendar.SUNDAY) {
+				daysBack++;
+				dayOfWeek -= 1;
+			}
+		} else {
+			daysBack = 7;
+		}
 
-        long startOfDayInSec = atStartOfDay(new Date(local_now * 1000)).toInstant().getEpochSecond();
-        long startOfWeekInSec = startOfDayInSec - (DAYS_IN_SECONDS * daysBack);
+		long startOfDayInSec = atStartOfDay(new Date(local_now * 1000)).toInstant().getEpochSecond();
+		long startOfWeekInSec = startOfDayInSec - (DAYS_IN_SECONDS * daysBack);
 
-        return new Date(startOfWeekInSec * 1000);
-    }
+		return new Date(startOfWeekInSec * 1000);
+	}
 
-    public static Date atStartOfDay(Date date) {
-        LocalDateTime localDateTime = dateToLocalDateTime(date);
-        LocalDateTime startOfDay = localDateTime.with(LocalTime.MIN);
-        return localDateTimeToDate(startOfDay);
-    }
+	public static Date atStartOfDay(Date date) {
+		LocalDateTime localDateTime = dateToLocalDateTime(date);
+		LocalDateTime startOfDay = localDateTime.with(LocalTime.MIN);
+		return localDateTimeToDate(startOfDay);
+	}
 
-    public static Date atEndOfDay(Date date) {
-        LocalDateTime localDateTime = dateToLocalDateTime(date);
-        LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
-        return localDateTimeToDate(endOfDay);
-    }
+	public static Date atEndOfDay(Date date) {
+		LocalDateTime localDateTime = dateToLocalDateTime(date);
+		LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
+		return localDateTimeToDate(endOfDay);
+	}
 
-    private static LocalDateTime dateToLocalDateTime(Date date) {
-        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
-    }
+	private static LocalDateTime dateToLocalDateTime(Date date) {
+		return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+	}
 
-    private static Date localDateTimeToDate(LocalDateTime localDateTime) {
-        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-    }
+	private static Date localDateTimeToDate(LocalDateTime localDateTime) {
+		return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+	}
 
-    // the timestamps are all in seconds
-    public static class TimesData {
-        public Integer offset = ZonedDateTime.now().getOffset().getTotalSeconds();
-        public long now = System.currentTimeMillis() / 1000;
-        public long local_now = now + offset;
-        public String timezone = TimeZone.getDefault().getID();
-        public long local_start_day = atStartOfDay(new Date(local_now * 1000)).toInstant().getEpochSecond();
-        public long local_start_yesterday = local_start_day - DAYS_IN_SECONDS;
-        public Date local_start_of_week_date = atStartOfWeek(local_now);
-        public Date local_start_of_yesterday_date = new Date(local_start_yesterday * 1000);
-        public Date local_start_today_date = new Date(local_start_day * 1000);
-        public long local_start_of_week = local_start_of_week_date.toInstant().getEpochSecond();
-        public long local_end_day = atEndOfDay(new Date(local_now * 1000)).toInstant().getEpochSecond();
-        public long utc_end_day = atEndOfDay(new Date(now * 1000)).toInstant().getEpochSecond();
+	// the timestamps are all in seconds
+	public static class TimesData {
+		public Integer offset = ZonedDateTime.now().getOffset().getTotalSeconds();
+		public long now = System.currentTimeMillis() / 1000;
+		public long local_now = now + offset;
+		public String timezone = TimeZone.getDefault().getID();
+		public long local_start_day = atStartOfDay(new Date(local_now * 1000)).toInstant().getEpochSecond();
+		public long local_start_yesterday = local_start_day - DAYS_IN_SECONDS;
+		public Date local_start_of_week_date = atStartOfWeek(local_now);
+		public Date local_start_of_yesterday_date = new Date(local_start_yesterday * 1000);
+		public Date local_start_today_date = new Date(local_start_day * 1000);
+		public long local_start_of_week = local_start_of_week_date.toInstant().getEpochSecond();
+		public long local_end_day = atEndOfDay(new Date(local_now * 1000)).toInstant().getEpochSecond();
+		public long utc_end_day = atEndOfDay(new Date(now * 1000)).toInstant().getEpochSecond();
 
-    }
+	}
 
 	public static TimesData getTimesData() {
 		TimesData timesData = new TimesData();
 		return timesData;
 	}
-	
+
 	public static boolean isNewDay() {
 		String currentDay = FileManager.getItem("currentDay");
 		String day = SoftwareCoUtils.getTodayInStandardFormat();
@@ -930,12 +1007,12 @@ public class SoftwareCoUtils {
 		String day = dateFormat.format(new Date());
 		return day;
 	}
-	
+
 	public static String getFormattedDay(long unixSeconds) {
-        SimpleDateFormat formatDay = new SimpleDateFormat("YYYY-MM-dd");
-        String day = formatDay.format(new Date(unixSeconds * 1000));
-        return day;
-    }
+		SimpleDateFormat formatDay = new SimpleDateFormat("YYYY-MM-dd");
+		String day = formatDay.format(new Date(unixSeconds * 1000));
+		return day;
+	}
 
 	public static String getDashboardRow(String label, String value) {
 		String content = getDashboardLabel(label) + " : " + getDashboardValue(value) + "\n";
@@ -975,15 +1052,15 @@ public class SoftwareCoUtils {
 		}
 		return content + "" + data;
 	}
-	
-	public static boolean isGitProject(String projectDir) {
-        if (projectDir == null || projectDir.equals("")) {
-            return false;
-        }
 
-        String gitFile = projectDir + File.separator + ".git";
-        File f = new File(gitFile);
-        return f.exists();
-    }
+	public static boolean isGitProject(String projectDir) {
+		if (projectDir == null || projectDir.equals("")) {
+			return false;
+		}
+
+		String gitFile = projectDir + File.separator + ".git";
+		File f = new File(gitFile);
+		return f.exists();
+	}
 
 }

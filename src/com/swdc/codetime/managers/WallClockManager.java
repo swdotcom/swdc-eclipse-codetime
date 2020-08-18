@@ -18,6 +18,7 @@ import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.CodeTimeSummary;
 import com.swdc.codetime.models.SessionSummary;
 import com.swdc.codetime.tree.MetricsTreeView;
+import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.codetime.util.SoftwareResponse;
 
@@ -33,7 +34,7 @@ public class WallClockManager {
 
 	private IViewPart treeView;
 
-	private boolean isActive = true;
+	private boolean isCurrentlyActive = true;
 
 	private static boolean dispatching = false;
 
@@ -63,25 +64,28 @@ public class WallClockManager {
 		PlatformUI.getWorkbench().addWindowListener(new IWindowListener() {
 
 			@Override
-			public void windowOpened(IWorkbenchWindow arg0) {
-				// TODO Auto-generated method stub
+			public void windowOpened(IWorkbenchWindow arg0) {}
 
-			}
-
+			// Unfocus event
 			@Override
 			public void windowDeactivated(IWorkbenchWindow arg0) {
-				isActive = false;
+				isCurrentlyActive = false;
+				if (CodeTimeActivator.task != null) {
+					// process the keystrokes
+					CodeTimeActivator.task.run();
+				}
+				// send the unfocus event
+				EventTrackerManager.getInstance().trackEditorAction("editor", "unfocus");
 			}
 
 			@Override
-			public void windowClosed(IWorkbenchWindow arg0) {
-				// TODO Auto-generated method stub
+			public void windowClosed(IWorkbenchWindow arg0) {}
 
-			}
-
+			// Focus event
 			@Override
 			public void windowActivated(IWorkbenchWindow arg0) {
-				isActive = true;
+				isCurrentlyActive = true;
+				EventTrackerManager.getInstance().trackEditorAction("editor", "focus");
 			}
 		});
 
@@ -93,6 +97,10 @@ public class WallClockManager {
 		newDayCheckerTimer = new Timer();
 		newDayCheckerTimer.scheduleAtFixedRate(new NewDayCheckerTask(), one_min, one_min * 10);
 	}
+	
+	public static void activeStateChangeHandler(KeystrokePayload keystrokeCount) {
+		//
+    }
 
 	private class NewDayCheckerTask extends TimerTask {
 		public void run() {
@@ -193,7 +201,7 @@ public class WallClockManager {
 
 	private class UpdateWallClockTimeTask extends TimerTask {
 		public void run() {
-			if (isActive) {
+			if (isCurrentlyActive) {
 				updateWcTime();
 			}
 		}

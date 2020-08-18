@@ -20,7 +20,7 @@ public class SoftwareCoDocumentListener implements IDocumentListener {
 
 	@Override
 	public void documentAboutToBeChanged(DocumentEvent event) {
-		//
+		CodeTimeActivator.handleBeforeChangeEvent(event);
 	}
 
 	@Override

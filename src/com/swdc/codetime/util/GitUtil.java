@@ -92,6 +92,10 @@ public class GitUtil {
     }
 	
 	public static ResourceInfo getResourceInfo(String projectDir) {
+		return getResourceInfo(projectDir, true);
+	}
+	
+	public static ResourceInfo getResourceInfo(String projectDir, boolean buildMembers) {
 		ResourceInfo resourceInfo = new ResourceInfo();
 
 		// is the project dir avail?
@@ -123,30 +127,33 @@ public class GitUtil {
 				
 				String[] membersCmd = { "git", "log", "--pretty=%an,%ae" };
 				String devOutput = SoftwareCoUtils.runCommand(membersCmd, projectDir);
+				
+				if (buildMembers) {
 
-				// String[] devList = devOutput.replace(/\r\n/g, "\r").replace(/\n/g,
-				// "\r").split(/\r/);
-				String[] devList = devOutput.split("\n");
-				List<TeamMember> members = new ArrayList<>();
-				Map<String, String> memberMap = new HashMap<>();
-				if (devList != null && devList.length > 0) {
-					for (String line : devList) {
-						String[] parts = line.split(",");
-						if (parts != null && parts.length > 1) {
-							String name = parts[0].trim();
-							String memberEmail = parts[1].trim();
-							if (!memberMap.containsKey(email)) {
-								memberMap.put(email, memberEmail);
-								TeamMember member = new TeamMember();
-								member.email = memberEmail;
-								member.name = name;
-								member.identifier = identifier;
-								members.add(member);
+					// String[] devList = devOutput.replace(/\r\n/g, "\r").replace(/\n/g,
+					// "\r").split(/\r/);
+					String[] devList = devOutput.split("\n");
+					List<TeamMember> members = new ArrayList<>();
+					Map<String, String> memberMap = new HashMap<>();
+					if (devList != null && devList.length > 0) {
+						for (String line : devList) {
+							String[] parts = line.split(",");
+							if (parts != null && parts.length > 1) {
+								String name = parts[0].trim();
+								String memberEmail = parts[1].trim();
+								if (!memberMap.containsKey(email)) {
+									memberMap.put(email, memberEmail);
+									TeamMember member = new TeamMember();
+									member.email = memberEmail;
+									member.name = name;
+									member.identifier = identifier;
+									members.add(member);
+								}
 							}
 						}
 					}
+					resourceInfo.members.addAll(members);
 				}
-				resourceInfo.members.addAll(members);
 			} catch (Exception e) {
 				//
 			}

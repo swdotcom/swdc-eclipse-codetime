@@ -40,8 +40,11 @@ import org.osgi.framework.Bundle;
 
 import com.google.gson.JsonObject;
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
+import com.swdc.snowplow.tracker.entities.UIElementEntity;
+import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 /**
  * 
@@ -199,7 +202,7 @@ public class SoftwareCoSessionManager {
 
 	protected File getReadmeFile() {
 		Bundle bundle = Platform.getBundle(CodeTimeActivator.PLUGIN_ID);
-		URL fileURL = bundle.getEntry("files/README.html");
+		URL fileURL = bundle.getEntry("README.txt");
 		File file = null;
 		try {
 			file = new File(FileLocator.resolve(fileURL).toURI());
@@ -220,26 +223,30 @@ public class SoftwareCoSessionManager {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 
 		URI uri = f.toURI();
-		String editorSupport = "org.eclipse.ui.browser.editorSupport";
+		// String editorSupport = "org.eclipse.ui.browser.editorSupport";
 		String genericEditor = "org.eclipse.ui.genericeditor.GenericEditor";
 		String defaultEditor = "org.eclipse.ui.DefaultTextEditor";
 		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 		IWorkbenchPage page = window.getActivePage();
 
 		try {
-			IDE.openEditor(page, uri, editorSupport, true);
-		} catch (Exception e) {
+			IDE.openEditor(page, uri, defaultEditor, true);
+		} catch (Exception e1) {
 			try {
-				IDE.openEditor(page, uri, defaultEditor, true);
-			} catch (Exception e1) {
-				try {
-					IDE.openEditor(page, uri, genericEditor, true);
-				} catch (Exception e2) {
-					SWCoreLog.logErrorMessage(
-							"Code Time: unable to launch editor to view code time metrics, error: " + e.getMessage());
-				}
+				IDE.openEditor(page, uri, genericEditor, true);
+			} catch (Exception e2) {
+				SWCoreLog.logErrorMessage(
+						"Code Time: unable to launch editor to view code time metrics, error: " + e2.getMessage());
 			}
 		}
+		
+		UIElementEntity elementEntity = new UIElementEntity();
+        elementEntity.element_name = "ct_learn_more_btn";
+        elementEntity.element_location = "ct_menu_tree";
+        elementEntity.color = "yellow";
+        elementEntity.cta_text = "Learn more";
+        elementEntity.icon_name = "document";
+        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 	}
 
 	public static void launchFile(String fsPath) {
@@ -274,7 +281,7 @@ public class SoftwareCoSessionManager {
 		}
 	}
 
-	public static void launchCodeTimeMetricsDashboard() {
+	public static void launchCodeTimeMetricsDashboard(UIInteractionType type) {
 		JsonObject sessionSummary = FileManager.getSessionSummaryFileAsJson();
 		
 		// fetch the dashboard content and write it before displaying it
@@ -283,6 +290,14 @@ public class SoftwareCoSessionManager {
 		String codeTimeFile = FileManager.getCodeTimeDashboardFile();
 
 		launchFile(codeTimeFile);
+		
+		UIElementEntity elementEntity = new UIElementEntity();
+        elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_summary_btn" : "ct_summary_cmd";
+        elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
+        elementEntity.color = type.equals(UIInteractionType.click) ? "white" : null;
+        elementEntity.cta_text = "View summary";
+        elementEntity.icon_name = type.equals(UIInteractionType.click) ? "guage" : null;
+        EventTrackerManager.getInstance().trackUIInteraction(type, elementEntity);
 	}
 	
 	public static class LazyUserStatusFetchTask extends TimerTask {
@@ -330,14 +345,24 @@ public class SoftwareCoSessionManager {
 		}
 
 		String url = "";
+		String element_name = "ct_sign_up_email_btn";
+        String cta_text = "Sign up with email";
+        String icon_name = "envelope";
+        String icon_color = "blue";
 		if (loginType.equals("email")) {
 			url = SoftwareCoUtils.launch_url + "/email-signup?token=" + jwt + "&plugin=codetime&auth=software";
 		} else if (loginType.equals("google")) {
-			url = SoftwareCoUtils.api_endpoint + "/auth/google?token=" + jwt + "&plugin=codetime&redirect="
-					+ SoftwareCoUtils.launch_url;
+			element_name = "ct_sign_up_google_btn";
+	        icon_name = "google";
+	        cta_text = "Sign up with Google";
+	        icon_color = null;
+	        url = SoftwareCoUtils.api_endpoint + "/auth/google?token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
 		} else if (loginType.equals("github")) {
-			url = SoftwareCoUtils.api_endpoint + "/auth/github?token=" + jwt + "&plugin=codetime&redirect="
-					+ SoftwareCoUtils.launch_url;
+			element_name = "ct_sign_up_github_btn";
+            cta_text = "Sign up with GitHub";
+            icon_name = "github";
+            icon_color = null;
+            url = SoftwareCoUtils.api_endpoint + "/auth/github?token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
 		} else {
 			url = SoftwareCoUtils.launch_url + "/onboarding?token=" + jwt;
 		}
@@ -351,13 +376,29 @@ public class SoftwareCoSessionManager {
 			SWCoreLog.logException(e);
 		}
 		
+		UIElementEntity elementEntity = new UIElementEntity();
+        elementEntity.element_name = element_name;
+        elementEntity.element_location = "ct_menu_tree";
+        elementEntity.color = icon_color;
+        elementEntity.cta_text = cta_text;
+        elementEntity.icon_name = icon_name;
+        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
+		
 		new Timer().schedule(new LazyUserStatusFetchTask(35), 1000 * 10);
 	}
 
-	public static void launchWebDashboard() {
+	public static void launchWebDashboard(UIInteractionType type) {
 		String url = SoftwareCoUtils.webui_login_url;
 		try {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));
+			
+			UIElementEntity elementEntity = new UIElementEntity();
+	        elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_web_metrics_btn" : "ct_web_metrics_cmd";
+	        elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
+	        elementEntity.color = type.equals(UIInteractionType.click) ? "blue" : null;
+	        elementEntity.cta_text = "See advanced metrics";
+	        elementEntity.icon_name = type.equals(UIInteractionType.click) ? "paw" : null;
+	        EventTrackerManager.getInstance().trackUIInteraction(type, elementEntity);
 		} catch (PartInitException | MalformedURLException e) {
 			SWCoreLog.logErrorMessage("Failed to launch the url: " + url);
 			SWCoreLog.logException(e);
