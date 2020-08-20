@@ -65,6 +65,8 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static SoftwareCoKeystrokeManager keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
 	
 	private static final Pattern NEW_LINE_PATTERN = Pattern.compile("\n");
+	private static final Pattern NEW_LINE_TAB_PATTERN = Pattern.compile("\n\t");
+	private static final Pattern TAB_PATTERN = Pattern.compile("\t");
 
 	// private keystroke processor timer and client manager
 	private static Timer keystrokesTimer;
@@ -382,35 +384,39 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			fileInfo.length = docEvent.getDocument().getLength();
 		}
 		
-		int numKeystrokes = (text.length() > 0)
-				? text.length()
-				: docEvent.getLength() / -1;
-			
+		// this will be the positive number of chars that were added
+		int numKeystrokes = text.length();
+		// if docEvent has a length then it's the number of chars that were deleted
+		int numDeleteKeystrokes = Math.abs(docEvent.getLength() / -1);
 				
-		// matches at least 1 newline character
-		boolean hasNewLine = text.matches("[\r\n]");
 		// contains newline characters within the text
 		int linesAdded = getNewlineCount(text);
-		if (linesAdded > 1) {
-            // if it's 2, it's actually 3 lines as all we're doing is counting the \n chars
-            linesAdded += 1;
-        }
-		boolean hasAutoIndent = text.matches("[\t]");
+		boolean hasAutoIndent = text.matches("^\\s{2,4}$") || TAB_PATTERN.matcher(text).find();
+        boolean newLineAutoIndent = text.matches("^\n\\s{2,4}$") || NEW_LINE_TAB_PATTERN.matcher(text).find();
 		
 		// event updates
-		if (hasAutoIndent) {
+		if (newLineAutoIndent) {
+			// it's a new line with auto-indent
+			fileInfo.auto_indents += 1;
+			fileInfo.linesAdded += 1;
+		} else if (hasAutoIndent) {
 			// it's an auto indent action
 			fileInfo.auto_indents += 1;
-		} else if (hasNewLine && linesAdded == 0) {
+		} else if (linesAdded == 1) {
 			// it's a single new line action (single_adds)
 			fileInfo.single_adds += 1;
 			fileInfo.linesAdded += 1;
-		} else if (linesAdded > 0) {
+		} else if (linesAdded > 1) {
 			// it's a multi line paste action (multi_adds)
 			fileInfo.linesAdded += linesAdded;
 			fileInfo.paste += 1;
 			fileInfo.multi_adds += 1;
 			fileInfo.characters_added += Math.abs(numKeystrokes - linesAdded);
+		} else if (numDeleteKeystrokes > 0 && numKeystrokes > 0) {
+			// it's a replacement
+            fileInfo.replacements += 1;
+            fileInfo.characters_added += numKeystrokes;
+            fileInfo.characters_deleted += numDeleteKeystrokes;
 		} else if (numKeystrokes > 1) {
 			// pasted characters (multi_adds)
 			fileInfo.paste += 1;
@@ -421,15 +427,15 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			fileInfo.add += 1;
 			fileInfo.single_adds += 1;
 			fileInfo.characters_added += 1;
-		} else if (numKeystrokes < -1) {
+		} else if (numDeleteKeystrokes > 1) {
 			// it's a multi character delete action (multi_deletes)
 			int linesDeleted = fileInfo.lines - new_line_count;
 			if (linesDeleted > 0) {
 				fileInfo.linesRemoved += fileInfo.lines - new_line_count;
 			}
 			fileInfo.multi_deletes += 1;
-			fileInfo.characters_deleted += Math.abs(numKeystrokes);
-		} else if (numKeystrokes == -1) {
+			fileInfo.characters_deleted += numDeleteKeystrokes;
+		} else if (numDeleteKeystrokes == 1) {
 			// it's a single character delete action (single_deletes)
 			fileInfo.delete += 1;
 			fileInfo.single_deletes += 1;
