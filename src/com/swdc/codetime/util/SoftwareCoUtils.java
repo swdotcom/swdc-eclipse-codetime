@@ -73,9 +73,9 @@ public class SoftwareCoUtils {
 
 	public static final Logger LOG = Logger.getLogger("SoftwareCoUtils");
 	// set the api endpoint to use
-	private final static String PROD_API_ENDPOINT = "https://api.software.com";
+	private final static String PROD_API_ENDPOINT = "https://stagingapi.software.com";//"https://api.software.com";
 	// set the launch url to use
-	private final static String PROD_URL_ENDPOINT = "https://app.software.com";
+	private final static String PROD_URL_ENDPOINT = "https://staging.software.com";//"https://app.software.com";
 
 	// set the api endpoint to use
 	public final static String api_endpoint = PROD_API_ENDPOINT;

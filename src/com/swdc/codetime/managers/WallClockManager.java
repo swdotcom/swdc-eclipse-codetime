@@ -69,6 +69,7 @@ public class WallClockManager {
 			// Unfocus event
 			@Override
 			public void windowDeactivated(IWorkbenchWindow arg0) {
+				log.info("Window deactivated");
 				isCurrentlyActive = false;
 				if (CodeTimeActivator.task != null) {
 					// process the keystrokes

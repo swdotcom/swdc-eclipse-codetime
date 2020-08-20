@@ -363,16 +363,17 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		if (keystrokeCount == null || docEvent == null || docEvent.getText() == null) {
 			return;
 		}
+		
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 		
 		if (StringUtils.isBlank(fileInfo.syntax)) {
 			fileInfo.syntax = SoftwareCoUtils.getSyntax(fileName);
 		}
 		
-		updateFileInfoMetrics(docEvent, fileInfo);
+		updateFileInfoMetrics(docEvent, fileInfo, keystrokeCount);
 	}
 	
-	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo) {
+	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo, KeystrokePayload keystrokeCount) {
 		
 		String text = docEvent.getText();
 		int new_line_count = 0;
@@ -437,6 +438,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		
 		fileInfo.lines = new_line_count;
 		fileInfo.keystrokes += 1;
+		keystrokeCount.keystrokes += 1;
+		
+		System.out.println("Keystrokes incremented");
 	}
 	
 	private static int getNewlineCount(String text) {
@@ -576,8 +580,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		// increment the specific file keystroke value
-		fileInfo.add += 1;
-		keystrokeCount.setKeystrokes(1);
+		fileInfo.keystrokes = 1;
+		fileInfo.add = 1;
+		keystrokeCount.keystrokes = 1;
 		// send the initial payload
 		keystrokeCount.processKeystrokes();
 	}
