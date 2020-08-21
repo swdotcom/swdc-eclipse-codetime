@@ -27,7 +27,6 @@ import org.osgi.framework.BundleContext;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
-import com.swdc.codetime.managers.EventManager;
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
@@ -36,7 +35,6 @@ import com.swdc.codetime.util.KeystrokePayload.FileInfo;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
-import com.swdc.codetime.util.SoftwareCoRepoManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
@@ -72,13 +70,10 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static Timer keystrokesTimer;
 	private Timer userStatusTimer;
 	private Timer sendOfflineDataTimer;
-	private Timer repoCommitsTimer;
-	private Timer repoUserTimer;
 
 	private static int retry_counter = 0;
 	private static long check_online_interval_ms = 1000 * 60 * 10;
 
-	private static String rootDir = null;
 	private static IViewPart ctMetricsTreeView = null;
 
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
@@ -195,13 +190,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				long one_min = 1000 * 60;
 				long forty_min = one_min * 40;
 
-				// run the hourly timer
-				repoCommitsTimer = new Timer();
-				repoCommitsTimer.scheduleAtFixedRate(new ProcessCommitJobsTask(), one_min * 3, one_min * 25);
-
-				repoUserTimer = new Timer();
-				repoUserTimer.scheduleAtFixedRate(new ProcessRepoUsersJobsTask(), one_min * 4, one_min * 30);
-
 				userStatusTimer = new Timer();
 				userStatusTimer.scheduleAtFixedRate(new ProcessUserStatusTask(), one_min * 15, forty_min);
 
@@ -256,11 +244,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			keystrokesTimer = null;
 		}
 
-		if (repoCommitsTimer != null) {
-			repoCommitsTimer.cancel();
-			repoCommitsTimer = null;
-		}
-
 		if (userStatusTimer != null) {
 			userStatusTimer.cancel();
 			userStatusTimer = null;
@@ -269,11 +252,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		if (sendOfflineDataTimer != null) {
 			sendOfflineDataTimer.cancel();
 			sendOfflineDataTimer = null;
-		}
-
-		if (repoUserTimer != null) {
-			repoUserTimer.cancel();
-			repoUserTimer = null;
 		}
 	}
 
@@ -505,11 +483,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			//
 			keystrokeCount.endPreviousModifiedFiles(fileName);
 		}
-
-		// update the rootDir
-		rootDir = (keystrokeCount != null && keystrokeCount.getProject() != null)
-				? keystrokeCount.getProject().directory
-				: null;
 	}
 
 	public static class ProcessKeystrokePayloadTask extends TimerTask {
@@ -565,27 +538,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			} catch (Exception e) {
 				System.err.println(e);
 			}
-		}
-	}
-
-	private class ProcessCommitJobsTask extends TimerTask {
-		public void run() {
-			SoftwareCoUtils.sendHeartbeat("HOURLY");
-
-			SoftwareCoRepoManager.getInstance().getHistoricalCommits(rootDir);
-
-			// send the events data
-			EventManager.sendOfflineEvents();
-
-		}
-	}
-
-	private class ProcessRepoUsersJobsTask extends TimerTask {
-		public void run() {
-			SoftwareCoUtils.sendHeartbeat("HOURLY");
-
-			SoftwareCoRepoManager.getInstance().processRepoMembersInfo(rootDir);
-
 		}
 	}
 
