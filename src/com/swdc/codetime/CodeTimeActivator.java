@@ -418,6 +418,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
             fileInfo.linesAdded += linesAdded;
             fileInfo.paste += 1;
             fileInfo.multi_adds += 1;
+            fileInfo.is_net_change = true;
             fileInfo.characters_added += Math.abs(numKeystrokes - linesAdded);
         } else if (numDeleteKeystrokes > 0 && numKeystrokes > 0) {
             // it's a replacement
@@ -444,6 +445,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
             // it's a multi line deletion and may contain characters
             fileInfo.characters_deleted += numDeleteKeystrokes;
             fileInfo.multi_deletes += 1;
+            fileInfo.is_net_change = true;
             fileInfo.linesRemoved += linesRemoved;
         } else if (numDeleteKeystrokes == 1) {
             // it's a single character deletion action
