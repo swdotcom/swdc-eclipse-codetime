@@ -391,62 +391,75 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				
 		// contains newline characters within the text
 		int linesAdded = getNewlineCount(text);
+		int linesRemoved = 0;
+		if (fileInfo.lines - new_line_count > 0) {
+			linesRemoved = fileInfo.lines - new_line_count;
+		}
 		boolean hasAutoIndent = text.matches("^\\s{2,4}$") || TAB_PATTERN.matcher(text).find();
         boolean newLineAutoIndent = text.matches("^\n\\s{2,4}$") || NEW_LINE_TAB_PATTERN.matcher(text).find();
+        
+        // update the deletion keystrokes if there are lines removed
+        numDeleteKeystrokes = numDeleteKeystrokes >= linesRemoved ? numDeleteKeystrokes - linesRemoved : numDeleteKeystrokes;
 		
-		// event updates
-		if (newLineAutoIndent) {
-			// it's a new line with auto-indent
-			fileInfo.auto_indents += 1;
-			fileInfo.linesAdded += 1;
-		} else if (hasAutoIndent) {
-			// it's an auto indent action
-			fileInfo.auto_indents += 1;
-		} else if (linesAdded == 1) {
-			// it's a single new line action (single_adds)
-			fileInfo.single_adds += 1;
-			fileInfo.linesAdded += 1;
-		} else if (linesAdded > 1) {
-			// it's a multi line paste action (multi_adds)
-			fileInfo.linesAdded += linesAdded;
-			fileInfo.paste += 1;
-			fileInfo.multi_adds += 1;
-			fileInfo.characters_added += Math.abs(numKeystrokes - linesAdded);
-		} else if (numDeleteKeystrokes > 0 && numKeystrokes > 0) {
-			// it's a replacement
+        // event updates
+        if (newLineAutoIndent) {
+            // it's a new line with auto-indent
+            fileInfo.auto_indents += 1;
+            fileInfo.linesAdded += 1;
+        } else if (hasAutoIndent) {
+            // it's an auto indent action
+            fileInfo.auto_indents += 1;
+        } else if (linesAdded == 1) {
+            // it's a single new line action (single_adds)
+            fileInfo.single_adds += 1;
+            fileInfo.linesAdded += 1;
+        } else if (linesAdded > 1) {
+            // it's a multi line paste action (multi_adds)
+            fileInfo.linesAdded += linesAdded;
+            fileInfo.paste += 1;
+            fileInfo.multi_adds += 1;
+            fileInfo.characters_added += Math.abs(numKeystrokes - linesAdded);
+        } else if (numDeleteKeystrokes > 0 && numKeystrokes > 0) {
+            // it's a replacement
             fileInfo.replacements += 1;
             fileInfo.characters_added += numKeystrokes;
             fileInfo.characters_deleted += numDeleteKeystrokes;
-		} else if (numKeystrokes > 1) {
-			// pasted characters (multi_adds)
-			fileInfo.paste += 1;
-			fileInfo.multi_adds += 1;
-			fileInfo.characters_added += numKeystrokes;
-		} else if (numKeystrokes == 1) {
-			// it's a single keystroke action (single_adds)
-			fileInfo.add += 1;
-			fileInfo.single_adds += 1;
-			fileInfo.characters_added += 1;
-		} else if (numDeleteKeystrokes > 1) {
-			// it's a multi character delete action (multi_deletes)
-			int linesDeleted = fileInfo.lines - new_line_count;
-			if (linesDeleted > 0) {
-				fileInfo.linesRemoved += fileInfo.lines - new_line_count;
-			}
-			fileInfo.multi_deletes += 1;
-			fileInfo.characters_deleted += numDeleteKeystrokes;
-		} else if (numDeleteKeystrokes == 1) {
-			// it's a single character delete action (single_deletes)
-			fileInfo.delete += 1;
-			fileInfo.single_deletes += 1;
-			fileInfo.characters_deleted += 1;
-		}
+        } else if (numKeystrokes > 1) {
+            // pasted characters (multi_adds)
+            fileInfo.paste += 1;
+            fileInfo.multi_adds += 1;
+            fileInfo.is_net_change = true;
+            fileInfo.characters_added += numKeystrokes;
+        } else if (numKeystrokes == 1) {
+            // it's a single keystroke action (single_adds)
+            fileInfo.add += 1;
+            fileInfo.single_adds += 1;
+            fileInfo.characters_added += 1;
+        } else if (linesRemoved == 1) {
+            // it's a single line deletion
+            fileInfo.linesRemoved += 1;
+            fileInfo.single_deletes += 1;
+            fileInfo.characters_deleted += numDeleteKeystrokes;
+        } else if (linesRemoved > 1) {
+            // it's a multi line deletion and may contain characters
+            fileInfo.characters_deleted += numDeleteKeystrokes;
+            fileInfo.multi_deletes += 1;
+            fileInfo.linesRemoved += linesRemoved;
+        } else if (numDeleteKeystrokes == 1) {
+            // it's a single character deletion action
+            fileInfo.delete += 1;
+            fileInfo.single_deletes += 1;
+            fileInfo.characters_deleted += 1;
+        } else if (numDeleteKeystrokes > 1) {
+            // it's a multi character deletion action
+            fileInfo.multi_deletes += 1;
+            fileInfo.is_net_change = true;
+            fileInfo.characters_deleted += numDeleteKeystrokes;
+        }
 		
-		fileInfo.lines = new_line_count;
-		fileInfo.keystrokes += 1;
-		keystrokeCount.keystrokes += 1;
-		
-		System.out.println("Keystrokes incremented");
+        fileInfo.lines = new_line_count;
+        fileInfo.keystrokes += 1;
+        keystrokeCount.keystrokes += 1;
 	}
 	
 	private static int getNewlineCount(String text) {

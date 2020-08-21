@@ -66,6 +66,7 @@ public class EventTrackerManager {
 			event.multi_adds = fileInfoData.multi_adds;
 			event.auto_indents = fileInfoData.auto_indents;
 			event.replacements = fileInfoData.replacements;
+			event.is_net_change = fileInfoData.is_net_change;
 
 			event.keystrokes = fileInfoData.keystrokes;
 			event.lines_added = fileInfoData.linesAdded;
