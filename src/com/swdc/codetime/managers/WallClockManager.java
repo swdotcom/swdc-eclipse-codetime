@@ -155,49 +155,52 @@ public class WallClockManager {
 		String jwt = FileManager.getItem("jwt");
 		String api = "/sessions/summary?refresh=true";
 		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
-		if (resp.isOk()) {
-			JsonObject jsonObj = resp.getJsonObj();
-
-			JsonElement lastUpdatedToday = jsonObj.get("lastUpdatedToday");
-			if (lastUpdatedToday != null) {
-				// make sure it's a boolean and not a number
-				if (!lastUpdatedToday.getAsJsonPrimitive().isBoolean()) {
-					// set it to boolean
-					boolean newVal = lastUpdatedToday.getAsInt() == 0 ? false : true;
-					jsonObj.addProperty("lastUpdatedToday", newVal);
+		try {
+			if (resp.isOk()) {
+				JsonObject jsonObj = resp.getJsonObj();
+	
+				JsonElement lastUpdatedToday = jsonObj.get("lastUpdatedToday");
+				if (lastUpdatedToday != null) {
+					// make sure it's a boolean and not a number
+					if (!lastUpdatedToday.getAsJsonPrimitive().isBoolean()) {
+						// set it to boolean
+						boolean newVal = lastUpdatedToday.getAsInt() == 0 ? false : true;
+						jsonObj.addProperty("lastUpdatedToday", newVal);
+					}
 				}
+				JsonElement inFlow = jsonObj.get("inFlow");
+				if (inFlow != null) {
+					// make sure it's a boolean and not a number
+					if (!inFlow.getAsJsonPrimitive().isBoolean()) {
+						// set it to boolean
+						boolean newVal = inFlow.getAsInt() == 0 ? false : true;
+						jsonObj.addProperty("inFlow", newVal);
+					}
+				}
+	
+				Type type = new TypeToken<SessionSummary>() {
+				}.getType();
+				SessionSummary fetchedSummary = CodeTimeActivator.gson.fromJson(jsonObj, type);
+	
+				// clone all
+				summary.clone(fetchedSummary);
+	
+				TimeDataManager.updateSessionFromSummaryApi(summary.currentDayMinutes);
+	
+				// save the file
+				FileManager.writeData(SessionDataManager.getSessionDataSummaryFile(), summary);
 			}
-			JsonElement inFlow = jsonObj.get("inFlow");
-			if (inFlow != null) {
-				// make sure it's a boolean and not a number
-				if (!inFlow.getAsJsonPrimitive().isBoolean()) {
-					// set it to boolean
-					boolean newVal = inFlow.getAsInt() == 0 ? false : true;
-					jsonObj.addProperty("inFlow", newVal);
-				}
-			}
-
-			Type type = new TypeToken<SessionSummary>() {
-			}.getType();
-			SessionSummary fetchedSummary = CodeTimeActivator.gson.fromJson(jsonObj, type);
-
-			// clone all
-			summary.clone(fetchedSummary);
-
-			TimeDataManager.updateSessionFromSummaryApi(summary.currentDayMinutes);
-
-			// save the file
-			FileManager.writeData(SessionDataManager.getSessionDataSummaryFile(), summary);
-
-			new Thread(() -> {
-				try {
-					Thread.sleep(1000 * 2);
-					dispatchStatusViewUpdate();
-				} catch (Exception e) {
-					System.err.println(e);
-				}
-			}).start();
+		} catch (Exception e) {
+			log.info("Error fetching averages: " + e.getMessage());
 		}
+		
+		new Thread(() -> {
+			try {
+				dispatchStatusViewUpdate();
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+		}).start();
 	}
 
 	private class UpdateWallClockTimeTask extends TimerTask {

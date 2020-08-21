@@ -325,7 +325,7 @@ public class SoftwareCoSessionManager {
 			// update the session summary info to update the statusbar and tree
 			new Thread(() -> {
 				try {
-					Thread.sleep(1000 * 5);
+					Thread.sleep(1000 * 2);
 					WallClockManager.getInstance().updateSessionSummaryFromServer();
 				} catch (Exception e) {
 					System.err.println(e);
