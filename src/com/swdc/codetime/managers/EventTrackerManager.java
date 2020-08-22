@@ -43,8 +43,8 @@ public class EventTrackerManager {
 	}
 
 	private void init() {
-		// trackerMgr = new TrackerManager(SoftwareCoUtils.api_endpoint, "CodeTime", SoftwareCoUtils.pluginName);
-		// ready = true;
+		trackerMgr = new TrackerManager(SoftwareCoUtils.api_endpoint, "CodeTime", SoftwareCoUtils.pluginName);
+		ready = true;
 	}
 
 	public void trackCodeTimeEvent(KeystrokePayload payload) {
@@ -66,6 +66,7 @@ public class EventTrackerManager {
 			event.multi_adds = fileInfoData.multi_adds;
 			event.auto_indents = fileInfoData.auto_indents;
 			event.replacements = fileInfoData.replacements;
+			event.is_net_change = fileInfoData.is_net_change;
 
 			event.keystrokes = fileInfoData.keystrokes;
 			event.lines_added = fileInfoData.linesAdded;
@@ -83,6 +84,7 @@ public class EventTrackerManager {
 			event.pluginEntity = this.getPluginEntity();
 			event.repoEntity = this.getRepoEntity(resourceInfo);
 
+			log.info("Sending codetime event");
 			trackerMgr.trackCodeTimeEvent(event);
 		}
 	}
@@ -100,6 +102,7 @@ public class EventTrackerManager {
 		event.authEntity = this.getAuthEntity();
 		event.pluginEntity = this.getPluginEntity();
 
+		log.info("Sending ui interaction event");
 		trackerMgr.trackUIInteraction(event);
 	}
 
@@ -124,6 +127,7 @@ public class EventTrackerManager {
 		ResourceInfo resourceInfo = GitUtil.getResourceInfo(event.projectEntity.project_directory, false);
 		event.repoEntity = this.getRepoEntity(resourceInfo);
 
+		log.info("Sending editor action event");
 		trackerMgr.trackEditorAction(event);
 	}
 

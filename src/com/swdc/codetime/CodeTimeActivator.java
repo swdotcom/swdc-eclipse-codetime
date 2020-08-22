@@ -27,7 +27,6 @@ import org.osgi.framework.BundleContext;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
-import com.swdc.codetime.managers.EventManager;
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.WallClockManager;
@@ -36,7 +35,6 @@ import com.swdc.codetime.util.KeystrokePayload.FileInfo;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
-import com.swdc.codetime.util.SoftwareCoRepoManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
@@ -65,18 +63,17 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	private static SoftwareCoKeystrokeManager keystrokeMgr = SoftwareCoKeystrokeManager.getInstance();
 	
 	private static final Pattern NEW_LINE_PATTERN = Pattern.compile("\n");
+	private static final Pattern NEW_LINE_TAB_PATTERN = Pattern.compile("\n\t");
+	private static final Pattern TAB_PATTERN = Pattern.compile("\t");
 
 	// private keystroke processor timer and client manager
 	private static Timer keystrokesTimer;
 	private Timer userStatusTimer;
 	private Timer sendOfflineDataTimer;
-	private Timer repoCommitsTimer;
-	private Timer repoUserTimer;
 
 	private static int retry_counter = 0;
 	private static long check_online_interval_ms = 1000 * 60 * 10;
 
-	private static String rootDir = null;
 	private static IViewPart ctMetricsTreeView = null;
 
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
@@ -193,13 +190,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				long one_min = 1000 * 60;
 				long forty_min = one_min * 40;
 
-				// run the hourly timer
-				repoCommitsTimer = new Timer();
-				repoCommitsTimer.scheduleAtFixedRate(new ProcessCommitJobsTask(), one_min * 3, one_min * 25);
-
-				repoUserTimer = new Timer();
-				repoUserTimer.scheduleAtFixedRate(new ProcessRepoUsersJobsTask(), one_min * 4, one_min * 30);
-
 				userStatusTimer = new Timer();
 				userStatusTimer.scheduleAtFixedRate(new ProcessUserStatusTask(), one_min * 15, forty_min);
 
@@ -254,11 +244,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			keystrokesTimer = null;
 		}
 
-		if (repoCommitsTimer != null) {
-			repoCommitsTimer.cancel();
-			repoCommitsTimer = null;
-		}
-
 		if (userStatusTimer != null) {
 			userStatusTimer.cancel();
 			userStatusTimer = null;
@@ -267,11 +252,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		if (sendOfflineDataTimer != null) {
 			sendOfflineDataTimer.cancel();
 			sendOfflineDataTimer = null;
-		}
-
-		if (repoUserTimer != null) {
-			repoUserTimer.cancel();
-			repoUserTimer = null;
 		}
 	}
 
@@ -363,16 +343,17 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		if (keystrokeCount == null || docEvent == null || docEvent.getText() == null) {
 			return;
 		}
+		
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 		
 		if (StringUtils.isBlank(fileInfo.syntax)) {
 			fileInfo.syntax = SoftwareCoUtils.getSyntax(fileName);
 		}
 		
-		updateFileInfoMetrics(docEvent, fileInfo);
+		updateFileInfoMetrics(docEvent, fileInfo, keystrokeCount);
 	}
 	
-	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo) {
+	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo, KeystrokePayload keystrokeCount) {
 		
 		String text = docEvent.getText();
 		int new_line_count = 0;
@@ -381,62 +362,84 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			fileInfo.length = docEvent.getDocument().getLength();
 		}
 		
-		int numKeystrokes = (text.length() > 0)
-				? text.length()
-				: docEvent.getLength() / -1;
-			
+		// this will be the positive number of chars that were added
+		int numKeystrokes = text.length();
+		// if docEvent has a length then it's the number of chars that were deleted
+		int numDeleteKeystrokes = Math.abs(docEvent.getLength() / -1);
 				
-		// matches at least 1 newline character
-		boolean hasNewLine = text.matches("[\r\n]");
 		// contains newline characters within the text
 		int linesAdded = getNewlineCount(text);
-		if (linesAdded > 1) {
-            // if it's 2, it's actually 3 lines as all we're doing is counting the \n chars
-            linesAdded += 1;
-        }
-		boolean hasAutoIndent = text.matches("[\t]");
-		
-		// event updates
-		if (hasAutoIndent) {
-			// it's an auto indent action
-			fileInfo.auto_indents += 1;
-		} else if (hasNewLine && linesAdded == 0) {
-			// it's a single new line action (single_adds)
-			fileInfo.single_adds += 1;
-			fileInfo.linesAdded += 1;
-		} else if (linesAdded > 0) {
-			// it's a multi line paste action (multi_adds)
-			fileInfo.linesAdded += linesAdded;
-			fileInfo.paste += 1;
-			fileInfo.multi_adds += 1;
-			fileInfo.characters_added += Math.abs(numKeystrokes - linesAdded);
-		} else if (numKeystrokes > 1) {
-			// pasted characters (multi_adds)
-			fileInfo.paste += 1;
-			fileInfo.multi_adds += 1;
-			fileInfo.characters_added += numKeystrokes;
-		} else if (numKeystrokes == 1) {
-			// it's a single keystroke action (single_adds)
-			fileInfo.add += 1;
-			fileInfo.single_adds += 1;
-			fileInfo.characters_added += 1;
-		} else if (numKeystrokes < -1) {
-			// it's a multi character delete action (multi_deletes)
-			int linesDeleted = fileInfo.lines - new_line_count;
-			if (linesDeleted > 0) {
-				fileInfo.linesRemoved += fileInfo.lines - new_line_count;
-			}
-			fileInfo.multi_deletes += 1;
-			fileInfo.characters_deleted += Math.abs(numKeystrokes);
-		} else if (numKeystrokes == -1) {
-			// it's a single character delete action (single_deletes)
-			fileInfo.delete += 1;
-			fileInfo.single_deletes += 1;
-			fileInfo.characters_deleted += 1;
+		int linesRemoved = 0;
+		if (fileInfo.lines - new_line_count > 0) {
+			linesRemoved = fileInfo.lines - new_line_count;
 		}
+		boolean hasAutoIndent = text.matches("^\\s{2,4}$") || TAB_PATTERN.matcher(text).find();
+        boolean newLineAutoIndent = text.matches("^\n\\s{2,4}$") || NEW_LINE_TAB_PATTERN.matcher(text).find();
+        
+        // update the deletion keystrokes if there are lines removed
+        numDeleteKeystrokes = numDeleteKeystrokes >= linesRemoved ? numDeleteKeystrokes - linesRemoved : numDeleteKeystrokes;
 		
-		fileInfo.lines = new_line_count;
-		fileInfo.keystrokes += 1;
+        // event updates
+        if (newLineAutoIndent) {
+            // it's a new line with auto-indent
+            fileInfo.auto_indents += 1;
+            fileInfo.linesAdded += 1;
+        } else if (hasAutoIndent) {
+            // it's an auto indent action
+            fileInfo.auto_indents += 1;
+        } else if (linesAdded == 1) {
+            // it's a single new line action (single_adds)
+            fileInfo.single_adds += 1;
+            fileInfo.linesAdded += 1;
+        } else if (linesAdded > 1) {
+            // it's a multi line paste action (multi_adds)
+            fileInfo.linesAdded += linesAdded;
+            fileInfo.paste += 1;
+            fileInfo.multi_adds += 1;
+            fileInfo.is_net_change = true;
+            fileInfo.characters_added += Math.abs(numKeystrokes - linesAdded);
+        } else if (numDeleteKeystrokes > 0 && numKeystrokes > 0) {
+            // it's a replacement
+            fileInfo.replacements += 1;
+            fileInfo.characters_added += numKeystrokes;
+            fileInfo.characters_deleted += numDeleteKeystrokes;
+        } else if (numKeystrokes > 1) {
+            // pasted characters (multi_adds)
+            fileInfo.paste += 1;
+            fileInfo.multi_adds += 1;
+            fileInfo.is_net_change = true;
+            fileInfo.characters_added += numKeystrokes;
+        } else if (numKeystrokes == 1) {
+            // it's a single keystroke action (single_adds)
+            fileInfo.add += 1;
+            fileInfo.single_adds += 1;
+            fileInfo.characters_added += 1;
+        } else if (linesRemoved == 1) {
+            // it's a single line deletion
+            fileInfo.linesRemoved += 1;
+            fileInfo.single_deletes += 1;
+            fileInfo.characters_deleted += numDeleteKeystrokes;
+        } else if (linesRemoved > 1) {
+            // it's a multi line deletion and may contain characters
+            fileInfo.characters_deleted += numDeleteKeystrokes;
+            fileInfo.multi_deletes += 1;
+            fileInfo.is_net_change = true;
+            fileInfo.linesRemoved += linesRemoved;
+        } else if (numDeleteKeystrokes == 1) {
+            // it's a single character deletion action
+            fileInfo.delete += 1;
+            fileInfo.single_deletes += 1;
+            fileInfo.characters_deleted += 1;
+        } else if (numDeleteKeystrokes > 1) {
+            // it's a multi character deletion action
+            fileInfo.multi_deletes += 1;
+            fileInfo.is_net_change = true;
+            fileInfo.characters_deleted += numDeleteKeystrokes;
+        }
+		
+        fileInfo.lines = new_line_count;
+        fileInfo.keystrokes += 1;
+        keystrokeCount.keystrokes += 1;
 	}
 	
 	private static int getNewlineCount(String text) {
@@ -480,11 +483,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 			//
 			keystrokeCount.endPreviousModifiedFiles(fileName);
 		}
-
-		// update the rootDir
-		rootDir = (keystrokeCount != null && keystrokeCount.getProject() != null)
-				? keystrokeCount.getProject().directory
-				: null;
 	}
 
 	public static class ProcessKeystrokePayloadTask extends TimerTask {
@@ -543,27 +541,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		}
 	}
 
-	private class ProcessCommitJobsTask extends TimerTask {
-		public void run() {
-			SoftwareCoUtils.sendHeartbeat("HOURLY");
-
-			SoftwareCoRepoManager.getInstance().getHistoricalCommits(rootDir);
-
-			// send the events data
-			EventManager.sendOfflineEvents();
-
-		}
-	}
-
-	private class ProcessRepoUsersJobsTask extends TimerTask {
-		public void run() {
-			SoftwareCoUtils.sendHeartbeat("HOURLY");
-
-			SoftwareCoRepoManager.getInstance().processRepoMembersInfo(rootDir);
-
-		}
-	}
-
 	protected void sendInstallPayload() {
 		// get filename
 		String fileName = "Untitled";
@@ -576,8 +553,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		// increment the specific file keystroke value
-		fileInfo.add += 1;
-		keystrokeCount.setKeystrokes(1);
+		fileInfo.keystrokes = 1;
+		fileInfo.add = 1;
+		keystrokeCount.keystrokes = 1;
 		// send the initial payload
 		keystrokeCount.processKeystrokes();
 	}

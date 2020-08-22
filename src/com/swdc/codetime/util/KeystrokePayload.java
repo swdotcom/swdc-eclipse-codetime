@@ -32,19 +32,19 @@ public class KeystrokePayload {
 
 	// non-hardcoded attributes
 	private Map<String, FileInfo> source = new HashMap<>();
-	private int keystrokes = 0; // keystroke count
+	public int keystrokes = 0; // keystroke count
 	public long start;
 	private long local_start;
 	private SoftwareCoProject project;
 	private String version;
 	private String os;
 	private String timezone = "";
-	
+
 	public long cumulative_editor_seconds = 0;
-    public long cumulative_session_seconds = 0;
-    public long elapsed_seconds = 0;
-    public String workspace_name = "";
-    public String project_null_error = "";
+	public long cumulative_session_seconds = 0;
+	public long elapsed_seconds = 0;
+	public String workspace_name = "";
+	public String project_null_error = "";
 
 	public KeystrokePayload() {
 		this.version = SoftwareCoUtils.getVersion();
@@ -99,19 +99,21 @@ public class KeystrokePayload {
 		public int multi_adds = 0; // multi char or multi line add
 		public int auto_indents = 0;
 		public int replacements = 0;
+		public boolean is_net_change = false;
+
 		@Override
 		public String toString() {
-			return "FileInfo [add=" + add + ", paste=" + paste + ", open=" + open
-					+ "\n, close=" + close + ", delete=" + delete + ", length=" + length + ", lines=" + lines
-					+ "\n, linesAdded=" + linesAdded + ", linesRemoved=" + linesRemoved + ", keystrokes=" + keystrokes
-					+ "\n, syntax=" + syntax + ", characters_added=" + characters_added + ", characters_deleted="
-					+ characters_deleted + "\n, single_deletes=" + single_deletes + ", multi_deletes=" + multi_deletes
-					+ "\n, single_adds=" + single_adds + ", multi_adds=" + multi_adds + ", auto_indents=" + auto_indents
-					+ "\n, replacements=" + replacements + "]";
+			return "FileInfo [add=" + add + ", paste=" + paste + ", open=" + open + "\n, close=" + close + ", delete="
+					+ delete + ", length=" + length + ", lines=" + lines + "\n, linesAdded=" + linesAdded
+					+ ", linesRemoved=" + linesRemoved + ", keystrokes=" + keystrokes + "\n, syntax=" + syntax
+					+ ", characters_added=" + characters_added + ", characters_deleted=" + characters_deleted
+					+ "\n, single_deletes=" + single_deletes + ", multi_deletes=" + multi_deletes + "\n, single_adds="
+					+ single_adds + ", multi_adds=" + multi_adds + ", auto_indents=" + auto_indents
+					+ "\n, replacements=" + replacements + ", is_net_change=" + is_net_change + ",]";
 		}
 
 	}
-	
+
 	public Map<String, FileInfo> getFileInfos() {
 		return source;
 	}
@@ -154,103 +156,76 @@ public class KeystrokePayload {
 			fileInfoData.local_end = 0;
 		}
 	}
-	
+
 	private void validateAndUpdateCumulativeData(long sessionSeconds) {
 
-        TimeData td = TimeDataManager.incrementSessionAndFileSeconds(this.project, sessionSeconds);
+		TimeData td = TimeDataManager.incrementSessionAndFileSeconds(this.project, sessionSeconds);
 
-        // get the current payloads so we can compare our last cumulative seconds
-        KeystrokePayload lastPayload = FileManager.getLastSavedKeystrokeStats();
-        if (SoftwareCoUtils.isNewDay()) {
-        	lastPayload = null;
-        	// clear out data from the previous day
-            WallClockManager.getInstance().newDayChecker();
-            if (td != null) {
-            	this.project_null_error = "TimeData should be null as its a new day";
-                td = null;
-            }
-        }
-        
-        this.workspace_name = SoftwareCoUtils.getWorkspaceName();
+		// get the current payloads so we can compare our last cumulative seconds
+		KeystrokePayload lastPayload = FileManager.getLastSavedKeystrokeStats();
+		if (SoftwareCoUtils.isNewDay()) {
+			lastPayload = null;
+			// clear out data from the previous day
+			WallClockManager.getInstance().newDayChecker();
+			if (td != null) {
+				this.project_null_error = "TimeData should be null as its a new day";
+				td = null;
+			}
+		}
 
-        this.cumulative_session_seconds = 60;
-        this.cumulative_editor_seconds = 60;
+		this.workspace_name = SoftwareCoUtils.getWorkspaceName();
 
-        if (td != null) {
-            this.cumulative_editor_seconds = td.editor_seconds;
-            this.cumulative_session_seconds = td.session_seconds;
-        } else if (lastPayload != null) {
-            // no time data found, project null error
-            this.project_null_error = "TimeData not found using " + this.project.directory + " for editor and session seconds";
-            cumulative_editor_seconds = lastPayload.cumulative_editor_seconds + 60;
-            cumulative_session_seconds = lastPayload.cumulative_session_seconds + 60;
-        }
+		this.cumulative_session_seconds = 60;
+		this.cumulative_editor_seconds = 60;
 
-        if (cumulative_editor_seconds < cumulative_session_seconds) {
-            cumulative_editor_seconds = cumulative_session_seconds;
-        }
-    }
-	
+		if (td != null) {
+			this.cumulative_editor_seconds = td.editor_seconds;
+			this.cumulative_session_seconds = td.session_seconds;
+		} else if (lastPayload != null) {
+			// no time data found, project null error
+			this.project_null_error = "TimeData not found using " + this.project.directory
+					+ " for editor and session seconds";
+			cumulative_editor_seconds = lastPayload.cumulative_editor_seconds + 60;
+			cumulative_session_seconds = lastPayload.cumulative_session_seconds + 60;
+		}
+
+		if (cumulative_editor_seconds < cumulative_session_seconds) {
+			cumulative_editor_seconds = cumulative_session_seconds;
+		}
+	}
+
 	// end unended file payloads and add the cumulative editor seconds
-    public void preProcessKeystrokeData(long sessionSeconds, long elapsedSeconds) {
+	public void preProcessKeystrokeData(long sessionSeconds, long elapsedSeconds) {
 
-        this.validateAndUpdateCumulativeData(sessionSeconds);
+		this.validateAndUpdateCumulativeData(sessionSeconds);
 
-        SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
-        Map<String, FileInfo> fileInfoDataSet = this.source;
-        for ( FileInfo fileInfoData : fileInfoDataSet.values() ) {
-            // end the ones that don't have an end time
-            if (fileInfoData.end == 0) {
-                // set the end time for this file
-                fileInfoData.end = timesData.now;
-                fileInfoData.local_end = timesData.local_now;
-            }
-        }
-    }
+		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		Map<String, FileInfo> fileInfoDataSet = this.source;
+		for (FileInfo fileInfoData : fileInfoDataSet.values()) {
+			// end the ones that don't have an end time
+			if (fileInfoData.end == 0) {
+				// set the end time for this file
+				fileInfoData.end = timesData.now;
+				fileInfoData.local_end = timesData.local_now;
+			}
+		}
+	}
 
 	// update each source with it's true amount of keystrokes
 	public boolean hasData() {
-		boolean foundKpmData = false;
-		if (this.getKeystrokes() > 0 || this.hasOpenAndCloseMetrics()) {
-			foundKpmData = true;
-		}
-
-		int keystrokesTally = 0;
-
-		// tally the metrics to set the keystrokes for each source key
-		Map<String, FileInfo> fileInfoDataSet = this.source;
-		for (FileInfo data : fileInfoDataSet.values()) {
-			keystrokesTally += data.keystrokes;
-		}
-
-		if (keystrokesTally > this.getKeystrokes()) {
-			this.setKeystrokes(keystrokesTally);
-		}
-
-		return foundKpmData;
+		return this.keystrokes > 0 ? true : false;
 	}
 
-	private boolean hasOpenAndCloseMetrics() {
-		Map<String, FileInfo> fileInfoDataSet = this.source;
-		for (FileInfo fileInfoData : fileInfoDataSet.values()) {
-			if (fileInfoData.open > 0 && fileInfoData.close > 0) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	public void processKeystrokes() {
 		if (this.hasData()) {
-			
+
 			// make sure we have a valid project
 			SoftwareCoProject activeProject = SoftwareCoUtils.getActiveKeystrokeProject();
-			if (this.project == null|| this.project.directory == null ||
-					this.project.directory.equals("") ||
-					this.project.directory.equals("Untitled")) {
+			if (this.project == null || this.project.directory == null || this.project.directory.equals("")
+					|| this.project.directory.equals("Untitled")) {
 				this.setProject(activeProject);
 			}
-			
+
 			// get the resource identifier info
 			if (!this.getProject().directory.equals("Untitled")) {
 				// get the resource information
@@ -268,9 +243,9 @@ public class KeystrokePayload {
 
 			// update the file aggregate info.
 			this.updateAggregates(eTime.sessionSeconds);
-			
+
 			// send the event to the event tracker
-            EventTrackerManager.getInstance().trackCodeTimeEvent(this);
+			EventTrackerManager.getInstance().trackCodeTimeEvent(this);
 
 			final String payload = CodeTimeActivator.gson.toJson(this);
 
@@ -283,7 +258,7 @@ public class KeystrokePayload {
 		}
 
 		this.resetData();
-		
+
 		WallClockManager.getInstance().dispatchStatusViewUpdate();
 	}
 
@@ -308,9 +283,9 @@ public class KeystrokePayload {
 						fileInfo.name = fileName.toString();
 					}
 				}
-	
+
 				aggregate.aggregate(fileInfo);
-	
+
 				FileChangeInfo existingFileInfo = fileChangeInfoMap.get(key);
 				if (existingFileInfo == null) {
 					existingFileInfo = new FileChangeInfo();
@@ -335,14 +310,6 @@ public class KeystrokePayload {
 
 	public String getSource() {
 		return CodeTimeActivator.gson.toJson(source);
-	}
-
-	public int getKeystrokes() {
-		return keystrokes;
-	}
-
-	public void setKeystrokes(int keystrokes) {
-		this.keystrokes = keystrokes;
 	}
 
 	public long getStart() {
