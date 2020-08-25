@@ -142,20 +142,21 @@ public class EventTrackerManager {
 		FileDetails fileDetails = SoftwareCoUtils.getFileDetails(fullFileName);
 		FileEntity fileEntity = new FileEntity();
 		fileEntity.character_count = fileDetails.character_count;
-		fileEntity.file_name = fileDetails.file_name;
-		fileEntity.file_path = fileDetails.project_file_name;
+		fileEntity.file_name = fileDetails.project_file_name;
+		fileEntity.file_path = fileDetails.full_file_name;
 		fileEntity.line_count = fileDetails.line_count;
 		fileEntity.syntax = fileDetails.syntax;
 		return fileEntity;
 	}
 
 	private FileEntity getFileEntity(FileInfo fileInfo) {
+		FileDetails fileDetails = SoftwareCoUtils.getFileDetails(fileInfo.fsPath);
 		FileEntity fileEntity = new FileEntity();
-		fileEntity.character_count = fileInfo.length;
-		fileEntity.file_name = fileInfo.name;
-		fileEntity.file_path = fileInfo.fsPath;
-		fileEntity.line_count = fileInfo.lines;
-		fileEntity.syntax = fileInfo.syntax;
+		fileEntity.character_count = fileDetails.character_count;
+		fileEntity.file_name = fileDetails.project_file_name;
+		fileEntity.file_path = fileDetails.full_file_name;
+		fileEntity.line_count = fileDetails.line_count;
+		fileEntity.syntax = fileDetails.syntax;
 		return fileEntity;
 	}
 

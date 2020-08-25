@@ -286,14 +286,16 @@ public class SoftwareCoUtils {
 			return null;
 		}
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (IProject project : projects) {
-			IPath locationPath = project.getLocation();
-			String pathStr = locationPath.toString();
-			if (pathStr != null && fileName.indexOf(pathStr) != -1) {
-				return project;
+		if (projects != null && projects.length > 0) {
+			for (IProject project : projects) {
+				IPath locationPath = project.getLocation();
+				String pathStr = locationPath.toString();
+				if (pathStr != null && fileName.indexOf(pathStr) != -1) {
+					return project;
+				}
 			}
 		}
-		return null;
+		return getActiveProject();
 	}
 
 	public static FileDetails getFileDetails(String fullFileName) {
