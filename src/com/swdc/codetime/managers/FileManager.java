@@ -174,14 +174,12 @@ public class FileManager {
 
 	public static JsonArray getFileContentAsJsonArray(String file) {
 		try {
-			synchronized(semaphore) {
-				Object obj = parser.parse(new FileReader(file));
-				if (obj != null) {
-					JsonArray jsonArray = (JsonArray)obj;
-					return jsonArray;
-				} else {
-					LOG.warning("Code Time: Null data for file: " + file);
-				}
+			Object obj = parser.parse(new FileReader(file));
+			if (obj != null) {
+				JsonArray jsonArray = (JsonArray)obj;
+				return jsonArray;
+			} else {
+				LOG.warning("Code Time: Null data for file: " + file);
 			}
 			
 		} catch (Exception e) {
@@ -192,12 +190,10 @@ public class FileManager {
 
 	public static JsonObject getFileContentAsJson(String file) {
 		try {
-			synchronized(semaphore) {
-				Object obj = parser.parse(new FileReader(file));
-				if (obj != null) {
-					JsonObject jsonObj = (JsonObject)obj;
-					return jsonObj;
-				}
+			Object obj = parser.parse(new FileReader(file));
+			if (obj != null) {
+				JsonObject jsonObj = (JsonObject)obj;
+				return jsonObj;
 			}
 		} catch (Exception e) {
 			LOG.warning("Code Time: Error trying to read and parse " + file + ": " + e.getMessage());
@@ -245,6 +241,7 @@ public class FileManager {
 				// add commas to the end of each line
 				while ((line = br.readLine()) != null) {
 					if (line.length() > 0) {
+						line = SoftwareCoUtils.cleanJsonString(line);
 						sb.append(line).append(",");
 					}
 				}
@@ -259,33 +256,30 @@ public class FileManager {
 
 					JsonArray jsonArray = (JsonArray) CodeTimeActivator.jsonParser.parse(payloads);
 
-					// delete the file
-					deleteFile(file);
-
 					JsonArray batch = new JsonArray();
-					int batch_size = 5;
+					int batch_size = 25;
 					// go through the array about 50 at a time
 					for (int i = 0; i < jsonArray.size(); i++) {
 						batch.add(jsonArray.get(i));
 						if (i > 0 && i % batch_size == 0) {
-							String payloadData = CodeTimeActivator.gson.toJson(batch);
-							SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpPost.METHOD_NAME, payloadData);
-							if (!resp.isOk()) {
-								// add these back to the offline file
-								LOG.info("Code Time: Unable to send batch data: " + resp.getErrorMessage());
+							boolean succeeded = sendBatchData(jsonArray, batch, file);
+							
+							if (!succeeded) {
+								return;
 							}
 							batch = new JsonArray();
 						}
 					}
 					if (batch.size() > 0) {
-						String payloadData = CodeTimeActivator.gson.toJson(batch);
-						SoftwareResponse resp = SoftwareCoUtils.makeApiCall("/data/batch", HttpPost.METHOD_NAME,
-								payloadData);
-						if (!resp.isOk()) {
-							// add these back to the offline file
-							LOG.info("Code Time: Unable to send batch data: " + resp.getErrorMessage());
+						boolean succeeded = sendBatchData(jsonArray, batch, file);
+						
+						if (!succeeded) {
+							return;
 						}
 					}
+					
+					// delete the file
+					deleteFile(file);
 
 				} else {
 					LOG.info("Code Time: No offline data to send");
@@ -294,6 +288,22 @@ public class FileManager {
 				LOG.warning("Code Time: Error trying to read and send offline data: " + e.getMessage());
 			}
 		}
+	}
+	
+	private static boolean sendBatchData(JsonArray jsonArray, JsonArray batch, String file) {
+		String payloadData = CodeTimeActivator.gson.toJson(batch);
+		SoftwareResponse resp = SoftwareCoUtils.makeApiCall("/data/batch", HttpPost.METHOD_NAME,
+				payloadData);
+		if (!resp.isOk() && resp.getCode() != 401) {
+			// add these back to the offline file
+			LOG.info("Code Time: Unable to send batch data: " + resp.getErrorMessage());
+			if (jsonArray.size() > 1000) {
+				// delete anyway
+				deleteFile(file);
+			}
+			return false;
+		}
+		return true;
 	}
 
 	public static String getFileContent(String file) {
