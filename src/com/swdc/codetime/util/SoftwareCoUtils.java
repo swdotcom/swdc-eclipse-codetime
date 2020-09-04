@@ -817,21 +817,21 @@ public class SoftwareCoUtils {
 		return pattern.matcher(email).matches();
 	}
 
-	private static JsonObject getUser(boolean serverIsOnline) {
+	private static JsonObject getUser() {
 		String jwt = FileManager.getItem("jwt");
-		if (serverIsOnline) {
-			String api = "/users/me";
-			SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
-			if (resp.isOk()) {
-				// check if we have the data and jwt
-				// resp.data.jwt and resp.data.user
-				// then update the session.json for the jwt
-				JsonObject obj = resp.getJsonObj();
-				if (obj != null && obj.has("data")) {
-					return obj.get("data").getAsJsonObject();
-				}
+
+		String api = "/users/me";
+		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
+		if (resp.isOk()) {
+			// check if we have the data and jwt
+			// resp.data.jwt and resp.data.user
+			// then update the session.json for the jwt
+			JsonObject obj = resp.getJsonObj();
+			if (obj != null && obj.has("data")) {
+				return obj.get("data").getAsJsonObject();
 			}
 		}
+
 		return null;
 	}
 
@@ -863,52 +863,40 @@ public class SoftwareCoUtils {
 		return null;
 	}
 
-	private static boolean isLoggedOn(boolean serverIsOnline) {
+	public static boolean isLoggedOn() {
 		String jwt = FileManager.getItem("jwt");
-		if (serverIsOnline) {
-			JsonObject userObj = getUser(serverIsOnline);
-			if (userObj != null && userObj.has("email")) {
-				// check if the email is valid
-				String email = userObj.get("email").getAsString();
-				if (validateEmail(email)) {
-					FileManager.setItem("jwt", userObj.get("plugin_jwt").getAsString());
-					FileManager.setItem("name", email);
-					return true;
-				}
-			}
-			String api = "/users/plugin/state";
-			SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
-			if (resp.isOk()) {
-				JsonObject data = resp.getJsonObj();
-				// check if we have any data
-				String state = (data != null && data.has("state")) ? data.get("state").getAsString() : "UNKNOWN";
-				if (state.equals("OK")) {
-					String dataJwt = data.get("jwt").getAsString();
-					FileManager.setItem("jwt", dataJwt);
-					String dataEmail = data.get("email").getAsString();
-					if (dataEmail != null) {
-						FileManager.setItem("name", dataEmail);
-					}
-					return true;
-				} else if (state.equals("NOT_FOUND")) {
-					FileManager.setItem("jwt", null);
-				}
+
+		JsonObject userObj = getUser();
+		if (userObj != null && userObj.has("email")) {
+			// check if the email is valid
+			String email = userObj.get("email").getAsString();
+			if (validateEmail(email)) {
+				FileManager.setItem("jwt", userObj.get("plugin_jwt").getAsString());
+				FileManager.setItem("name", email);
+				return true;
 			}
 		}
+		String api = "/users/plugin/state";
+		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
+		if (resp.isOk()) {
+			JsonObject data = resp.getJsonObj();
+			// check if we have any data
+			String state = (data != null && data.has("state")) ? data.get("state").getAsString() : "UNKNOWN";
+			if (state.equals("OK")) {
+				String dataJwt = data.get("jwt").getAsString();
+				FileManager.setItem("jwt", dataJwt);
+				String dataEmail = data.get("email").getAsString();
+				if (dataEmail != null) {
+					FileManager.setItem("name", dataEmail);
+				}
+				return true;
+			} else if (state.equals("NOT_FOUND")) {
+				FileManager.setItem("jwt", null);
+			}
+		}
+
 		FileManager.setItem("name", null);
 		return false;
-	}
-
-	public static synchronized UserStatus getUserStatus() {
-
-		boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
-
-		boolean loggedIn = isLoggedOn(serverIsOnline);
-
-		UserStatus currentUserStatus = new UserStatus();
-		currentUserStatus.loggedIn = loggedIn;
-
-		return currentUserStatus;
 	}
 
 	public static void sendHeartbeat(String reason) {

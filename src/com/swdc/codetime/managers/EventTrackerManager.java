@@ -84,7 +84,6 @@ public class EventTrackerManager {
 			event.pluginEntity = this.getPluginEntity();
 			event.repoEntity = this.getRepoEntity(resourceInfo);
 
-			log.info("Sending codetime event");
 			trackerMgr.trackCodeTimeEvent(event);
 		}
 	}
@@ -102,7 +101,6 @@ public class EventTrackerManager {
 		event.authEntity = this.getAuthEntity();
 		event.pluginEntity = this.getPluginEntity();
 
-		log.info("Sending ui interaction event");
 		trackerMgr.trackUIInteraction(event);
 	}
 
@@ -127,7 +125,6 @@ public class EventTrackerManager {
 		ResourceInfo resourceInfo = GitUtil.getResourceInfo(event.projectEntity.project_directory, false);
 		event.repoEntity = this.getRepoEntity(resourceInfo);
 
-		log.info("Sending editor action event");
 		trackerMgr.trackEditorAction(event);
 	}
 

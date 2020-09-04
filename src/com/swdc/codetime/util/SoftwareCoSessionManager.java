@@ -311,13 +311,13 @@ public class SoftwareCoSessionManager {
 	}
 
 	protected static void lazilyFetchUserStatus(int retryCount) {
-		SoftwareCoUtils.UserStatus userStatus = SoftwareCoUtils.getUserStatus();
+		boolean loggedOn = SoftwareCoUtils.isLoggedOn();
 
-		if (!userStatus.loggedIn && retryCount > 0) {
+		if (!loggedOn && retryCount > 0) {
 			final int newRetryCount = retryCount - 1;
 			
 			new Timer().schedule(new LazyUserStatusFetchTask(newRetryCount), 1000 * 10);
-		} else if (userStatus.loggedIn) {
+		} else if (loggedOn) {
 			
 			// show the success prompt
 			CodeTimeActivator.showLoginSuccessPrompt();

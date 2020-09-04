@@ -69,7 +69,6 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 	public void addDocumentListener(String fileName, IDocument document) {
 		if (!documentSet.contains(fileName)) {
 			documentSet.add(fileName);
-			LOG.info("Adding document listener for file: " + fileName);
 			document.addDocumentListener(new SoftwareCoDocumentListener());
 		}
 	}
@@ -88,7 +87,6 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 	public void partClosed(IWorkbenchPartReference partRef) {
 		String fileName = this.checkPart(partRef);
 		CodeTimeActivator.handleFileClosedEvent(fileName);
-		LOG.info("Removing document listener for file: " + fileName);
 		// remove the listener
 		documentSet.remove(fileName);
 	}

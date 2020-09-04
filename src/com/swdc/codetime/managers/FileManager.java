@@ -48,7 +48,9 @@ public class FileManager {
 	public static KeystrokePayload getLastSavedKeystrokeStats() {
         List<KeystrokePayload> list = convertPayloadsToList(getKeystrokePayloads());
         if (list != null && list.size() > 0) {
-            list.sort((o1, o2) -> o2.start < o1.start ? -1 : o2.start > o1.start ? 1 : 0);
+        	if (list.size() > 1) {
+        		list.sort((o1, o2) -> o2.start < o1.start ? -1 : o2.start > o1.start ? 1 : 0);
+        	}
             lastSavedKeystrokeStats = list.get(0);
         }
         return lastSavedKeystrokeStats;
@@ -158,7 +160,6 @@ public class FileManager {
 		}
 
 		try {
-			LOG.info("Code Time: Storing content: " + content);
 			Writer output;
 			output = new BufferedWriter(new FileWriter(f, true)); // clears file every time
 			output.append(content);

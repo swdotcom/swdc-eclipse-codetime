@@ -68,7 +68,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	// private keystroke processor timer and client manager
 	private static Timer keystrokesTimer;
-	private Timer userStatusTimer;
 	private Timer sendOfflineDataTimer;
 
 	private static int retry_counter = 0;
@@ -190,8 +189,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				long one_min = 1000 * 60;
 				long forty_min = one_min * 40;
 
-				userStatusTimer = new Timer();
-				userStatusTimer.scheduleAtFixedRate(new ProcessUserStatusTask(), one_min * 15, forty_min);
 
 				// send payloads every 15 minutes
 				sendOfflineDataTimer = new Timer();
@@ -242,11 +239,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		if (keystrokesTimer != null) {
 			keystrokesTimer.cancel();
 			keystrokesTimer = null;
-		}
-
-		if (userStatusTimer != null) {
-			userStatusTimer.cancel();
-			userStatusTimer = null;
 		}
 
 		if (sendOfflineDataTimer != null) {
@@ -500,14 +492,10 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	private void initializeUserInfo(boolean initializedUser) {
 
-		SoftwareCoUtils.getUserStatus();
-
 		if (initializedUser) {
 			// send an initial payload
 			sendInstallPayload();
 		}
-
-		SoftwareCoUtils.sendHeartbeat("INITIALIZED");
 		
 		String readmeDisplayed = FileManager.getItem("eclipse_CtReadme");
 		
@@ -521,14 +509,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
             
             CodeTimeActivator.displayCodeTimeMetricsTree();
         }
-	}
-
-	private class ProcessUserStatusTask extends TimerTask {
-		public void run() {
-			if (!SoftwareCoUtils.isLoggedIn()) {
-				SoftwareCoUtils.getUserStatus();
-			}
-		}
 	}
 
 	private class ProcessOfflineData extends TimerTask {
