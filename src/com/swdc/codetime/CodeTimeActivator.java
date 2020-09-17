@@ -184,15 +184,16 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 				SoftwareCoUtils.setStatusLineMessage("Code Time", "paw.png", "Loaded v" + version);
 				
+				// initialize the tracker
+				EventTrackerManager.getInstance().init();
+				// send the 1st event: activate
 				EventTrackerManager.getInstance().trackEditorAction("editor", "activate");
 
 				long one_min = 1000 * 60;
-				long forty_min = one_min * 40;
 
-
-				// send payloads every 15 minutes
+				// send payloads every 5 minutes
 				sendOfflineDataTimer = new Timer();
-				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), 1000 * 30, one_min * 15);
+				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), 1000 * 30, one_min * 5);
 
 				// start the wallclock
 				WallClockManager wcMgr = WallClockManager.getInstance();

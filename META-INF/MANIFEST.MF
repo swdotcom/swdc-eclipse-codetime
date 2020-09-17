@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Code Time
 Bundle-SymbolicName: com.swdc.codetime;singleton:=true
-Bundle-Version: 2.2.17
+Bundle-Version: 2.2.18
 Bundle-Activator: com.swdc.codetime.CodeTimeActivator
 Bundle-Vendor: Software.com
 Require-Bundle: org.eclipse.ui,
@@ -18,7 +18,7 @@ Require-Bundle: org.eclipse.ui,
 Bundle-ClassPath: .,
  extlibs/gson-2.8.2.jar,
  extlibs/apache-httpcomponents-httpclient.jar,
- extlibs/swdc-java-tracker-1.0.1.jar
+ extlibs/swdc-java-tracker-1.1.0.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: com.swdc.codetime
 Bundle-ActivationPolicy: lazy
