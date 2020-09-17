@@ -191,9 +191,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 				long one_min = 1000 * 60;
 
-				// send payloads every 15 minutes
+				// send payloads every 5 minutes
 				sendOfflineDataTimer = new Timer();
-				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), 1000 * 30, one_min * 15);
+				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), 1000 * 30, one_min * 5);
 
 				// start the wallclock
 				WallClockManager wcMgr = WallClockManager.getInstance();
