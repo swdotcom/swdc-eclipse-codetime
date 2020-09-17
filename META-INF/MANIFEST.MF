@@ -18,7 +18,7 @@ Require-Bundle: org.eclipse.ui,
 Bundle-ClassPath: .,
  extlibs/gson-2.8.2.jar,
  extlibs/apache-httpcomponents-httpclient.jar,
- extlibs/swdc-java-tracker-1.0.1.jar
+ extlibs/swdc-java-tracker-1.1.0.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: com.swdc.codetime
 Bundle-ActivationPolicy: lazy
