@@ -18,9 +18,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
@@ -132,7 +130,7 @@ public class SoftwareCoSessionManager {
 
 		if (hasServiceError || lastDayOfMonth == 0 || lastDayOfMonth != dayOfMonth) {
 			lastDayOfMonth = dayOfMonth;
-			String api = "/dashboard?linux=" + SoftwareCoUtils.isLinux() + "&showToday=false";
+			String api = "/dashboard?linux=" + SoftwareCoUtils.isLinux() + "&showToday=true";
 			String dashboardSummary = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null).getJsonStr();
 			if (dashboardSummary == null || dashboardSummary.trim().isEmpty()) {
 				dashboardSummary = SERVICE_NOT_AVAIL;
@@ -155,32 +153,6 @@ public class SoftwareCoSessionManager {
 
 		// concat summary info with the dashboard file
 		String dashboardContent = "";
-		SimpleDateFormat formatDayTime = new SimpleDateFormat("EEE, MMM d h:mma");
-		SimpleDateFormat formatDay = new SimpleDateFormat("EEE, MMM d");
-		String lastUpdatedStr = formatDayTime.format(new Date());
-		dashboardContent += "Code Time          (Last updated on " + lastUpdatedStr + ")";
-		dashboardContent += "\n\n";
-		String todayStr = formatDay.format(new Date());
-		dashboardContent += SoftwareCoUtils.getSectionHeader("Today (" + todayStr + ")");
-
-		if (summary != null) {
-			int currentDayMinutes = 0;
-			if (summary.has("currentDayMinutes")) {
-				currentDayMinutes = summary.get("currentDayMinutes").getAsInt();
-			}
-			int averageDailyMinutes = 0;
-			if (summary.has("averageDailyMinutes")) {
-				averageDailyMinutes = summary.get("averageDailyMinutes").getAsInt();
-			}
-
-			String currentDayTimeStr = SoftwareCoUtils.humanizeMinutes(currentDayMinutes);
-			String averageDailyMinutesTimeStr = SoftwareCoUtils.humanizeMinutes(averageDailyMinutes);
-
-			dashboardContent += SoftwareCoUtils.getDashboardRow("Hours coded today", currentDayTimeStr);
-			dashboardContent += SoftwareCoUtils.getDashboardRow("90-day avg", averageDailyMinutesTimeStr);
-			dashboardContent += "\n";
-		}
-
 		
 		if (summaryInfoContent != null) {
 			dashboardContent += summaryInfoContent;

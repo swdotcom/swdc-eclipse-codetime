@@ -111,9 +111,8 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 			protected void initComponent() {
 				boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
-				boolean sessionFileExists = SoftwareCoSessionManager.softwareSessionFileExists();
 				boolean hasJwt = SoftwareCoSessionManager.jwtExists();
-				if (!sessionFileExists || !hasJwt) {
+				if (!hasJwt || SoftwareCoUtils.isAppJwt()) {
 					if (!serverIsOnline) {
 						// server isn't online, check again in 10 min
 						if (retry_counter == 0) {
