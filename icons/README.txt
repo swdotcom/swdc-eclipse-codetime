@@ -22,7 +22,7 @@ GETTING STARTED
 
     To see an overview of your coding activity and project metrics, open the Code Time panel by clicking on the Code Time icon in your side bar.
 
-    In your Activity Metrics, your _code time_ is the total time you have spent in your editor today. Your _active code_ time is the total time you have been typing in your editor today. Each metric shows how you compare today to your average and the global average. Each average is calculated by day of week over the last 90 days (e.g. a Friday average is an average of all previous Fridays). You can also see your top files today by KPM (keystrokes per minute), keystrokes, and code time.
+    In your Activity Metrics, your Code Time is the total time you have spent in your editor today. Your Active Code Time is the total time you have been typing in your editor today. Each metric shows how you compare today to your average and the global average. Each average is calculated by day of week over the last 90 days (e.g. a Friday average is an average of all previous Fridays). You can also see your top files today by KPM (keystrokes per minute), keystrokes, and code time.
 
     If you have a Git repository open, Contributors provides a breakdown of contributors to the current open project and their latest commits.
 
