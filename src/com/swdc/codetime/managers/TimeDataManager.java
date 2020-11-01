@@ -167,10 +167,6 @@ public class TimeDataManager {
 		return td;
 	}
 
-	public static void sendOfflineTimeData() {
-		FileManager.sendJsonArrayData(getTimeDataSummaryFile(), "/data/time");
-	}
-
 	public static CodeTimeSummary getCodeTimeSummary() {
 		CodeTimeSummary summary = new CodeTimeSummary();
 

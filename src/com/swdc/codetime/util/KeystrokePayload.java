@@ -162,13 +162,10 @@ public class KeystrokePayload {
 		TimeData td = TimeDataManager.incrementSessionAndFileSeconds(this.project, sessionSeconds);
 
 		// get the current payloads so we can compare our last cumulative seconds
-		KeystrokePayload lastPayload = FileManager.getLastSavedKeystrokeStats();
 		if (SoftwareCoUtils.isNewDay()) {
-			lastPayload = null;
 			// clear out data from the previous day
 			WallClockManager.getInstance().newDayChecker();
 			if (td != null) {
-				this.project_null_error = "TimeData should be null as its a new day";
 				td = null;
 			}
 		}
@@ -181,12 +178,6 @@ public class KeystrokePayload {
 		if (td != null) {
 			this.cumulative_editor_seconds = td.editor_seconds;
 			this.cumulative_session_seconds = td.session_seconds;
-		} else if (lastPayload != null) {
-			// no time data found, project null error
-			this.project_null_error = "TimeData not found using " + this.project.directory
-					+ " for editor and session seconds";
-			cumulative_editor_seconds = lastPayload.cumulative_editor_seconds + 60;
-			cumulative_session_seconds = lastPayload.cumulative_session_seconds + 60;
 		}
 
 		if (cumulative_editor_seconds < cumulative_session_seconds) {
