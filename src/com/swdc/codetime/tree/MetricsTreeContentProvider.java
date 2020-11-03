@@ -40,7 +40,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	private MetricsTreeNode[] initialExpandedElements = null;
 	private ResourceInfo resourceInfo = null;
 	private String dayStr = "";
-	
+
 	private boolean showingLoginButtons = false;
 
 	public MetricsTreeContentProvider() {
@@ -50,41 +50,39 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public MetricsTreeNode[] getInitialExpandedElements() {
 		return initialExpandedElements;
 	}
-	
+
 	private void updateSignupButtons() {
 		if (SoftwareCoUtils.isLoggedIn() && showingLoginButtons) {
 			// now add these to the connected node
-			MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem", "paw.png");
-			
+			MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem",
+					"paw.png");
+
 			MetricsTreeNode generateDashboardItem = new MetricsTreeNode("View summary", "generateDashboardItem",
 					"dashboard.png");
-			
-			MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics", "toggleStatusTextItem",
-					"visible.png");
-			
+
+			MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics",
+					"toggleStatusTextItem", "visible.png");
+
 			MetricsTreeNode learnMoreItem = new MetricsTreeNode("Learn more", "learnMoreItem", "readme.png");
-			
+
 			MetricsTreeNode submitFeedbackItem = new MetricsTreeNode("Submit feedback", "submitFeedbackItem",
 					"message.png");
-			
+
 			// remove the login button nodes
 			MetricsTreeNode[] nodes = contentMap.get(ROOT_KEY);
 			List<MetricsTreeNode> tmp = new ArrayList<>();
 			for (MetricsTreeNode node : nodes) {
-				if (!node.getId().equals("googleSignupItem") &&
-					!node.getId().equals("githubSignupItem") &&
-					!node.getId().equals("emailSignupItem") &&
-					!node.getId().equals("webDashboardItem") &&
-					!node.getId().equals("generateDashboardItem") &&
-					!node.getId().equals("toggleStatusTextItem") &&
-					!node.getId().equals("learnMoreItem") &&
-					!node.getId().equals("submitFeedbackItem") &&
-					!node.getId().equals("signupSeparator")) {
+				if (!node.getId().equals("googleSignupItem") && !node.getId().equals("githubSignupItem")
+						&& !node.getId().equals("emailSignupItem") && !node.getId().equals("webDashboardItem")
+						&& !node.getId().equals("generateDashboardItem") && !node.getId().equals("toggleStatusTextItem")
+						&& !node.getId().equals("learnMoreItem") && !node.getId().equals("submitFeedbackItem")
+						&& !node.getId().equals("signupSeparator")) {
 					tmp.add(node);
 				} else if (node.getId().equals("googleSignupItem")) {
 					MetricsTreeNode signedUpAsItem = getSignedUpNode();
 					tmp.add(signedUpAsItem);
-					MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem, toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
+					MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem,
+							toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
 					contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
 				}
 			}
@@ -93,7 +91,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 			showingLoginButtons = false;
 		}
 	}
-	
+
 	private void updateIdentifierButton() {
 		SoftwareCoProject softwareProj = SoftwareCoUtils.getActiveKeystrokeProject();
 		if (softwareProj != null) {
@@ -101,14 +99,14 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		} else {
 			resourceInfo = null;
 		}
-		
-		boolean hasIdentifier = (resourceInfo != null && resourceInfo.identifier != null && !resourceInfo.identifier.isEmpty())
-				? true : false;
-		
+
+		boolean hasIdentifier = (resourceInfo != null && resourceInfo.identifier != null
+				&& !resourceInfo.identifier.isEmpty()) ? true : false;
+
 		MetricsTreeNode[] nodes = contentMap.get(ROOT_KEY);
-		
+
 		List<MetricsTreeNode> tmp = new ArrayList<>();
-		
+
 		// add the contributor summary information if it's available and
 		// it wasn't in the previous view, or if it was and the label has changed
 		// then change it, or if it's not longer available then remove it
@@ -118,8 +116,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 					// check to see if the label should change?
 					if (!node.getLabel().equals(resourceInfo.identifier)) {
 						// it changed, change the label
-						MetricsTreeNode contributionSummaryReportItem = new MetricsTreeNode(
-								resourceInfo.identifier, "contributionSummary", "github.png");
+						MetricsTreeNode contributionSummaryReportItem = new MetricsTreeNode(resourceInfo.identifier,
+								"contributionSummary", "github.png");
 						tmp.add(contributionSummaryReportItem);
 					} else {
 						// nothing's changed, add it back
@@ -135,26 +133,25 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 				tmp.add(node);
 			}
 		}
-		
+
 		MetricsTreeNode[] newRootNodes = Arrays.copyOf(tmp.toArray(), tmp.size(), MetricsTreeNode[].class);
 		contentMap.put(ROOT_KEY, newRootNodes);
 	}
 
 	public void refreshData() {
-		
+
 		summary = SessionDataManager.getSessionSummaryData();
 		ctSummary = TimeDataManager.getCodeTimeSummary();
 		fileChangeInfoMap = FileAggregateDataManager.getFileChangeInfo();
 		SimpleDateFormat formatDay = new SimpleDateFormat("EEE");
 		dayStr = formatDay.format(new Date());
-		
+
 		// remove the sign up buttons if the user has logged on
 		this.updateSignupButtons();
-		
+
 		// add or remove the identifier link
 		this.updateIdentifierButton();
-		
-		
+
 		MetricsTreeNode[] rootNodes = contentMap.get(ROOT_KEY);
 		for (MetricsTreeNode node : rootNodes) {
 			if (node.getId().equals("toggleStatusTextItem")) {
@@ -295,8 +292,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		} else {
 			resourceInfo = null;
 		}
-		boolean hasIdentifier = (resourceInfo != null && resourceInfo.identifier != null && !resourceInfo.identifier.isEmpty())
-				? true : false;
+		boolean hasIdentifier = (resourceInfo != null && resourceInfo.identifier != null
+				&& !resourceInfo.identifier.isEmpty()) ? true : false;
 		contentMap = new HashMap<String, MetricsTreeNode[]>();
 		summary = SessionDataManager.getSessionSummaryData();
 		ctSummary = TimeDataManager.getCodeTimeSummary();
@@ -305,33 +302,36 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		dayStr = formatDay.format(new Date());
 
 		List<MetricsTreeNode> rootNodes = new ArrayList<>();
-		
+
 		// menu and metric roots
 		MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem", "paw.png");
-		
+
 		MetricsTreeNode generateDashboardItem = new MetricsTreeNode("View summary", "generateDashboardItem",
 				"dashboard.png");
-		
+
 		MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics", "toggleStatusTextItem",
 				"visible.png");
-		
+
 		MetricsTreeNode learnMoreItem = new MetricsTreeNode("Learn more", "learnMoreItem", "readme.png");
-		
+
 		MetricsTreeNode submitFeedbackItem = new MetricsTreeNode("Submit feedback", "submitFeedbackItem",
 				"message.png");
-		
+
 		if (!SoftwareCoUtils.isLoggedIn()) {
 			showingLoginButtons = true;
-			MetricsTreeNode googleLoginItem = new MetricsTreeNode("Sign up with Google", "googleSignupItem", "google.png");
+			MetricsTreeNode googleLoginItem = new MetricsTreeNode("Sign up with Google", "googleSignupItem",
+					"google.png");
 			mNodeList.add(googleLoginItem);
-			MetricsTreeNode githubLoginItem = new MetricsTreeNode("Sign up with GitHub", "githubSignupItem", "github.png");
+			MetricsTreeNode githubLoginItem = new MetricsTreeNode("Sign up with GitHub", "githubSignupItem",
+					"github.png");
 			mNodeList.add(githubLoginItem);
-			MetricsTreeNode emailLoginItem = new MetricsTreeNode("Sign up using email", "emailSignupItem", "icons8-envelope-16.png");
+			MetricsTreeNode emailLoginItem = new MetricsTreeNode("Sign up using email", "emailSignupItem",
+					"icons8-envelope-16.png");
 			mNodeList.add(emailLoginItem);
 			MetricsTreeNode signupMenuSepItem = new MetricsTreeNode("", "signupSeparator");
 			signupMenuSepItem.setSeparator(true);
 			mNodeList.add(signupMenuSepItem);
-			
+
 			mNodeList.add(webDashboardItem);
 			mNodeList.add(generateDashboardItem);
 			mNodeList.add(toggleStatusTextItem);
@@ -340,12 +340,12 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		} else {
 			MetricsTreeNode signedUpAsItem = getSignedUpNode();
 			mNodeList.add(signedUpAsItem);
-			
-			MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem, toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
+
+			MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem, toggleStatusTextItem,
+					learnMoreItem, submitFeedbackItem };
 			contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
 		}
 
-		
 		MetricsTreeNode menuSepItem = new MetricsTreeNode("", "menu-separator");
 		menuSepItem.setSeparator(true);
 		mNodeList.add(menuSepItem);
@@ -375,15 +375,15 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		mNodeList.add(openChangesItem);
 		MetricsTreeNode committedTodayItem = new MetricsTreeNode("Committed today", "committed");
 		mNodeList.add(committedTodayItem);
-		
+
 		if (hasIdentifier) {
 			MetricsTreeNode contributorSepItem = new MetricsTreeNode("", "contrib-separator");
 			contributorSepItem.setSeparator(true);
 			mNodeList.add(contributorSepItem);
 			MetricsTreeNode projectSummaryTitle = new MetricsTreeNode("Project Summary", "contributionSummaryTitle");
 			mNodeList.add(projectSummaryTitle);
-			MetricsTreeNode contributionSummaryReportItem = new MetricsTreeNode(
-					resourceInfo.identifier, "contributionSummary", "github.png");
+			MetricsTreeNode contributionSummaryReportItem = new MetricsTreeNode(resourceInfo.identifier,
+					"contributionSummary", "github.png");
 			mNodeList.add(contributionSummaryReportItem);
 		}
 
@@ -608,11 +608,12 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		boolean flag = contentMap.containsKey(id);
 		return flag;
 	}
-	
+
 	private MetricsTreeNode getSignedUpNode() {
 		String signupUpAsLabel = FileManager.getItem("name");
 		String authType = FileManager.getItem("authType");
-		String iconName = authType.equals("google") ? "google.png" : authType.equals("github") ? "github.png" : "icons8-envelope-16.png";
+		String iconName = authType.equals("google") ? "google.png"
+				: authType.equals("github") ? "github.png" : "icons8-envelope-16.png";
 		MetricsTreeNode signedUpAsItem = new MetricsTreeNode(signupUpAsLabel, "signedUpAsButton", iconName);
 		return signedUpAsItem;
 	}

@@ -1,24 +1,18 @@
 package com.swdc.codetime.managers;
 
-import java.io.BufferedReader;
+
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
 import org.apache.http.client.methods.HttpPost;
@@ -26,10 +20,8 @@ import org.apache.http.client.methods.HttpPost;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.util.SWCoreLog;
-import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.codetime.util.SoftwareResponse;
 
@@ -38,23 +30,7 @@ public class FileManager {
 	public static final Logger LOG = Logger.getLogger("FileManager");
 
 	private static JsonParser parser = new JsonParser();
-	private static Semaphore semaphore = new Semaphore(1);
-	private static KeystrokePayload lastSavedKeystrokeStats = null;
-	
-	public static void clearLastSavedKeystrokestats() {
-		lastSavedKeystrokeStats = null;
-	}
-	
-	public static KeystrokePayload getLastSavedKeystrokeStats() {
-        List<KeystrokePayload> list = convertPayloadsToList(getKeystrokePayloads());
-        if (list != null && list.size() > 0) {
-        	if (list.size() > 1) {
-        		list.sort((o1, o2) -> o2.start < o1.start ? -1 : o2.start > o1.start ? 1 : 0);
-        	}
-            lastSavedKeystrokeStats = list.get(0);
-        }
-        return lastSavedKeystrokeStats;
-    }
+
 
 	public static String getSessionSummaryFile() {
 		String file = getSoftwareDir(true);
@@ -123,26 +99,24 @@ public class FileManager {
 		return file;
 	}
 
-	public static void writeData(String file, Object o) {
+	public synchronized static void writeData(String file, Object o) {
 		if (o == null) {
 			return;
 		}
 		File f = new File(file);
 		final String content = CodeTimeActivator.gson.toJson(o);
 
-		synchronized(semaphore) {
-			Writer writer = null;
+		Writer writer = null;
+		try {
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8")));
+			writer.write(content);
+		} catch (IOException e) {
+			LOG.warning("Code Time: Error writing content: " + e.getMessage());
+		} finally {
 			try {
-				writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8")));
-				writer.write(content);
-			} catch (IOException e) {
-				LOG.warning("Code Time: Error writing content: " + e.getMessage());
-			} finally {
-				try {
-					writer.close();
-				} catch (Exception ex) {
-					/* ignore */
-				}
+				writer.close();
+			} catch (Exception ex) {
+				/* ignore */
 			}
 		}
 	}
@@ -226,86 +200,7 @@ public class FileManager {
 			}
 		}
 	}
-
-	public static void sendBatchData(String file, String api) {
-		File f = new File(file);
-		if (f.exists()) {
-			// found a data file, check if there's content
-			StringBuffer sb = new StringBuffer();
-			try {
-				FileInputStream fis = new FileInputStream(f);
-
-				// Construct BufferedReader from InputStreamReader
-				BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-
-				String line = null;
-				// add commas to the end of each line
-				while ((line = br.readLine()) != null) {
-					if (line.length() > 0) {
-						line = SoftwareCoUtils.cleanJsonString(line);
-						sb.append(line).append(",");
-					}
-				}
-
-				br.close();
-
-				if (sb.length() > 0) {
-					// check to see if it's already an array
-					String payloads = sb.toString();
-					payloads = payloads.substring(0, payloads.lastIndexOf(","));
-					payloads = "[" + payloads + "]";
-
-					JsonArray jsonArray = (JsonArray) CodeTimeActivator.jsonParser.parse(payloads);
-
-					JsonArray batch = new JsonArray();
-					int batch_size = 25;
-					// go through the array about 50 at a time
-					for (int i = 0; i < jsonArray.size(); i++) {
-						batch.add(jsonArray.get(i));
-						if (i > 0 && i % batch_size == 0) {
-							boolean succeeded = sendBatchData(jsonArray, batch, file);
-							
-							if (!succeeded) {
-								return;
-							}
-							batch = new JsonArray();
-						}
-					}
-					if (batch.size() > 0) {
-						boolean succeeded = sendBatchData(jsonArray, batch, file);
-						
-						if (!succeeded) {
-							return;
-						}
-					}
-					
-					// delete the file
-					deleteFile(file);
-
-				} else {
-					LOG.info("Code Time: No offline data to send");
-				}
-			} catch (Exception e) {
-				LOG.warning("Code Time: Error trying to read and send offline data: " + e.getMessage());
-			}
-		}
-	}
 	
-	private static boolean sendBatchData(JsonArray jsonArray, JsonArray batch, String file) {
-		String payloadData = CodeTimeActivator.gson.toJson(batch);
-		SoftwareResponse resp = SoftwareCoUtils.makeApiCall("/data/batch", HttpPost.METHOD_NAME,
-				payloadData);
-		if (!resp.isOk() && resp.getCode() != 401) {
-			// add these back to the offline file
-			LOG.info("Code Time: Unable to send batch data: " + resp.getErrorMessage());
-			if (jsonArray.size() > 1000) {
-				// delete anyway
-				deleteFile(file);
-			}
-			return false;
-		}
-		return true;
-	}
 
 	public static String getFileContent(String file) {
 		String content = null;
@@ -405,61 +300,4 @@ public class FileManager {
 		return sessionJson;
 	}
 	
-	private static List<KeystrokePayload> convertPayloadsToList(String payloads) {
-        if (payloads != null && !payloads.equals("")) {
-        	try {
-	            JsonArray jsonArray = (JsonArray) CodeTimeActivator.jsonParser.parse(payloads);
-	            if (jsonArray != null && jsonArray.size() > 0) {
-					Type type = new TypeToken<List<KeystrokePayload>>() {
-	                }.getType();
-	                return CodeTimeActivator.gson.fromJson(jsonArray, type);
-	            }
-        	} catch (Exception e) {
-        		LOG.warning("Error reading the payloads");
-        	}
-        }
-        return new ArrayList<>();
-    }
-	
-	private static String getKeystrokePayloads() {
-        final String dataStoreFile = getSoftwareDataStoreFile();
-        File f = new File(dataStoreFile);
-
-        if (f.exists()) {
-            synchronized (semaphore) {
-                // found a data file, check if there's content
-                StringBuffer sb = new StringBuffer();
-                try {
-                    FileInputStream fis = new FileInputStream(f);
-
-                    //Construct BufferedReader from InputStreamReader
-                    BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-
-                    String line = null;
-                    while ((line = br.readLine()) != null) {
-                        if (line.length() > 0) {
-                            sb.append(line).append(",");
-                        }
-                    }
-
-                    br.close();
-
-                    if (sb.length() > 0) {
-                        // we have data to send
-                        String payloads = sb.toString();
-                        payloads = payloads.substring(0, payloads.lastIndexOf(","));
-                        payloads = "[" + payloads + "]";
-
-                        return payloads;
-
-                    } else {
-                    	SWCoreLog.logInfoMessage("Code Time: No offline data to send");
-                    }
-                } catch (Exception e) {
-                	SWCoreLog.logInfoMessage("Code Time: Error trying to read and send offline data, error: " + e.getMessage());
-                }
-            }
-        }
-        return null;
-    }
 }

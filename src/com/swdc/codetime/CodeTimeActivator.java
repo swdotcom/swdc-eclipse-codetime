@@ -53,7 +53,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 	public static JsonParser jsonParser = new JsonParser();
 
-	public static Gson gson;
+	public static Gson gson = new Gson();
 
 	// Listeners (used to listen to file
 	// events such as opened, activated, input changed, etc
@@ -84,9 +84,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	/**
 	 * The constructor
 	 */
-	public CodeTimeActivator() {
-		gson = new Gson();
-	}
+	public CodeTimeActivator() {}
 
 	/*
 	 * (non-Javadoc)
@@ -188,18 +186,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 				// send the 1st event: activate
 				EventTrackerManager.getInstance().trackEditorAction("editor", "activate");
 
-				long one_min = 1000 * 60;
-
-				// send payloads every 5 minutes
-				sendOfflineDataTimer = new Timer();
-				sendOfflineDataTimer.scheduleAtFixedRate(new ProcessOfflineData(), 1000 * 30, one_min * 5);
-
 				// start the wallclock
 				WallClockManager wcMgr = WallClockManager.getInstance();
 				wcMgr.updateSessionSummaryFromServer();
-
-				// initialize the lastSavedKeystrokeStats
-				FileManager.getLastSavedKeystrokeStats();
 
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				try {
@@ -491,11 +480,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 	}
 
 	private void initializeUserInfo(boolean initializedUser) {
-
-		if (initializedUser) {
-			// send an initial payload
-			sendInstallPayload();
-		}
 		
 		String readmeDisplayed = FileManager.getItem("eclipse_CtReadme");
 		
@@ -509,35 +493,6 @@ public class CodeTimeActivator extends AbstractUIPlugin {
             
             CodeTimeActivator.displayCodeTimeMetricsTree();
         }
-	}
-
-	private class ProcessOfflineData extends TimerTask {
-		public void run() {
-			try {
-				FileManager.sendBatchData(FileManager.getSoftwareDataStoreFile(), "/data/batch");
-			} catch (Exception e) {
-				System.err.println(e);
-			}
-		}
-	}
-
-	protected void sendInstallPayload() {
-		// get filename
-		String fileName = "Untitled";
-		// get the project name
-		String projectName = "Unnamed";
-		// make sure keystrokeCount is available
-		initializeKeystrokeObjectGraph(projectName, fileName);
-
-		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
-		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
-
-		// increment the specific file keystroke value
-		fileInfo.keystrokes = 1;
-		fileInfo.add = 1;
-		keystrokeCount.keystrokes = 1;
-		// send the initial payload
-		keystrokeCount.processKeystrokes();
 	}
 
 	public static String getActiveProjectName(String fileName) {

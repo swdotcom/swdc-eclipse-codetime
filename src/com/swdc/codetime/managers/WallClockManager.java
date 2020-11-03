@@ -111,17 +111,6 @@ public class WallClockManager {
 	
 	public void newDayChecker() {
 		if (SoftwareCoUtils.isNewDay()) {
-			// send the payloads
-			FileManager.sendBatchData(FileManager.getSoftwareDataStoreFile(), "/data/batch");
-
-			// send the time data
-			TimeDataManager.sendOfflineTimeData();
-
-			// send the events data
-			EventManager.sendOfflineEvents();
-			
-			// clear the lastSavedKeystrokestats
-			FileManager.clearLastSavedKeystrokestats();
 
 			// clear the wc time and the session summary and the file change info summary
 			clearWcTime();
