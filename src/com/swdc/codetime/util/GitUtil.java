@@ -20,20 +20,24 @@ public class GitUtil {
 			for (String line : results) {
 				line = line.trim();
 				if (line.indexOf("insertion") != -1 || line.indexOf("deletion") != -1) {
-					String[] parts = line.split(" ");
-					// the 1st element is the number of files changed
-					int fileCount = Integer.parseInt(parts[0]);
-					changeStats.fileCount = fileCount;
-					changeStats.commitCount = changeStats.commitCount + 1;
-					for (int x = 1; x < parts.length; x++) {
-						String part = parts[x];
-						if (part.indexOf("insertion") != -1) {
-							int insertions = Integer.parseInt(parts[x - 1]);
-							changeStats.insertions = changeStats.insertions + insertions;
-						} else if (part.indexOf("deletion") != -1) {
-							int deletions = Integer.parseInt(parts[x - 1]);
-							changeStats.deletions = changeStats.deletions + deletions;
+					try {
+						String[] parts = line.split(" ");
+						// the 1st element is the number of files changed
+						int fileCount = Integer.parseInt(parts[0]);
+						changeStats.fileCount = fileCount;
+						changeStats.commitCount = changeStats.commitCount + 1;
+						for (int x = 1; x < parts.length; x++) {
+							String part = parts[x];
+							if (part.indexOf("insertion") != -1) {
+								int insertions = Integer.parseInt(parts[x - 1]);
+								changeStats.insertions = changeStats.insertions + insertions;
+							} else if (part.indexOf("deletion") != -1) {
+								int deletions = Integer.parseInt(parts[x - 1]);
+								changeStats.deletions = changeStats.deletions + deletions;
+							}
 						}
+					} catch (Exception e) {
+						System.out.println("stat change error: " + e.getMessage());
 					}
 				}
 			}
