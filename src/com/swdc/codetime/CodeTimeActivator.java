@@ -114,6 +114,8 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 					if (!serverIsOnline) {
 						// server isn't online, check again in 10 min
 						if (retry_counter == 0) {
+							// show offline only once
+							retry_counter++;
 							showOfflinePrompt();
 						}
 						new Thread(() -> {
@@ -130,6 +132,8 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 						if (jwt == null) {
 							// it failed, try again later
 							if (retry_counter == 0) {
+								// show offline only once
+								retry_counter++;
 								showOfflinePrompt();
 							}
 							new Thread(() -> {

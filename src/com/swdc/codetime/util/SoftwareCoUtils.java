@@ -904,31 +904,6 @@ public class SoftwareCoUtils {
 		return false;
 	}
 
-	public static void sendHeartbeat(String reason) {
-		boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
-		String jwt = FileManager.getItem("jwt");
-		if (serverIsOnline && jwt != null) {
-
-			long start = Math.round(System.currentTimeMillis() / 1000);
-
-			JsonObject payload = new JsonObject();
-			payload.addProperty("pluginId", pluginId);
-			payload.addProperty("os", getOs());
-			payload.addProperty("start", start);
-			payload.addProperty("version", getVersion());
-			payload.addProperty("hostname", getHostname());
-			payload.addProperty("trigger_annotation", reason);
-
-			String api = "/data/heartbeat";
-			SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpPost.METHOD_NAME, payload.toString(), jwt);
-			if (!resp.isOk()) {
-				LOG.log(Level.WARNING, "Code Time: unable to send heartbeat ping");
-			} else {
-				LOG.log(Level.INFO, "Code Time: sent heartbeat");
-			}
-		}
-	}
-
 	public static Date atStartOfWeek(long local_now) {
 		// find out how many days to go back
 		int daysBack = 0;
