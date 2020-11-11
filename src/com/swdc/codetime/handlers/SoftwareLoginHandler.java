@@ -18,11 +18,6 @@ public class SoftwareLoginHandler extends AbstractHandler {
 
 	@Override
 	public boolean isEnabled() {
-		boolean sessionFileExists = SoftwareCoSessionManager.softwareSessionFileExists();
-		boolean hasJwt = SoftwareCoSessionManager.jwtExists();
-		if (!sessionFileExists || !hasJwt) {
-			return true;
-		}
 		return !SoftwareCoUtils.isLoggedIn();
 	}
 

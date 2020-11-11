@@ -201,25 +201,20 @@ public class WallClockManager {
 	}
 
 	public void dispatchStatusViewUpdate() {
-		if (!dispatching) {
-			dispatching = true;
+		// update the status bar
+		SessionSummary summary = SessionDataManager.getSessionSummaryData();
+		CodeTimeSummary ctSummary = TimeDataManager.getCodeTimeSummary();
 
-			// update the status bar
-			SessionSummary summary = SessionDataManager.getSessionSummaryData();
-			CodeTimeSummary ctSummary = TimeDataManager.getCodeTimeSummary();
+		// String icon = SoftwareCoUtils.showingStatusText() ? "paw.png" : "clock.png";
+		String msg = SoftwareCoUtils.humanizeMinutes(ctSummary.activeCodeTimeMinutes);
+		String iconName = ctSummary.activeCodeTimeMinutes > summary.averageDailyMinutes ? "rocket.png" : "paw.png";
+		SoftwareCoUtils.setStatusLineMessage(msg, iconName,
+				"Active code time today. Click to see more from Code Time.");
 
-			// String icon = SoftwareCoUtils.showingStatusText() ? "paw.png" : "clock.png";
-			String msg = SoftwareCoUtils.humanizeMinutes(ctSummary.activeCodeTimeMinutes);
-			String iconName = ctSummary.activeCodeTimeMinutes > summary.averageDailyMinutes ? "rocket.png" : "paw.png";
-			SoftwareCoUtils.setStatusLineMessage(msg, iconName,
-					"Active code time today. Click to see more from Code Time.");
-
-			// refresh the tree
-			if (treeView != null) {
-				((MetricsTreeView) treeView).refreshTree();
-			}
+		// refresh the tree
+		if (treeView != null) {
+			((MetricsTreeView) treeView).refreshTree();
 		}
-		dispatching = false;
 	}
 
 	private void updateWcTime() {
