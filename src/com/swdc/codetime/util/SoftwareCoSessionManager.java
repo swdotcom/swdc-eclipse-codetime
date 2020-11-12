@@ -23,6 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.FileLocator;
@@ -298,7 +299,9 @@ public class SoftwareCoSessionManager {
 			new Thread(() -> {
 				try {
 					Thread.sleep(1000 * 2);
-					WallClockManager.getInstance().updateSessionSummaryFromServer();
+					WallClockManager wcMgr = WallClockManager.getInstance();
+					wcMgr.updateSessionSummaryFromServer();
+					wcMgr.dispatchStatusViewUpdate();
 				} catch (Exception e) {
 					System.err.println(e);
 				}
@@ -309,11 +312,19 @@ public class SoftwareCoSessionManager {
 	public static void launchLogin(String loginType) {
 
 		String jwt = FileManager.getItem("jwt");
+		
+		// make sure the jwt is not null as the URLEncoder.encode will fail if it is
+		if (StringUtils.isBlank(jwt)) {
+			jwt = SoftwareCoUtils.createAnonymousUser();
+			if (StringUtils.isBlank(jwt)) {
+				CodeTimeActivator.showOfflinePrompt();
+			}
+		}
 
 		try {
 			jwt = URLEncoder.encode(jwt, "UTF-8");
 		} catch (UnsupportedEncodingException e1) {
-			//
+			SWCoreLog.logException(e1);
 		}
 
 		String url = "";

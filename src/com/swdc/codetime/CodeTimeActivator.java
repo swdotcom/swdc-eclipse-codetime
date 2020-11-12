@@ -109,8 +109,8 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 
 			protected void initComponent() {
 				boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
-				boolean hasJwt = SoftwareCoSessionManager.jwtExists();
-				if (!hasJwt || SoftwareCoUtils.isAppJwt()) {
+				String jwt = FileManager.getItem("jwt");
+				if (StringUtils.isBlank(jwt) || SoftwareCoUtils.isAppJwt()) {
 					if (!serverIsOnline) {
 						// server isn't online, check again in 10 min
 						if (retry_counter == 0) {
@@ -128,7 +128,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 						}).start();
 					} else {
 						// create the anon user
-						String jwt = SoftwareCoUtils.createAnonymousUser(serverIsOnline);
+						jwt = SoftwareCoUtils.createAnonymousUser();
 						if (jwt == null) {
 							// it failed, try again later
 							if (retry_counter == 0) {
@@ -535,7 +535,7 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		return null;
 	}
 
-	protected static void showOfflinePrompt() {
+	public static void showOfflinePrompt() {
 		String infoMsg = "Our service is temporarily unavailable. We will try to reconnect again "
 				+ "in 10 minutes. Your status bar will not update at this time.";
 
