@@ -36,8 +36,6 @@ public class WallClockManager {
 
 	private boolean isCurrentlyActive = true;
 
-	private static boolean dispatching = false;
-
 	public static WallClockManager getInstance() {
 		if (instance == null) {
 			synchronized (log) {
@@ -64,7 +62,8 @@ public class WallClockManager {
 		PlatformUI.getWorkbench().addWindowListener(new IWindowListener() {
 
 			@Override
-			public void windowOpened(IWorkbenchWindow arg0) {}
+			public void windowOpened(IWorkbenchWindow arg0) {
+			}
 
 			// Unfocus event
 			@Override
@@ -80,7 +79,8 @@ public class WallClockManager {
 			}
 
 			@Override
-			public void windowClosed(IWorkbenchWindow arg0) {}
+			public void windowClosed(IWorkbenchWindow arg0) {
+			}
 
 			// Focus event
 			@Override
@@ -98,17 +98,17 @@ public class WallClockManager {
 		newDayCheckerTimer = new Timer();
 		newDayCheckerTimer.scheduleAtFixedRate(new NewDayCheckerTask(), one_min, one_min * 10);
 	}
-	
+
 	public static void activeStateChangeHandler(KeystrokePayload keystrokeCount) {
 		//
-    }
+	}
 
 	private class NewDayCheckerTask extends TimerTask {
 		public void run() {
 			newDayChecker();
 		}
 	}
-	
+
 	public void newDayChecker() {
 		if (SoftwareCoUtils.isNewDay()) {
 
@@ -147,7 +147,7 @@ public class WallClockManager {
 		try {
 			if (resp.isOk()) {
 				JsonObject jsonObj = resp.getJsonObj();
-	
+
 				JsonElement lastUpdatedToday = jsonObj.get("lastUpdatedToday");
 				if (lastUpdatedToday != null) {
 					// make sure it's a boolean and not a number
@@ -166,23 +166,23 @@ public class WallClockManager {
 						jsonObj.addProperty("inFlow", newVal);
 					}
 				}
-	
+
 				Type type = new TypeToken<SessionSummary>() {
 				}.getType();
 				SessionSummary fetchedSummary = CodeTimeActivator.gson.fromJson(jsonObj, type);
-	
+
 				// clone all
 				summary.clone(fetchedSummary);
-	
+
 				TimeDataManager.updateSessionFromSummaryApi(summary.currentDayMinutes);
-	
+
 				// save the file
 				FileManager.writeData(SessionDataManager.getSessionDataSummaryFile(), summary);
 			}
 		} catch (Exception e) {
 			log.info("Error fetching averages: " + e.getMessage());
 		}
-		
+
 		new Thread(() -> {
 			try {
 				dispatchStatusViewUpdate();

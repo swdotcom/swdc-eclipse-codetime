@@ -104,7 +104,6 @@ public class SoftwareCoUtils {
 
 	public static String lastOpenFile = "";
 
-	public static ExecutorService executorService;
 	public static HttpClient pingClient;
 	public static HttpClient httpClient;
 
@@ -119,8 +118,6 @@ public class SoftwareCoUtils {
 
 		pingClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 		httpClient = HttpClientBuilder.create().build();
-
-		executorService = Executors.newCachedThreadPool();
 	}
 
 	public static String getWorkspaceName() {

@@ -35,6 +35,8 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 	private MetricsTreeLabelProvider labelProvider;
 	private TreeViewer tv;
 	
+	private boolean refreshingTree = false;
+	
 	protected static List<String> toggleItems = Arrays.asList("ct_codetime_toggle_node",
             "ct_active_codetime_toggle_node",
             "ct_lines_added_toggle_node",
@@ -158,7 +160,8 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 	}
 
 	public void refreshTree() {
-		if (contentProvider != null) {
+		if (contentProvider != null && !refreshingTree) {
+			refreshingTree = true;
 
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
@@ -171,6 +174,8 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 						tv.refresh();
 					} catch (Exception e) {
 						//
+					} finally {
+						refreshingTree = false;
 					}
 				}
 			});

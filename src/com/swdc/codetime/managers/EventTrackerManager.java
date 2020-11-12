@@ -82,7 +82,13 @@ public class EventTrackerManager {
 			event.pluginEntity = this.getPluginEntity();
 			event.repoEntity = this.getRepoEntity(resourceInfo);
 
-			trackerMgr.trackCodeTimeEvent(event);
+			new Thread(() -> {
+				try {
+					trackerMgr.trackCodeTimeEvent(event);
+				} catch (Exception e) {
+					System.err.println(e);
+				}
+			}).start();
 		}
 	}
 
@@ -99,7 +105,13 @@ public class EventTrackerManager {
 		event.authEntity = this.getAuthEntity();
 		event.pluginEntity = this.getPluginEntity();
 
-		trackerMgr.trackUIInteraction(event);
+		new Thread(() -> {
+			try {
+				trackerMgr.trackUIInteraction(event);
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+		}).start();
 	}
 
 	public void trackEditorAction(String entity, String type) {
@@ -123,7 +135,13 @@ public class EventTrackerManager {
 		ResourceInfo resourceInfo = GitUtil.getResourceInfo(event.projectEntity.project_directory, false);
 		event.repoEntity = this.getRepoEntity(resourceInfo);
 
-		trackerMgr.trackEditorAction(event);
+		new Thread(() -> {
+			try {
+				trackerMgr.trackEditorAction(event);
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+		}).start();
 	}
 
 	private AuthEntity getAuthEntity() {

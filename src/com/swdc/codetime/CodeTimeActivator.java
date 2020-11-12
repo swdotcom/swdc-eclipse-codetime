@@ -265,12 +265,9 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		fileInfo.open += 1;
-		int documentLineCount = SoftwareCoUtils.getLineCount(fileName);
-		fileInfo.lines = documentLineCount;
 
 		SWCoreLog.logInfoMessage("Code Time: file opened: " + fileName);
 		
-		EventTrackerManager.getInstance().trackEditorAction("file", "open", fileName);
 	}
 
 	public static void handleFileClosedEvent(String fileName) {
@@ -305,11 +302,13 @@ public class CodeTimeActivator extends AbstractUIPlugin {
 		}
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 		
-		if (docEvent.getDocument() != null) {
-			fileInfo.lines = docEvent.getDocument().getNumberOfLines();
-		} else {
-			int documentLineCount = SoftwareCoUtils.getLineCount(fileName);
-			fileInfo.lines = documentLineCount;
+		if (fileInfo.lines == 0) {
+			if (docEvent.getDocument() != null) {
+				fileInfo.lines = docEvent.getDocument().getNumberOfLines();
+			} else {
+				int documentLineCount = SoftwareCoUtils.getLineCount(fileName);
+				fileInfo.lines = documentLineCount;
+			}
 		}
 	}
 
