@@ -9,14 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.models.ResourceInfo;
 
 public class SoftwareCoRepoManager {

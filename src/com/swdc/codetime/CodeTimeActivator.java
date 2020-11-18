@@ -16,6 +16,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IStartup;
 import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
@@ -41,7 +42,7 @@ import com.swdc.codetime.util.SoftwareCoUtils;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class CodeTimeActivator extends AbstractUIPlugin {
+public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.swdc.codetime"; //$NON-NLS-1$
