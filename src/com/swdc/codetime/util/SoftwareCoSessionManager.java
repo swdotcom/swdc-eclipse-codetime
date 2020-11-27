@@ -339,13 +339,13 @@ public class SoftwareCoSessionManager {
 	        icon_name = "google";
 	        cta_text = "Sign up with Google";
 	        icon_color = null;
-	        url = SoftwareCoUtils.api_endpoint + "/auth/google?token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
+	        url = SoftwareCoUtils.api_endpoint + "/auth/google?plugin_token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
 		} else if (loginType.equals("github")) {
 			element_name = "ct_sign_up_github_btn";
             cta_text = "Sign up with GitHub";
             icon_name = "github";
             icon_color = null;
-            url = SoftwareCoUtils.api_endpoint + "/auth/github?token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
+            url = SoftwareCoUtils.api_endpoint + "/auth/github?plugin_token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
 		} else {
 			url = SoftwareCoUtils.launch_url + "/onboarding?token=" + jwt;
 		}
