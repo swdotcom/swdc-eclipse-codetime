@@ -322,19 +322,10 @@ public class SoftwareCoSessionManager {
 
 	public static void launchLogin(String loginType, boolean switching_account) {
 
-		String auth_callback_state = FileManager.getAuthCallbackState();
-        if (StringUtils.isBlank(auth_callback_state)) {
-            auth_callback_state = UUID.randomUUID().toString();
-            FileManager.setAuthCallbackState(auth_callback_state);
-        }
-        if (switching_account) {
-            // make sure the user is not currently switching their account before changing the auth_callback_state
-            boolean current_switching_account_flag = FileManager.getBooleanItem("switching_account");
-            if (!current_switching_account_flag) {
-                // set the auth_callback_state
-                FileManager.setBooleanItem("switching_account", true);
-            }
-        }
+		String auth_callback_state = UUID.randomUUID().toString();
+        FileManager.setAuthCallbackState(auth_callback_state);
+
+        FileManager.setBooleanItem("switching_account", switching_account);
 
         String plugin_uuid = FileManager.getPluginUuid();
         if (StringUtils.isBlank(plugin_uuid)) {
