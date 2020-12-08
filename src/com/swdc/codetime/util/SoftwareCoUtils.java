@@ -841,52 +841,57 @@ public class SoftwareCoUtils {
 	}
 
 	public static boolean isLoggedOn() {
-		String name = FileManager.getItem("name");
-		boolean switching_account = FileManager.getBooleanItem("switching_account");
+        String name = FileManager.getItem("name");
+        boolean switching_account = FileManager.getBooleanItem("switching_account");
 
-		if (StringUtils.isNotBlank(name) && !switching_account) {
-			return true;
-		}
-		
-		String jwt = FileManager.getItem("jwt");
-		String auth_callback_state = FileManager.getAuthCallbackState();
+        if (StringUtils.isNotBlank(name) && !switching_account) {
+            return true;
+        }
+
+        String authType = FileManager.getItem("authType");
+        if (StringUtils.isBlank(authType)) {
+            authType = "software";
+        }
+        String jwt = FileManager.getItem("jwt");
+        String auth_callback_state = FileManager.getAuthCallbackState();
         String token = (StringUtils.isNotBlank(auth_callback_state)) ? auth_callback_state : jwt;
         String api = "/users/plugin/state";
-        SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, token);
-        if (resp.isOk()) {
-            // check if we have the data and jwt
-            // resp.data.jwt and resp.data.user
-            // then update the session.json for the jwt
-            JsonObject data = resp.getJsonObj();
-            String state = (data != null && data.has("state")) ? data.get("state").getAsString() : "UNKNOWN";
-            int registered = 0;
-            // check if we have any data
-            if (state.equals("OK")) {
-                JsonObject user = data.get("user").getAsJsonObject();
+        SoftwareResponse resp = makeApiCall(api, HttpGet.METHOD_NAME, null, token);
 
-                registered = user.get("registered").getAsInt();
-                FileManager.setItem("jwt", user.get("plugin_jwt").getAsString());
-                if (registered == 1) {
-                    FileManager.setItem("name", user.get("email").getAsString());
-                } else {
-                    FileManager.setItem("name", null);
-                }
+        boolean foundUser = (resp.isOk() && resp.getJsonObj() != null && resp.getJsonObj().has("user"));
+        String state = (foundUser) ? resp.getJsonObj().get("state").getAsString() : "UNKNOWN";
+        boolean isEmailLogin = (authType.equals("software") || authType.equals("email"));
+        if (!state.equals("OK") && isEmailLogin) {
+            // check using the jwt
+            resp = makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
+            foundUser = (resp.isOk() && resp.getJsonObj() != null && resp.getJsonObj().has("user"));
+        }
 
-                String currentAuthType = FileManager.getItem("authType");
-                if (StringUtils.isBlank(currentAuthType)) {
-                    FileManager.setItem("authType", "software");
-                }
+        if (foundUser) {
+            JsonObject user = resp.getJsonObj().get("user").getAsJsonObject();
 
-                FileManager.setBooleanItem("switching_account", false);
-                FileManager.setAuthCallbackState(null);
-
-                // if we need the user it's "resp.data.user"
-                return (registered == 1);
+            int registered = user.get("registered").getAsInt();
+            FileManager.setItem("jwt", user.get("plugin_jwt").getAsString());
+            if (registered == 1) {
+                FileManager.setItem("name", user.get("email").getAsString());
+            } else {
+                FileManager.setItem("name", null);
             }
+
+            String currentAuthType = FileManager.getItem("authType");
+            if (StringUtils.isBlank(currentAuthType)) {
+                FileManager.setItem("authType", "software");
+            }
+
+            FileManager.setBooleanItem("switching_account", false);
+            FileManager.setAuthCallbackState(null);
+
+            // if we need the user it's "resp.data.user"
+            return (registered == 1);
         }
 
         return false;
-	}
+    }
 
 	public static Date atStartOfWeek(long local_now) {
 		// find out how many days to go back
