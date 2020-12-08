@@ -71,9 +71,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	private static Timer keystrokesTimer;
 	private Timer sendOfflineDataTimer;
 
-	private static int retry_counter = 0;
-	private static long check_online_interval_ms = 1000 * 60 * 10;
-
 	private static IViewPart ctMetricsTreeView = null;
 
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);

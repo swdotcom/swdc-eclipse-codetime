@@ -36,7 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -799,44 +798,6 @@ public class SoftwareCoUtils {
 		return username;
 	}
 
-	public static String getAppJwt() {
-
-		long now = Math.round(System.currentTimeMillis() / 1000);
-		String api = "/data/apptoken?token=" + now;
-		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null);
-		if (resp.isOk()) {
-			JsonObject obj = resp.getJsonObj();
-			return obj.get("jwt").getAsString();
-		}
-
-		return null;
-	}
-
-	private static String regex = "^\\S+@\\S+\\.\\S+$";
-	private static Pattern pattern = Pattern.compile(regex);
-
-	private static boolean validateEmail(String email) {
-		return pattern.matcher(email).matches();
-	}
-
-	private static JsonObject getUser() {
-		String jwt = FileManager.getItem("jwt");
-
-		String api = "/users/me";
-		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
-		if (resp.isOk()) {
-			// check if we have the data and jwt
-			// resp.data.jwt and resp.data.user
-			// then update the session.json for the jwt
-			JsonObject obj = resp.getJsonObj();
-			if (obj != null && obj.has("data")) {
-				return obj.get("data").getAsJsonObject();
-			}
-		}
-
-		return null;
-	}
-
 	public static String createAnonymousUser(boolean ignoreJwt) {
 		// make sure we've fetched the app jwt
         String jwt = FileManager.getItem("jwt");
@@ -884,15 +845,14 @@ public class SoftwareCoUtils {
 	}
 
 	public static boolean isLoggedOn() {
-		String jwt = FileManager.getItem("jwt");
 		String name = FileManager.getItem("name");
-		
 		boolean switching_account = FileManager.getBooleanItem("switching_account");
 
-		if (!StringUtils.isBlank(name) && !switching_account) {
+		if (StringUtils.isNotBlank(name) && !switching_account) {
 			return true;
 		}
 		
+		String jwt = FileManager.getItem("jwt");
 		String auth_callback_state = FileManager.getAuthCallbackState();
         String token = (StringUtils.isNotBlank(auth_callback_state)) ? auth_callback_state : jwt;
         String api = "/users/plugin/state";
