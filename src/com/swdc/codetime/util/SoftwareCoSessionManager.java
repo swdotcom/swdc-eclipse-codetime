@@ -24,7 +24,6 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.FileLocator;
@@ -328,10 +327,6 @@ public class SoftwareCoSessionManager {
         FileManager.setBooleanItem("switching_account", switching_account);
 
         String plugin_uuid = FileManager.getPluginUuid();
-        if (StringUtils.isBlank(plugin_uuid)) {
-            plugin_uuid = UUID.randomUUID().toString();
-            FileManager.setPluginUuid(plugin_uuid);
-        }
 
         JsonObject obj = new JsonObject();
         obj.addProperty("plugin", "codetime");

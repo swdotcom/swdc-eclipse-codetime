@@ -807,11 +807,7 @@ public class SoftwareCoUtils {
 
             String plugin_uuid = FileManager.getPluginUuid();
             String auth_callback_state = FileManager.getAuthCallbackState();
-            if (StringUtils.isBlank(plugin_uuid)) {
-                plugin_uuid = UUID.randomUUID().toString();
-                // write the plugin uuid to the device.json file
-                FileManager.setPluginUuid(plugin_uuid);
-            }
+
             if (StringUtils.isBlank(auth_callback_state)) {
                 auth_callback_state = UUID.randomUUID().toString();
                 FileManager.setAuthCallbackState(auth_callback_state);

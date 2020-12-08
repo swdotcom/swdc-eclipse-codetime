@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.apache.http.client.methods.HttpPost;
@@ -379,25 +380,21 @@ public class FileManager {
 		reader.setLenient(true);
 		return reader;
 	}
-
+	
 	public static String getPluginUuid() {
-		String plugin_uuid = null;
-		JsonObject deviceJson = getJsonObjectFromFile(getDeviceFile());
-		if (deviceJson != null && deviceJson.has("plugin_uuid") && !deviceJson.get("plugin_uuid").isJsonNull()) {
-			plugin_uuid = deviceJson.get("plugin_uuid").getAsString();
-		}
-		return plugin_uuid;
-	}
-
-	public static void setPluginUuid(String value) {
-		String deviceFile = getDeviceFile();
-		JsonObject deviceJson = getJsonObjectFromFile(deviceFile);
-		if (!deviceJson.has("plugin_uuid") || deviceJson.get("plugin_uuid").isJsonNull()) {
-			deviceJson.addProperty("plugin_uuid", value);
-			String content = deviceJson.toString();
-			saveFileContent(deviceFile, content);
-		}
-	}
+        String plugin_uuid = null;
+        JsonObject deviceJson = getJsonObjectFromFile(getDeviceFile());
+        if (deviceJson.has("plugin_uuid") && !deviceJson.get("plugin_uuid").isJsonNull()) {
+            plugin_uuid = deviceJson.get("plugin_uuid").getAsString();
+        } else {
+            // set it for the 1st and only time
+            plugin_uuid = UUID.randomUUID().toString();
+            deviceJson.addProperty("plugin_uuid", plugin_uuid);
+            String content = deviceJson.toString();
+            saveFileContent(getDeviceFile(), content);
+        }
+        return plugin_uuid;
+    }
 
 	public static String getAuthCallbackState() {
 		JsonObject deviceJson = getJsonObjectFromFile(getDeviceFile());
