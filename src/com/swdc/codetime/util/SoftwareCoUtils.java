@@ -837,68 +837,99 @@ public class SoftwareCoUtils {
 		return null;
 	}
 
-	public static String createAnonymousUser() {
+	public static String createAnonymousUser(boolean ignoreJwt) {
 		// make sure we've fetched the app jwt
-		String appJwt = getAppJwt();
+        String jwt = FileManager.getItem("jwt");
 
-		if (appJwt != null) {
-			String timezone = TimeZone.getDefault().getID();
+        if (StringUtils.isBlank(jwt) || ignoreJwt) {
+            String timezone = TimeZone.getDefault().getID();
 
-			JsonObject payload = new JsonObject();
-			payload.addProperty("username", getOsUsername());
-			payload.addProperty("timezone", timezone);
-			payload.addProperty("hostname", getHostname());
-			payload.addProperty("creation_annotation", "NO_SESSION_FILE");
+            String plugin_uuid = FileManager.getPluginUuid();
+            String auth_callback_state = FileManager.getAuthCallbackState();
+            if (StringUtils.isBlank(plugin_uuid)) {
+                plugin_uuid = UUID.randomUUID().toString();
+                // write the plugin uuid to the device.json file
+                FileManager.setPluginUuid(plugin_uuid);
+            }
+            if (StringUtils.isBlank(auth_callback_state)) {
+                auth_callback_state = UUID.randomUUID().toString();
+                FileManager.setAuthCallbackState(auth_callback_state);
+            }
 
-			String api = "/data/onboard";
-			SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpPost.METHOD_NAME, payload.toString(), appJwt);
-			if (resp.isOk()) {
-				JsonObject data = resp.getJsonObj();
-				// check if we have any data
-				if (data != null && data.has("jwt")) {
-					String dataJwt = data.get("jwt").getAsString();
-					FileManager.setItem("jwt", dataJwt);
-					return dataJwt;
-				}
-			}
-		}
-		return null;
+            JsonObject payload = new JsonObject();
+            payload.addProperty("username", getOsUsername());
+            payload.addProperty("timezone", timezone);
+            payload.addProperty("hostname", getHostname());
+            payload.addProperty("auth_callback_state", auth_callback_state);
+            payload.addProperty("plugin_uuid", plugin_uuid);
+
+            String api = "/plugins/onboard";
+            SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpPost.METHOD_NAME, payload.toString());
+            if (resp.isOk()) {
+                // check if we have the data and jwt
+                // resp.data.jwt and resp.data.user
+                // then update the session.json for the jwt
+                JsonObject data = resp.getJsonObj();
+                // check if we have any data
+                if (data != null && data.has("jwt")) {
+                    String dataJwt = data.get("jwt").getAsString();
+                    FileManager.setItem("jwt", dataJwt);
+                    FileManager.setBooleanItem("switching_account", false);
+                    FileManager.setAuthCallbackState(null);
+                    return dataJwt;
+                }
+            }
+        }
+        return null;
 	}
 
 	public static boolean isLoggedOn() {
 		String jwt = FileManager.getItem("jwt");
+		String name = FileManager.getItem("name");
+		
+		boolean switching_account = FileManager.getBooleanItem("switching_account");
 
-		JsonObject userObj = getUser();
-		if (userObj != null && userObj.has("email")) {
-			// check if the email is valid
-			String email = userObj.get("email").getAsString();
-			if (validateEmail(email)) {
-				FileManager.setItem("jwt", userObj.get("plugin_jwt").getAsString());
-				FileManager.setItem("name", email);
-				return true;
-			}
+		if (!StringUtils.isBlank(name) && !switching_account) {
+			return true;
 		}
-		String api = "/users/plugin/state";
-		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
-		if (resp.isOk()) {
-			JsonObject data = resp.getJsonObj();
-			// check if we have any data
-			String state = (data != null && data.has("state")) ? data.get("state").getAsString() : "UNKNOWN";
-			if (state.equals("OK")) {
-				String dataJwt = data.get("jwt").getAsString();
-				FileManager.setItem("jwt", dataJwt);
-				String dataEmail = data.get("email").getAsString();
-				if (dataEmail != null) {
-					FileManager.setItem("name", dataEmail);
-				}
-				return true;
-			} else if (state.equals("NOT_FOUND")) {
-				FileManager.setItem("jwt", null);
-			}
-		}
+		
+		String auth_callback_state = FileManager.getAuthCallbackState();
+        String token = (StringUtils.isNotBlank(auth_callback_state)) ? auth_callback_state : jwt;
+        String api = "/users/plugin/state";
+        SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, token);
+        if (resp.isOk()) {
+            // check if we have the data and jwt
+            // resp.data.jwt and resp.data.user
+            // then update the session.json for the jwt
+            JsonObject data = resp.getJsonObj();
+            String state = (data != null && data.has("state")) ? data.get("state").getAsString() : "UNKNOWN";
+            int registered = 0;
+            // check if we have any data
+            if (state.equals("OK")) {
+                JsonObject user = data.get("user").getAsJsonObject();
 
-		FileManager.setItem("name", null);
-		return false;
+                registered = user.get("registered").getAsInt();
+                FileManager.setItem("jwt", user.get("plugin_jwt").getAsString());
+                if (registered == 1) {
+                    FileManager.setItem("name", user.get("email").getAsString());
+                } else {
+                    FileManager.setItem("name", null);
+                }
+
+                String currentAuthType = FileManager.getItem("authType");
+                if (StringUtils.isBlank(currentAuthType)) {
+                    FileManager.setItem("authType", "software");
+                }
+
+                FileManager.setBooleanItem("switching_account", false);
+                FileManager.setAuthCallbackState(null);
+
+                // if we need the user it's "resp.data.user"
+                return (registered == 1);
+            }
+        }
+
+        return false;
 	}
 
 	public static Date atStartOfWeek(long local_now) {

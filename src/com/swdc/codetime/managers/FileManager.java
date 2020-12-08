@@ -1,6 +1,5 @@
 package com.swdc.codetime.managers;
 
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -17,9 +17,12 @@ import java.util.logging.Logger;
 
 import org.apache.http.client.methods.HttpPost;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoUtils;
@@ -30,7 +33,7 @@ public class FileManager {
 	public static final Logger LOG = Logger.getLogger("FileManager");
 
 	private static JsonParser parser = new JsonParser();
-
+	private static final Gson gson = new Gson();
 
 	public static String getSessionSummaryFile() {
 		String file = getSoftwareDir(true);
@@ -99,6 +102,16 @@ public class FileManager {
 		return file;
 	}
 
+	private static String getDeviceFile() {
+		String file = getSoftwareDir(true);
+		if (SoftwareCoUtils.isWindows()) {
+			file += "\\device.json";
+		} else {
+			file += "/device.json";
+		}
+		return file;
+	}
+
 	public synchronized static void writeData(String file, Object o) {
 		if (o == null) {
 			return;
@@ -151,12 +164,12 @@ public class FileManager {
 		try {
 			Object obj = parser.parse(new FileReader(file));
 			if (obj != null) {
-				JsonArray jsonArray = (JsonArray)obj;
+				JsonArray jsonArray = (JsonArray) obj;
 				return jsonArray;
 			} else {
 				LOG.warning("Code Time: Null data for file: " + file);
 			}
-			
+
 		} catch (Exception e) {
 			LOG.warning("Code Time: Error trying to read and parse " + file + ": " + e.getMessage());
 		}
@@ -167,7 +180,7 @@ public class FileManager {
 		try {
 			Object obj = parser.parse(new FileReader(file));
 			if (obj != null) {
-				JsonObject jsonObj = (JsonObject)obj;
+				JsonObject jsonObj = (JsonObject) obj;
 				return jsonObj;
 			}
 		} catch (Exception e) {
@@ -200,7 +213,6 @@ public class FileManager {
 			}
 		}
 	}
-	
 
 	public static String getFileContent(String file) {
 		String content = null;
@@ -241,6 +253,24 @@ public class FileManager {
 			return sessionJson.get(key).getAsString();
 		}
 		return null;
+	}
+
+	public static boolean getBooleanItem(String key) {
+		JsonObject sessionJson = getSoftwareSessionAsJson();
+		if (sessionJson != null && sessionJson.has(key) && !sessionJson.get(key).isJsonNull()) {
+			return sessionJson.get(key).getAsBoolean();
+		}
+		return false;
+	}
+
+	public static void setBooleanItem(String key, boolean val) {
+		JsonObject sessionJson = getSoftwareSessionAsJson();
+		sessionJson.addProperty(key, val);
+
+		String content = sessionJson.toString();
+		String sessionFile = getSoftwareSessionFile(true);
+
+		saveFileContent(sessionFile, content);
 	}
 
 	public static void setNumericItem(String key, long val) {
@@ -299,5 +329,93 @@ public class FileManager {
 		}
 		return sessionJson;
 	}
-	
+
+	public static JsonObject getJsonObjectFromFile(String fileName) {
+		JsonObject jsonObject = new JsonObject();
+		String content = getFileContent(fileName);
+
+		if (content != null) {
+			// json parse it
+			jsonObject = readAsJsonObject(content);
+		}
+
+		if (jsonObject == null) {
+			jsonObject = new JsonObject();
+		}
+		return jsonObject;
+	}
+
+	public static JsonArray readAsJsonArray(String data) {
+		try {
+			JsonArray jsonArray = gson.fromJson(buildJsonReader(data), JsonArray.class);
+			return jsonArray;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static JsonObject readAsJsonObject(String data) {
+		try {
+			JsonObject jsonObject = gson.fromJson(buildJsonReader(data), JsonObject.class);
+			return jsonObject;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static JsonElement readAsJsonElement(String data) {
+		try {
+			JsonElement jsonElement = gson.fromJson(buildJsonReader(data), JsonElement.class);
+			return jsonElement;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static JsonReader buildJsonReader(String data) {
+		// Clean the data
+		data = SoftwareCoUtils.cleanJsonString(data);
+		JsonReader reader = new JsonReader(new StringReader(data));
+		reader.setLenient(true);
+		return reader;
+	}
+
+	public static String getPluginUuid() {
+		String plugin_uuid = null;
+		JsonObject deviceJson = getJsonObjectFromFile(getDeviceFile());
+		if (deviceJson != null && deviceJson.has("plugin_uuid") && !deviceJson.get("plugin_uuid").isJsonNull()) {
+			plugin_uuid = deviceJson.get("plugin_uuid").getAsString();
+		}
+		return plugin_uuid;
+	}
+
+	public static void setPluginUuid(String value) {
+		String deviceFile = getDeviceFile();
+		JsonObject deviceJson = getJsonObjectFromFile(deviceFile);
+		if (!deviceJson.has("plugin_uuid") || deviceJson.get("plugin_uuid").isJsonNull()) {
+			deviceJson.addProperty("plugin_uuid", value);
+			String content = deviceJson.toString();
+			saveFileContent(deviceFile, content);
+		}
+	}
+
+	public static String getAuthCallbackState() {
+		JsonObject deviceJson = getJsonObjectFromFile(getDeviceFile());
+		if (deviceJson != null && deviceJson.has("auth_callback_state")
+				&& !deviceJson.get("auth_callback_state").isJsonNull()) {
+			return deviceJson.get("auth_callback_state").getAsString();
+		}
+		return null;
+	}
+
+	public static void setAuthCallbackState(String value) {
+		String deviceFile = getDeviceFile();
+		JsonObject deviceJson = getJsonObjectFromFile(deviceFile);
+		deviceJson.addProperty("auth_callback_state", value);
+
+		String content = deviceJson.toString();
+
+		saveFileContent(deviceFile, content);
+	}
+
 }

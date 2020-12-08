@@ -54,36 +54,38 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	private void updateSignupButtons() {
 		if (SoftwareCoUtils.isLoggedIn() && showingLoginButtons) {
 			// now add these to the connected node
-			MetricsTreeNode webDashboardItem = new MetricsTreeNode("See advanced metrics", "webDashboardItem",
-					"paw.png");
-
-			MetricsTreeNode generateDashboardItem = new MetricsTreeNode("View summary", "generateDashboardItem",
-					"dashboard.png");
-
-			MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics",
-					"toggleStatusTextItem", "visible.png");
 
 			MetricsTreeNode learnMoreItem = new MetricsTreeNode("Learn more", "learnMoreItem", "readme.png");
 
 			MetricsTreeNode submitFeedbackItem = new MetricsTreeNode("Submit feedback", "submitFeedbackItem",
 					"message.png");
+			MetricsTreeNode toggleStatusTextItem = new MetricsTreeNode("Hide status bar metrics",
+					"toggleStatusTextItem", "visible.png");
+			MetricsTreeNode switchAccountItem = new MetricsTreeNode("Switch account",
+					"switchAccountItem", "paw.png");
+			
+			List<MetricsTreeNode> tmp = new ArrayList<>();
+			
+			MetricsTreeNode signedUpAsItem = getSignedUpNode();
+			tmp.add(signedUpAsItem);
+			
+			MetricsTreeNode[] codeTimeChildren = { switchAccountItem, learnMoreItem, toggleStatusTextItem, submitFeedbackItem };
+			contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
 
 			// remove the login button nodes
 			MetricsTreeNode[] nodes = contentMap.get(ROOT_KEY);
-			List<MetricsTreeNode> tmp = new ArrayList<>();
+			
 			for (MetricsTreeNode node : nodes) {
-				if (!node.getId().equals("googleSignupItem") && !node.getId().equals("githubSignupItem")
-						&& !node.getId().equals("emailSignupItem") && !node.getId().equals("webDashboardItem")
-						&& !node.getId().equals("generateDashboardItem") && !node.getId().equals("toggleStatusTextItem")
-						&& !node.getId().equals("learnMoreItem") && !node.getId().equals("submitFeedbackItem")
-						&& !node.getId().equals("signupSeparator")) {
+				String nodeId = node != null && node.getId() != null ? node.getId() : "";
+				if (!nodeId.equals("googleSignupItem")
+						&& !nodeId.equals("githubSignupItem")
+						&& !nodeId.equals("emailSignupItem")
+						&& !nodeId.equals("toggleStatusTextItem")
+						&& !nodeId.equals("learnMoreItem")
+						&& !nodeId.equals("submitFeedbackItem")
+						&& !nodeId.equals("signupSeparator")
+						&& !nodeId.equals("statsMenuSeparator")) {
 					tmp.add(node);
-				} else if (node.getId().equals("googleSignupItem")) {
-					MetricsTreeNode signedUpAsItem = getSignedUpNode();
-					tmp.add(signedUpAsItem);
-					MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem,
-							toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
-					contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
 				}
 			}
 			MetricsTreeNode[] newRootNodes = Arrays.copyOf(tmp.toArray(), tmp.size(), MetricsTreeNode[].class);
@@ -160,6 +162,13 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 				} else {
 					node.setLabel("Show status bar metrics");
 				}
+			} else if (node.getId().equals("signedUpAsButton")) {
+				String signupUpAsLabel = FileManager.getItem("name");
+				String authType = FileManager.getItem("authType");
+				String iconName = authType.equals("google") ? "google.png"
+						: authType.equals("github") ? "github.png" : "icons8-envelope-16.png";
+				node.setLabel(signupUpAsLabel);
+				node.setIconName(iconName);
 			} else if (node.getId().equals("editor-time")) {
 				// get the children
 				MetricsTreeNode[] children = contentMap.get(node.getId());
@@ -316,6 +325,9 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 		MetricsTreeNode submitFeedbackItem = new MetricsTreeNode("Submit feedback", "submitFeedbackItem",
 				"message.png");
+		
+		MetricsTreeNode switchAccountItem = new MetricsTreeNode("Switch account",
+				"switchAccountItem", "paw.png");
 
 		if (!SoftwareCoUtils.isLoggedIn()) {
 			showingLoginButtons = true;
@@ -328,12 +340,21 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 			MetricsTreeNode emailLoginItem = new MetricsTreeNode("Sign up using email", "emailSignupItem",
 					"icons8-envelope-16.png");
 			mNodeList.add(emailLoginItem);
+			
+			// --------
 			MetricsTreeNode signupMenuSepItem = new MetricsTreeNode("", "signupSeparator");
 			signupMenuSepItem.setSeparator(true);
 			mNodeList.add(signupMenuSepItem);
+			
 
 			mNodeList.add(webDashboardItem);
 			mNodeList.add(generateDashboardItem);
+			
+			// --------
+			MetricsTreeNode statsMenuSepItem = new MetricsTreeNode("", "statsMenuSeparator");
+			statsMenuSepItem.setSeparator(true);
+			mNodeList.add(statsMenuSepItem);
+			
 			mNodeList.add(toggleStatusTextItem);
 			mNodeList.add(learnMoreItem);
 			mNodeList.add(submitFeedbackItem);
@@ -341,9 +362,11 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 			MetricsTreeNode signedUpAsItem = getSignedUpNode();
 			mNodeList.add(signedUpAsItem);
 
-			MetricsTreeNode[] codeTimeChildren = { webDashboardItem, generateDashboardItem, toggleStatusTextItem,
-					learnMoreItem, submitFeedbackItem };
+			MetricsTreeNode[] codeTimeChildren = { switchAccountItem, toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
 			contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
+			
+			mNodeList.add(webDashboardItem);
+			mNodeList.add(generateDashboardItem);
 		}
 
 		MetricsTreeNode menuSepItem = new MetricsTreeNode("", "menu-separator");
