@@ -71,9 +71,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	private static Timer keystrokesTimer;
 	private Timer sendOfflineDataTimer;
 
-	private static int retry_counter = 0;
-	private static long check_online_interval_ms = 1000 * 60 * 10;
-
 	private static IViewPart ctMetricsTreeView = null;
 
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
@@ -105,54 +102,19 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				initComponent();
-			}
-
-			protected void initComponent() {
-				boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
 				String jwt = FileManager.getItem("jwt");
-				if (StringUtils.isBlank(jwt) || SoftwareCoUtils.isAppJwt()) {
-					if (!serverIsOnline) {
-						// server isn't online, check again in 10 min
-						if (retry_counter == 0) {
-							// show offline only once
-							retry_counter++;
+				if (StringUtils.isBlank(jwt)) {
+					jwt = SoftwareCoUtils.createAnonymousUser(false);
+					if (StringUtils.isBlank(jwt)) {
+						boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
+						if (!serverIsOnline) {
 							showOfflinePrompt();
 						}
-						new Thread(() -> {
-							try {
-								Thread.sleep(check_online_interval_ms);
-								initComponent();
-							} catch (Exception e) {
-								System.err.println(e);
-							}
-						}).start();
 					} else {
-						// create the anon user
-						jwt = SoftwareCoUtils.createAnonymousUser();
-						if (jwt == null) {
-							// it failed, try again later
-							if (retry_counter == 0) {
-								// show offline only once
-								retry_counter++;
-								showOfflinePrompt();
-							}
-							new Thread(() -> {
-								try {
-									Thread.sleep(check_online_interval_ms);
-									initComponent();
-								} catch (Exception e) {
-									System.err.println(e);
-								}
-							}).start();
-						} else {
-							initializePluginWhenReady(true);
-						}
+						initializePluginWhenReady(true);
 					}
-				} else {
-					// session json already exists, continue with plugin init
-					initializePluginWhenReady(false);
 				}
+				initializePluginWhenReady(false);
 			}
 
 			protected void initializePluginWhenReady(boolean initializedUser) {

@@ -10,7 +10,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -19,11 +18,12 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.FileLocator;
@@ -286,11 +286,21 @@ public class SoftwareCoSessionManager {
 	protected static void lazilyFetchUserStatus(int retryCount) {
 		boolean loggedOn = SoftwareCoUtils.isLoggedOn();
 
-		if (!loggedOn && retryCount > 0) {
-			final int newRetryCount = retryCount - 1;
+		if (!loggedOn) {
+			if (retryCount > 0) {
+				final int newRetryCount = retryCount - 1;
 			
-			new Timer().schedule(new LazyUserStatusFetchTask(newRetryCount), 1000 * 10);
+				new Timer().schedule(new LazyUserStatusFetchTask(newRetryCount), 1000 * 10);
+			} else {
+                // clear the auth callback state
+                FileManager.setBooleanItem("switching_account", false);
+                FileManager.setAuthCallbackState(null);
+			}
 		} else if (loggedOn) {
+			
+			// clear the auth callback state
+            FileManager.setBooleanItem("switching_account", false);
+            FileManager.setAuthCallbackState(null);
 			
 			// show the success prompt
 			CodeTimeActivator.showLoginSuccessPrompt();
@@ -298,7 +308,7 @@ public class SoftwareCoSessionManager {
 			// update the session summary info to update the statusbar and tree
 			new Thread(() -> {
 				try {
-					Thread.sleep(1000 * 2);
+					Thread.sleep(1000);
 					WallClockManager wcMgr = WallClockManager.getInstance();
 					wcMgr.updateSessionSummaryFromServer();
 					wcMgr.dispatchStatusViewUpdate();
@@ -309,46 +319,59 @@ public class SoftwareCoSessionManager {
 		}
 	}
 
-	public static void launchLogin(String loginType) {
+	public static void launchLogin(String loginType, boolean switching_account) {
 
-		String jwt = FileManager.getItem("jwt");
-		
-		// make sure the jwt is not null as the URLEncoder.encode will fail if it is
-		if (StringUtils.isBlank(jwt)) {
-			jwt = SoftwareCoUtils.createAnonymousUser();
-			if (StringUtils.isBlank(jwt)) {
-				CodeTimeActivator.showOfflinePrompt();
-			}
-		}
+		String auth_callback_state = UUID.randomUUID().toString();
+        FileManager.setAuthCallbackState(auth_callback_state);
 
-		try {
-			jwt = URLEncoder.encode(jwt, "UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			SWCoreLog.logException(e1);
-		}
+        FileManager.setBooleanItem("switching_account", switching_account);
+
+        String plugin_uuid = FileManager.getPluginUuid();
+
+        JsonObject obj = new JsonObject();
+        obj.addProperty("plugin", "codetime");
+        obj.addProperty("plugin_uuid", plugin_uuid);
+        obj.addProperty("pluginVersion", SoftwareCoUtils.getVersion());
+        obj.addProperty("plugin_id", SoftwareCoUtils.pluginId);
+        obj.addProperty("auth_callback_state", auth_callback_state);
+        obj.addProperty("redirect", SoftwareCoUtils.launch_url);
 
 		String url = "";
 		String element_name = "ct_sign_up_email_btn";
         String cta_text = "Sign up with email";
         String icon_name = "envelope";
         String icon_color = "blue";
-		if (loginType.equals("email")) {
-			url = SoftwareCoUtils.launch_url + "/email-signup?token=" + jwt + "&plugin=codetime&auth=software";
-		} else if (loginType.equals("google")) {
-			element_name = "ct_sign_up_google_btn";
-	        icon_name = "google";
-	        cta_text = "Sign up with Google";
-	        icon_color = null;
-	        url = SoftwareCoUtils.api_endpoint + "/auth/google?plugin_token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
-		} else if (loginType.equals("github")) {
-			element_name = "ct_sign_up_github_btn";
+        if (loginType == null || loginType.equals("software") || loginType.equals("email")) {
+            element_name = "ct_sign_up_email_btn";
+            cta_text = "Sign up with email";
+            icon_name = "envelope";
+            icon_color = "gray";
+            url = SoftwareCoUtils.launch_url + "/email-signup";
+        } else if (loginType.equals("google")) {
+            url = SoftwareCoUtils.api_endpoint + "/auth/google";
+        } else if (loginType.equals("github")) {
+            element_name = "ct_sign_up_github_btn";
             cta_text = "Sign up with GitHub";
             icon_name = "github";
-            icon_color = null;
-            url = SoftwareCoUtils.api_endpoint + "/auth/github?plugin_token=" + jwt + "&plugin=codetime&redirect=" + SoftwareCoUtils.launch_url;
-		} else {
-			url = SoftwareCoUtils.launch_url + "/onboarding?token=" + jwt;
-		}
+            url = SoftwareCoUtils.api_endpoint + "/auth/github";
+        }
+		
+		StringBuffer sb = new StringBuffer();
+        Iterator<String> keys = obj.keySet().iterator();
+        while(keys.hasNext()) {
+            if (sb.length() > 0) {
+                sb.append("&");
+            }
+            String key = keys.next();
+            String val = obj.get(key).getAsString();
+            try {
+                val = URLEncoder.encode(val, "UTF-8");
+            } catch (Exception e) {
+                LOG.info("Unable to url encode value, error: " + e.getMessage());
+            }
+            sb.append(key).append("=").append(val);
+        }
+        url += "?" + sb.toString();
 
 		FileManager.setItem("authType", loginType);
 
@@ -367,7 +390,7 @@ public class SoftwareCoSessionManager {
         elementEntity.icon_name = icon_name;
         EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 		
-		new Timer().schedule(new LazyUserStatusFetchTask(35), 1000 * 10);
+		new Timer().schedule(new LazyUserStatusFetchTask(40), 1000 * 10);
 	}
 
 	public static void launchWebDashboard(UIInteractionType type) {

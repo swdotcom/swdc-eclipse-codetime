@@ -210,6 +210,16 @@ public class WallClockManager {
 		String iconName = ctSummary.activeCodeTimeMinutes > summary.averageDailyMinutes ? "rocket.png" : "paw.png";
 		SoftwareCoUtils.setStatusLineMessage(msg, iconName,
 				"Active code time today. Click to see more from Code Time.");
+		
+		if (treeView == null) {
+			try {
+				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+				IViewPart tv = window.getActivePage().findView("com.swdc.codetime.tree.metricsTreeView");
+				setTreeView(tv);
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+		}
 
 		// refresh the tree
 		if (treeView != null) {

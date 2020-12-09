@@ -24,6 +24,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.ReportManager;
+import com.swdc.codetime.managers.SwitchAccountManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
@@ -124,11 +125,13 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 						} else if (id.equals("learnMoreItem")) {
 							SoftwareCoSessionManager.getInstance().launchReadmeFile();
 						} else if (id.equals("googleSignupItem")) {
-							SoftwareCoSessionManager.launchLogin("google");
+							SoftwareCoSessionManager.launchLogin("google", false);
 						} else if (id.equals("githubSignupItem")) {
-							SoftwareCoSessionManager.launchLogin("github");
+							SoftwareCoSessionManager.launchLogin("github", false);
 						} else if (id.equals("emailSignupItem")) {
-							SoftwareCoSessionManager.launchLogin("email");
+							SoftwareCoSessionManager.launchLogin("email", false);
+						} else if (id.equals("switchAccountItem")) {
+							SwitchAccountManager.initiateSwitchAccountFlow();
 						} else if (id.equals("contributionSummary")) {
 							ReportManager.displayProjectContributorSummaryDashboard(node.getLabel());
 						} else if (node.getData() != null && node.getData() instanceof String) {
@@ -163,22 +166,26 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 		if (contentProvider != null && !refreshingTree) {
 			refreshingTree = true;
 
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					try {
-						Object[] expandedEls = tv.getExpandedElements();
-						contentProvider.refreshData();
-						if (expandedEls != null) {
-							tv.setExpandedElements(expandedEls);
+			try {
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run() {
+						try {
+							Object[] expandedEls = tv.getExpandedElements();
+							contentProvider.refreshData();
+							if (expandedEls != null) {
+								tv.setExpandedElements(expandedEls);
+							}
+							tv.refresh();
+						} catch (Exception e) {
+							//
+						} finally {
+							refreshingTree = false;
 						}
-						tv.refresh();
-					} catch (Exception e) {
-						//
-					} finally {
-						refreshingTree = false;
 					}
-				}
-			});
+				});
+			} catch (Exception e) {
+				//
+			}
 
 		}
 	}
