@@ -59,6 +59,14 @@
                   commandId="com.swdc.codetime.commands.metrics.togglestatus"
                   id="com.swdc.codetime.commands.metrics.togglestatus">
             </command>
+            <command
+                  commandId="com.swdc.codetime.commands.metrics.slackconnect"
+                  id="com.swdc.codetime.commands.metrics.slackconnect">
+            </command>
+            <command
+                  commandId="com.swdc.codetime.commands.metrics.slackdisconnect"
+                  id="com.swdc.codetime.commands.metrics.slackdisconnect">
+            </command>
 
          </menu>
       </menuContribution>
@@ -72,12 +80,12 @@
       <command
             categoryId="com.swdc.codetime.commands.category"
             id="com.swdc.codetime.commands.metrics.codetime"
-            name="View summary">
+            name="Dashboard">
       </command>
       <command
             categoryId="com.swdc.codetime.commands.category"
             id="com.swdc.codetime.commands.metrics.dashboard"
-            name="See advanced metrics">
+            name="More data at Software.com">
       </command>
       <command
             categoryId="com.swdc.codetime.commands.category"
@@ -93,6 +101,16 @@
             categoryId="com.swdc.codetime.commands.category"
             id="com.swdc.codetime.commands.metrics.togglestatus"
             name="Show/hide status bar metrics">
+      </command>
+      <command
+            categoryId="com.swdc.codetime.commands.category"
+            id="com.swdc.codetime.commands.metrics.slackconnect"
+            name="Connect Slack workspace">
+      </command>
+      <command
+            categoryId="com.swdc.codetime.commands.category"
+            id="com.swdc.codetime.commands.metrics.slackdisconnect"
+            name="Disconnect Slack workspace">
       </command>
 
    </extension>
@@ -117,6 +135,14 @@
       <handler
             class="com.swdc.codetime.handlers.ToggleStatusBarHandler"
             commandId="com.swdc.codetime.commands.metrics.togglestatus">
+      </handler>
+      <handler
+            class="com.swdc.codetime.handlers.SlackConnectHandler"
+            commandId="com.swdc.codetime.commands.metrics.slackconnect">
+      </handler>
+      <handler
+            class="com.swdc.codetime.handlers.SlackDisconnectHandler"
+            commandId="com.swdc.codetime.commands.metrics.slackdisconnect">
       </handler>
    </extension>
 </plugin>

@@ -9,31 +9,46 @@ import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.ElapsedTime;
 import com.swdc.codetime.models.KeystrokeAggregate;
 import com.swdc.codetime.models.SessionSummary;
-import com.swdc.codetime.util.SoftwareCoUtils;
+
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
 
 public class SessionDataManager {
-
-    public static String getSessionDataSummaryFile() {
-        String file = FileManager.getSoftwareDir(true);
-        if (SoftwareCoUtils.isWindows()) {
-            file += "\\sessionSummary.json";
-        } else {
-            file += "/sessionSummary.json";
-        }
-        return file;
+    
+    public static void refreshSessionDataAndTree() {
+    	SessionDataManager.clearSessionSummaryData();
+        TimeDataManager.clearTimeDataSummary();
+        
+    	// clear the auth callback state
+        FileUtilManager.setBooleanItem("switching_account", false);
+        FileUtilManager.setAuthCallbackState(null);
+		
+		// update the session summary info to update the statusbar and tree
+		new Thread(() -> {
+			try {
+				// show the success prompt
+				CodeTimeActivator.showLoginSuccessPrompt();
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+		}).start();
+		
+		WallClockManager wcMgr = WallClockManager.getInstance();
+		wcMgr.updateSessionSummaryFromServer();
+		wcMgr.dispatchStatusViewUpdate();
     }
 
     public static void clearSessionSummaryData() {
         SessionSummary summary = new SessionSummary();
-        FileManager.writeData(getSessionDataSummaryFile(), summary);
+        FileUtilManager.writeData(FileUtilManager.getSessionDataSummaryFile(), summary);
     }
 
     public static SessionSummary getSessionSummaryData() {
-    	String summaryFile = getSessionDataSummaryFile();
-        JsonObject jsonObj = FileManager.getFileContentAsJson(summaryFile);
+    	String summaryFile = FileUtilManager.getSessionDataSummaryFile();
+        JsonObject jsonObj = FileUtilManager.getFileContentAsJson(summaryFile);
         if (jsonObj == null) {
             clearSessionSummaryData();
-            jsonObj = FileManager.getFileContentAsJson(getSessionDataSummaryFile());
+            jsonObj = FileUtilManager.getFileContentAsJson(FileUtilManager.getSessionDataSummaryFile());
         }
 
         JsonElement lastUpdatedToday = jsonObj.get("lastUpdatedToday");
@@ -57,7 +72,7 @@ public class SessionDataManager {
         }
         
         Type type = new TypeToken<SessionSummary>() {}.getType();
-        SessionSummary summary = CodeTimeActivator.gson.fromJson(jsonObj, type);
+        SessionSummary summary = UtilManager.gson.fromJson(jsonObj, type);
         return summary;
     }
 
@@ -71,7 +86,7 @@ public class SessionDataManager {
         summary.currentDayLinesRemoved = summary.currentDayLinesRemoved + aggregate.linesRemoved;
 
         // save the file
-        FileManager.writeData(getSessionDataSummaryFile(), summary);
+        FileUtilManager.writeData(FileUtilManager.getSessionDataSummaryFile(), summary);
        
     }
     
@@ -82,9 +97,9 @@ public class SessionDataManager {
         long sessionSeconds = 60;
         long elapsedSeconds = 0;
 
-        long lastPayloadEnd = FileManager.getNumericItem("latestPayloadTimestampEndUtc", 0L);
+        long lastPayloadEnd = FileUtilManager.getNumericItem("latestPayloadTimestampEndUtc", 0L);
         if (lastPayloadEnd > 0) {
-            SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+            UtilManager.TimesData timesData = UtilManager.getTimesData();
             elapsedSeconds = timesData.now - lastPayloadEnd;
             long sessionThresholdSeconds = 60 * 15;
             if (elapsedSeconds > 0 && elapsedSeconds <= sessionThresholdSeconds) {

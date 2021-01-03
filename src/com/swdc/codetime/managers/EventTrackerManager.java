@@ -14,6 +14,8 @@ import com.swdc.snowplow.tracker.events.UIInteractionEvent;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 import com.swdc.snowplow.tracker.manager.TrackerManager;
 
+import swdc.java.ops.manager.FileUtilManager;
+
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
@@ -146,7 +148,7 @@ public class EventTrackerManager {
 
 	private AuthEntity getAuthEntity() {
 		AuthEntity authEntity = new AuthEntity();
-		String jwt = FileManager.getItem("jwt");
+		String jwt = FileUtilManager.getItem("jwt");
 		authEntity.setJwt(jwt != null ? jwt.split("JWT ")[1].trim() : "");
 		return authEntity;
 	}

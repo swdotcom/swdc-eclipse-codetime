@@ -8,30 +8,22 @@ import org.eclipse.core.resources.IProject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.CodeTimeSummary;
 import com.swdc.codetime.models.TimeData;
 import com.swdc.codetime.util.SoftwareCoProject;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
+
 public class TimeDataManager {
 
-	private static String getTimeDataSummaryFile() {
-		String file = FileManager.getSoftwareDir(true);
-		if (SoftwareCoUtils.isWindows()) {
-			file += "\\projectTimeData.json";
-		} else {
-			file += "/projectTimeData.json";
-		}
-		return file;
-	}
-
 	public static void clearTimeDataSummary() {
-		FileManager.writeData(getTimeDataSummaryFile(), new JsonArray());
+		FileUtilManager.writeData(FileUtilManager.getTimeDataSummaryFile(), new JsonArray());
 	}
 
 	public static void updateEditorSeconds(long editorSeconds) {
-		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		UtilManager.TimesData timesData = UtilManager.getTimesData();
 		// get the current active project
 		IProject project = SoftwareCoUtils.getActiveProject();
 		if (project != null) {
@@ -66,8 +58,8 @@ public class TimeDataManager {
 	}
 
 	public static void updateSessionFromSummaryApi(long currentDayMinutes) {
-		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
-		String day = SoftwareCoUtils.getTodayInStandardFormat();
+		UtilManager.TimesData timesData = UtilManager.getTimesData();
+		String day = UtilManager.getTodayInStandardFormat();
 
 		CodeTimeSummary ctSummary = getCodeTimeSummary();
 		// find out if there's a diff
@@ -114,10 +106,10 @@ public class TimeDataManager {
 	}
 
 	private static List<TimeData> getTimeDataList() {
-		JsonArray jsonArr = FileManager.getFileContentAsJsonArray(getTimeDataSummaryFile());
+		JsonArray jsonArr = FileUtilManager.getFileContentAsJsonArray(FileUtilManager.getTimeDataSummaryFile());
 		Type listType = new TypeToken<List<TimeData>>() {
 		}.getType();
-		List<TimeData> timeDataList = CodeTimeActivator.gson.fromJson(jsonArr, listType);
+		List<TimeData> timeDataList = UtilManager.gson.fromJson(jsonArr, listType);
 		if (timeDataList == null) {
 			timeDataList = new ArrayList<>();
 		}
@@ -134,7 +126,7 @@ public class TimeDataManager {
 		if (p == null || p.directory == null) {
 			return null;
 		}
-		String day = SoftwareCoUtils.getTodayInStandardFormat();
+		String day = UtilManager.getTodayInStandardFormat();
 
 		List<TimeData> timeDataList = getTimeDataList();
 
@@ -149,7 +141,7 @@ public class TimeDataManager {
 			}
 		}
 
-		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		UtilManager.TimesData timesData = UtilManager.getTimesData();
 
 		TimeData td = new TimeData();
 		td.day = day;
@@ -163,14 +155,14 @@ public class TimeDataManager {
 
 		timeDataList.add(td);
 		// write it then return it
-		FileManager.writeData(getTimeDataSummaryFile(), timeDataList);
+		FileUtilManager.writeData(FileUtilManager.getTimeDataSummaryFile(), timeDataList);
 		return td;
 	}
 
 	public static CodeTimeSummary getCodeTimeSummary() {
 		CodeTimeSummary summary = new CodeTimeSummary();
 
-		String day = SoftwareCoUtils.getTodayInStandardFormat();
+		String day = UtilManager.getTodayInStandardFormat();
 
 		List<TimeData> timeDataList = getTimeDataList();
 
@@ -211,6 +203,6 @@ public class TimeDataManager {
         timeDataList.add(timeData);
 
 		// write it all
-		FileManager.writeData(getTimeDataSummaryFile(), timeDataList);
+        FileUtilManager.writeData(FileUtilManager.getTimeDataSummaryFile(), timeDataList);
 	}
 }
