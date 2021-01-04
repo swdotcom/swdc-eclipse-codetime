@@ -86,55 +86,55 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 					if (selection.getFirstElement() != null) {
 						MetricTreeNode node = (MetricTreeNode) selection.getFirstElement();
 						String id = node.getId();
-						if (id.equals(MetricLabels.VIEW_SUMMARY_ID)) {
+						if (id.equals(MetricsTreeContentProvider.VIEW_SUMMARY_ID)) {
 							SoftwareCoSessionManager.launchCodeTimeMetricsDashboard(UIInteractionType.click);
-						} else if (id.equals(MetricLabels.ADVANCED_METRICS_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.ADVANCED_METRICS_ID)) {
 							SoftwareCoSessionManager.launchWebDashboard(UIInteractionType.click);
-						} else if (id.equals(MetricLabels.TOGGLE_METRICS_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_METRICS_ID)) {
 							SoftwareCoUtils.toggleStatusBarText(UIInteractionType.click);
-						} else if (id.equals(MetricLabels.SEND_FEEDBACK_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SEND_FEEDBACK_ID)) {
 							SoftwareCoUtils.submitFeedback();
-						} else if (id.equals(MetricLabels.LEARN_MORE_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.LEARN_MORE_ID)) {
 							SoftwareCoSessionManager.getInstance().launchReadmeFile();
-						} else if (id.equals(MetricLabels.GOOGLE_SIGNUP_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.GOOGLE_SIGNUP_ID)) {
 							SoftwareCoSessionManager.launchLogin("google", false);
-						} else if (id.equals(MetricLabels.GITHUB_SIGNUP_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.GITHUB_SIGNUP_ID)) {
 							SoftwareCoSessionManager.launchLogin("github", false);
-						} else if (id.equals(MetricLabels.EMAIL_SIGNUP_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.EMAIL_SIGNUP_ID)) {
 							SoftwareCoSessionManager.launchLogin("email", false);
-						} else if (id.equals(MetricLabels.SWITCH_ACCOUNT_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ACCOUNT_ID)) {
 							SwitchAccountManager.initiateSwitchAccountFlow();
-						} else if (id.equals(MetricLabels.SWITCH_ON_DND_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ON_DND_ID)) {
 							SlackManager.enableSlackNotifications(() -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricLabels.SWITCH_OFF_DND_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_OFF_DND_ID)) {
 							SlackManager.pauseSlackNotifications(() -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricLabels.SET_PRESENCE_ACTIVE_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SET_PRESENCE_ACTIVE_ID)) {
 							SlackManager.toggleSlackPresence("auto", () -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricLabels.SET_PRESENCE_AWAY_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SET_PRESENCE_AWAY_ID)) {
 							SlackManager.toggleSlackPresence("away", () -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricLabels.TOGGLE_DOCK_POSITION_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_DOCK_POSITION_ID)) {
 							AppleScriptManager.toggleDock();
-						} else if (id.equals(MetricLabels.CONNECT_SLACK_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.CONNECT_SLACK_ID)) {
 							SlackManager.connectSlackWorkspace(() -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricLabels.SWITCH_ON_DARK_MODE_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ON_DARK_MODE_ID)) {
 							AppleScriptManager.toggleDarkMode(() -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricLabels.SWITCH_OFF_DARK_MODE_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_OFF_DARK_MODE_ID)) {
 							AppleScriptManager.toggleDarkMode(() -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricLabels.ADD_WORKSPACE_ID)) {
+						} else if (id.equals(MetricsTreeContentProvider.ADD_WORKSPACE_ID)) {
 							SlackManager.connectSlackWorkspace(() -> {
 								WallClockManager.refreshTree();
 							});

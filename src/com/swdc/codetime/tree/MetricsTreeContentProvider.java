@@ -11,22 +11,64 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
-import com.swdc.codetime.models.CodeTimeSummary;
-import com.swdc.codetime.models.SessionSummary;
 
 import swdc.java.ops.manager.AppleScriptManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.SlackManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.CodeTimeSummary;
 import swdc.java.ops.model.Integration;
+import swdc.java.ops.model.MetricLabel;
+import swdc.java.ops.model.SessionSummary;
 import swdc.java.ops.model.SlackDndInfo;
 import swdc.java.ops.model.SlackUserPresence;
 
 public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 	public static final String ROOT_KEY = "root";
+	
+	public static final String GOOGLE_SIGNUP_ID = "google";
+    public static final String GITHUB_SIGNUP_ID = "github";
+    public static final String EMAIL_SIGNUP_ID = "email";
+    public static final String LOGGED_IN_ID = "logged_in";
+    public static final String LEARN_MORE_ID = "learn_more";
+    public static final String SEND_FEEDBACK_ID = "send_feedback";
+    public static final String ADVANCED_METRICS_ID = "advanced_metrics";
+    public static final String TOGGLE_METRICS_ID = "toggle_metrics";
+    public static final String VIEW_SUMMARY_ID = "view_summary";
+    public static final String CODETIME_PARENT_ID = "codetime_parent";
+    public static final String CODETIME_TODAY_ID = "codetime_today";
+    public static final String ACTIVE_CODETIME_PARENT_ID = "active_codetime_parent";
+    public static final String ACTIVE_CODETIME_TODAY_ID = "active_codetime_today";
+    public static final String ACTIVE_CODETIME_AVG_TODAY_ID = "active_codetime_avg_today";
+    public static final String ACTIVE_CODETIME_GLOBAL_AVG_TODAY_ID = "active_codetime_global_avg_today";
+    
+    public static final String LINES_ADDED_TODAY_ID = "lines_added_today";
+    public static final String LINES_ADDED_AVG_TODAY_ID = "lines_added_avg_today";
+    public static final String LINES_ADDED_GLOBAL_AVG_TODAY_ID = "lines_added_global_avg_today";
+    
+    public static final String LINES_DELETED_TODAY_ID = "lines_deleted_today";
+    public static final String LINES_DELETED_AVG_TODAY_ID = "lines_deleted_avg_today";
+    public static final String LINES_DELETED_GLOBAL_AVG_TODAY_ID = "lines_deleted_global_avg_today";
+    
+    public static final String KEYSTROKES_TODAY_ID = "keystrokes_today";
+    public static final String KEYSTROKES_AVG_TODAY_ID = "keystrokes_avg_today";
+    public static final String KEYSTROKES_GLOBAL_AVG_TODAY_ID = "keystrokes_global_avg_today";
+    
+    public static final String SWITCH_ACCOUNT_ID = "switch_account";
+    
+    public static final String SLACK_WORKSPACES_NODE_ID = "slack_workspaces_node";
+    public static final String SWITCH_OFF_DARK_MODE_ID = "switch_off_dark_mode";
+    public static final String SWITCH_ON_DARK_MODE_ID = "switch_ON_dark_mode";
+    public static final String TOGGLE_DOCK_POSITION_ID = "toggle_dock_position";
+    public static final String SWITCH_OFF_DND_ID = "switch_off_dnd";
+    public static final String SWITCH_ON_DND_ID = "switch_on_dnd";
+    public static final String CONNECT_SLACK_ID = "connect_slack";
+    public static final String ADD_WORKSPACE_ID = "add_workspace";
+    public static final String SET_PRESENCE_AWAY_ID = "set_presence_away";
+    public static final String SET_PRESENCE_ACTIVE_ID = "set_presence_active";
 
-	private MetricLabels mLabels = new MetricLabels();
+	private MetricLabel mLabels = new MetricLabel();
 	private Map<String, MetricTreeNode[]> contentMap = new HashMap<String, MetricTreeNode[]>();
 	private MetricTreeNode[] initialExpandedElements = null;
 
@@ -149,26 +191,26 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	// MENU TREE VIEW BUTTONS
 	//////////////////////////////////////
 	public MetricTreeNode getLearnMoreButton() {
-		return new MetricTreeNode("Learn more", "readme.png", MetricLabels.LEARN_MORE_ID);
+		return new MetricTreeNode("Learn more", "readme.png", LEARN_MORE_ID);
 	}
 	
 	
 	public MetricTreeNode getSwitchAccountButton() {
-		return new MetricTreeNode("Switch account", "paw.png", MetricLabels.SWITCH_ACCOUNT_ID);
+		return new MetricTreeNode("Switch account", "paw.png", SWITCH_ACCOUNT_ID);
 	}
 	
 	public MetricTreeNode getToggleStatusbarMetricsButton() {
-		return new MetricTreeNode("Hide status bar metrics", "visible.png", MetricLabels.TOGGLE_METRICS_ID);
+		return new MetricTreeNode("Hide status bar metrics", "visible.png", TOGGLE_METRICS_ID);
 	}
 	
 	public MetricTreeNode getSubmitFeedbackButton() {
-		return new MetricTreeNode("Submit feedback", "message.png", MetricLabels.SEND_FEEDBACK_ID);
+		return new MetricTreeNode("Submit feedback", "message.png", SEND_FEEDBACK_ID);
 	}
 	
 	public List<MetricTreeNode> getSignupButtons() {
-		MetricTreeNode googleLoginItem = new MetricTreeNode("Sign up with Google", "google.png", MetricLabels.GOOGLE_SIGNUP_ID);
-		MetricTreeNode githubLoginItem = new MetricTreeNode("Sign up with GitHub", "github.png", MetricLabels.GITHUB_SIGNUP_ID);
-		MetricTreeNode emailLoginItem = new MetricTreeNode("Sign up using email", "icons8-envelope-16.png", MetricLabels.EMAIL_SIGNUP_ID);
+		MetricTreeNode googleLoginItem = new MetricTreeNode("Sign up with Google", "google.png", GOOGLE_SIGNUP_ID);
+		MetricTreeNode githubLoginItem = new MetricTreeNode("Sign up with GitHub", "github.png", GITHUB_SIGNUP_ID);
+		MetricTreeNode emailLoginItem = new MetricTreeNode("Sign up using email", "icons8-envelope-16.png", EMAIL_SIGNUP_ID);
 		return new ArrayList<MetricTreeNode>(Arrays.asList(googleLoginItem, githubLoginItem, emailLoginItem));
 	}
 	
@@ -181,13 +223,13 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
         });
         children.add(getAddSlackWorkspaceNode());
         MetricTreeNode[] childnodes = Arrays.copyOf(children.toArray(), children.size(), MetricTreeNode[].class);
-        contentMap.put(MetricLabels.SLACK_WORKSPACES_NODE_ID, childnodes);
+        contentMap.put(SLACK_WORKSPACES_NODE_ID, childnodes);
     
-        return new MetricTreeNode("Slack workspaces", null, MetricLabels.SLACK_WORKSPACES_NODE_ID);
+        return new MetricTreeNode("Slack workspaces", null, SLACK_WORKSPACES_NODE_ID);
     }
 	
 	public static MetricTreeNode getAddSlackWorkspaceNode() {
-        return new MetricTreeNode("Add workspace", "add.png", MetricLabels.ADD_WORKSPACE_ID);
+        return new MetricTreeNode("Add workspace", "add.png", ADD_WORKSPACE_ID);
     }
 	
 	public MetricTreeNode getLoggedInButton() {
@@ -199,7 +241,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
         } else if ("github".equals(authType)) {
             iconName = "github.png";
         }
-		return new MetricTreeNode(name, iconName, MetricLabels.LOGGED_IN_ID);
+		return new MetricTreeNode(name, iconName, LOGGED_IN_ID);
 	}
 	
 	//////////////////////////////////////
@@ -236,71 +278,71 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
                 list.add(getSwitchOnDarkModeNode());
             }
             
-            list.add(new MetricTreeNode("Toggle dock position", "settings.png", MetricLabels.TOGGLE_DOCK_POSITION_ID));
+            list.add(new MetricTreeNode("Toggle dock position", "settings.png", TOGGLE_DOCK_POSITION_ID));
         }
         
         return list;
     }
 	
 	public static MetricTreeNode getSwitchOffDarkModeNode() {
-        return new MetricTreeNode("Turn off dark mode", "light-mode.png", MetricLabels.SWITCH_OFF_DARK_MODE_ID);
+        return new MetricTreeNode("Turn off dark mode", "light-mode.png", SWITCH_OFF_DARK_MODE_ID);
     }
     
     public static MetricTreeNode getSwitchOnDarkModeNode() {
-        return new MetricTreeNode("Turn on dark mode", "dark-mode.png", MetricLabels.SWITCH_ON_DARK_MODE_ID);
+        return new MetricTreeNode("Turn on dark mode", "dark-mode.png", SWITCH_ON_DARK_MODE_ID);
     }
 	
 	public static MetricTreeNode getConnectSlackNode() {
-        return new MetricTreeNode("Connect to set your status and pause notifications", "icons8-slack-new-16.png", MetricLabels.CONNECT_SLACK_ID);
+        return new MetricTreeNode("Connect to set your status and pause notifications", "icons8-slack-new-16.png", CONNECT_SLACK_ID);
     }
     
     public static MetricTreeNode getPauseNotificationsNode() {
-        return new MetricTreeNode("Pause notifications", "icons8-slack-new-16.png", MetricLabels.SWITCH_OFF_DND_ID);
+        return new MetricTreeNode("Pause notifications", "icons8-slack-new-16.png", SWITCH_OFF_DND_ID);
     }
     
     public static MetricTreeNode getUnPausenotificationsNode(SlackDndInfo slackDndInfo) {
         String endTimeOfDay = UtilManager.getTimeOfDay(UtilManager.getJavaDateFromSeconds(slackDndInfo.snooze_endtime));
-        return new MetricTreeNode("Turn on notifications (" + endTimeOfDay + ")", "icons8-slack-new-16.png", MetricLabels.SWITCH_ON_DND_ID);
+        return new MetricTreeNode("Turn on notifications (" + endTimeOfDay + ")", "icons8-slack-new-16.png",SWITCH_ON_DND_ID);
     }
     
     public static MetricTreeNode getSetAwayPresenceNode() {
-        return new MetricTreeNode("Set presence to away", "icons8-slack-new-16.png", MetricLabels.SET_PRESENCE_AWAY_ID);
+        return new MetricTreeNode("Set presence to away", "icons8-slack-new-16.png", SET_PRESENCE_AWAY_ID);
     }
     
     public static MetricTreeNode getSetActivePresenceNode() {
-        return new MetricTreeNode("Set presence to active", "icons8-slack-new-16.png", MetricLabels.SET_PRESENCE_ACTIVE_ID);
+        return new MetricTreeNode("Set presence to active", "icons8-slack-new-16.png", SET_PRESENCE_ACTIVE_ID);
     }
 	
 	
 	//////////////////////////////////////
 	// KPM TREE VIEW BUTTONS
 	//////////////////////////////////////
-	public MetricTreeNode getCodeTimeStatsButton(MetricLabels labels) {
-		return new MetricTreeNode(labels.codeTime, "rocket.png", MetricLabels.CODETIME_TODAY_ID);
+	public MetricTreeNode getCodeTimeStatsButton(MetricLabel labels) {
+		return new MetricTreeNode(labels.codeTime, "rocket.png", CODETIME_TODAY_ID);
 	}
 	
-	public MetricTreeNode getActiveCodeTimeStatsButton(MetricLabels labels) {
-		return new MetricTreeNode(labels.activeCodeTime, labels.activeCodeTimeAvgIcon, MetricLabels.ACTIVE_CODETIME_TODAY_ID);
+	public MetricTreeNode getActiveCodeTimeStatsButton(MetricLabel labels) {
+		return new MetricTreeNode(labels.activeCodeTime, labels.activeCodeTimeAvgIcon, ACTIVE_CODETIME_TODAY_ID);
 	}
 	
-	public MetricTreeNode getLinesAddedStatsButton(MetricLabels labels) {
-		return new MetricTreeNode(labels.linesAdded, labels.linesAddedAvgIcon, MetricLabels.LINES_ADDED_TODAY_ID);
+	public MetricTreeNode getLinesAddedStatsButton(MetricLabel labels) {
+		return new MetricTreeNode(labels.linesAdded, labels.linesAddedAvgIcon, LINES_ADDED_TODAY_ID);
 	}
 	
-	public MetricTreeNode getLinesRemovedStatsButton(MetricLabels labels) {
-		return new MetricTreeNode(labels.linesRemoved, labels.linesRemovedAvgIcon, MetricLabels.LINES_DELETED_TODAY_ID);
+	public MetricTreeNode getLinesRemovedStatsButton(MetricLabel labels) {
+		return new MetricTreeNode(labels.linesRemoved, labels.linesRemovedAvgIcon, LINES_DELETED_TODAY_ID);
 	}
 	
-	public MetricTreeNode getKeystrokesStatsButton(MetricLabels labels) {
-		return new MetricTreeNode(labels.keystrokes, labels.keystrokesAvgIcon, MetricLabels.KEYSTROKES_TODAY_ID);
+	public MetricTreeNode getKeystrokesStatsButton(MetricLabel labels) {
+		return new MetricTreeNode(labels.keystrokes, labels.keystrokesAvgIcon, KEYSTROKES_TODAY_ID);
 	}
 	
 	public MetricTreeNode getEditorDashboardButton() {
-		return new MetricTreeNode("Dashboard", "dashboard.png", MetricLabels.VIEW_SUMMARY_ID);
+		return new MetricTreeNode("Dashboard", "dashboard.png", VIEW_SUMMARY_ID);
 	}
 	
 	public MetricTreeNode getWebDashboardButton() {
-		return new MetricTreeNode("More data at Software.com", "paw.png", MetricLabels.ADVANCED_METRICS_ID);
+		return new MetricTreeNode("More data at Software.com", "paw.png", ADVANCED_METRICS_ID);
 	}
 
 }

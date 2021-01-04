@@ -16,12 +16,15 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -38,6 +41,7 @@ import com.google.gson.JsonObject;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.SessionDataManager;
+import com.swdc.codetime.managers.SwitchAccountManager;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
@@ -59,8 +63,6 @@ public class SoftwareCoSessionManager {
 
 	private static SoftwareCoSessionManager instance = null;
 
-	private static int lastDayOfMonth = 0;
-
 	private static String SERVICE_NOT_AVAIL = "Our service is temporarily unavailable.\n\nPlease try again later.\n";
 
 	public static SoftwareCoSessionManager getInstance() {
@@ -79,15 +81,12 @@ public class SoftwareCoSessionManager {
 		String summaryInfoFile = FileUtilManager.getSummaryInfoFile();
 		String dashboardFile = FileUtilManager.getCodeTimeDashboardFile();
 
-		Calendar cal = Calendar.getInstance();
-		int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
 		Writer writer = null;
 		
 		// append the summary content
 		// Our service is temporarily unavailable
 		String summaryInfoContent = SoftwareCoOfflineManager.getInstance().getSessionSummaryInfoFileContent();
 
-		lastDayOfMonth = dayOfMonth;
 		String api = "/dashboard?linux=" + UtilManager.isLinux() + "&showToday=true";
 		String dashboardSummary = OpsHttpClient.softwareGet(api, FileUtilManager.getItem("jwt")).getJsonStr();
 		if (dashboardSummary == null || dashboardSummary.trim().isEmpty()) {
@@ -334,6 +333,21 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void launchWebDashboard(UIInteractionType type) {
+		if (StringUtils.isBlank(FileUtilManager.getItem("name"))) {
+            SwingUtilities.invokeLater(() -> {
+                String msg = "Sign up or log in to see more data visualizations.";
+
+                Object[] options = {"Sign up"};
+                int choice = JOptionPane.showOptionDialog(
+                        null, msg, "Sign up", JOptionPane.OK_OPTION,
+                        JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+                if (choice == 0) {
+                    SwitchAccountManager.initiateSignupFlow();
+                }
+            });
+            return;
+        }
 		String url = SoftwareCoUtils.webui_login_url;
 		try {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));

@@ -8,10 +8,10 @@ import com.google.gson.reflect.TypeToken;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.ElapsedTime;
 import com.swdc.codetime.models.KeystrokeAggregate;
-import com.swdc.codetime.models.SessionSummary;
 
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.SessionSummary;
 
 public class SessionDataManager {
     
@@ -79,11 +79,11 @@ public class SessionDataManager {
     public static void incrementSessionSummary(KeystrokeAggregate aggregate, long sessionMinutes) {
         SessionSummary summary = getSessionSummaryData();
 
-        summary.currentDayMinutes = summary.currentDayMinutes + sessionMinutes;
+        summary.setCurrentDayMinutes(summary.getCurrentDayMinutes() + sessionMinutes);
 
-        summary.currentDayKeystrokes = summary.currentDayKeystrokes + aggregate.keystrokes;
-        summary.currentDayLinesAdded = summary.currentDayLinesAdded + aggregate.linesAdded;
-        summary.currentDayLinesRemoved = summary.currentDayLinesRemoved + aggregate.linesRemoved;
+        summary.setCurrentDayKeystrokes(summary.getCurrentDayKeystrokes() + aggregate.keystrokes);
+        summary.setCurrentDayLinesAdded(summary.getCurrentDayLinesAdded() + aggregate.linesAdded);
+        summary.setCurrentDayLinesRemoved(summary.getCurrentDayLinesRemoved() + aggregate.linesRemoved);
 
         // save the file
         FileUtilManager.writeData(FileUtilManager.getSessionDataSummaryFile(), summary);

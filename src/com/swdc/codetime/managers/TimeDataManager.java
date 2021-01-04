@@ -8,13 +8,13 @@ import org.eclipse.core.resources.IProject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.models.CodeTimeSummary;
 import com.swdc.codetime.models.TimeData;
 import com.swdc.codetime.util.SoftwareCoProject;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.CodeTimeSummary;
 
 public class TimeDataManager {
 

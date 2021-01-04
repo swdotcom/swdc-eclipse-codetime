@@ -14,8 +14,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.swdc.codetime.CodeTimeActivator;
-import com.swdc.codetime.models.CodeTimeSummary;
-import com.swdc.codetime.models.SessionSummary;
 import com.swdc.codetime.tree.MetricsTreeView;
 import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.SoftwareCoUtils;
@@ -24,6 +22,8 @@ import swdc.java.ops.http.ClientResponse;
 import swdc.java.ops.http.OpsHttpClient;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.CodeTimeSummary;
+import swdc.java.ops.model.SessionSummary;
 
 public class WallClockManager {
 
@@ -177,7 +177,7 @@ public class WallClockManager {
 				// clone all
 				summary.clone(fetchedSummary);
 
-				TimeDataManager.updateSessionFromSummaryApi(summary.currentDayMinutes);
+				TimeDataManager.updateSessionFromSummaryApi(summary.getCurrentDayMinutes());
 
 				// save the file
 				FileUtilManager.writeData(FileUtilManager.getSessionDataSummaryFile(), summary);
@@ -210,7 +210,7 @@ public class WallClockManager {
 
 		// String icon = SoftwareCoUtils.showingStatusText() ? "paw.png" : "clock.png";
 		String msg = UtilManager.humanizeMinutes(ctSummary.activeCodeTimeMinutes);
-		String iconName = ctSummary.activeCodeTimeMinutes > summary.averageDailyMinutes ? "rocket.png" : "paw.png";
+		String iconName = ctSummary.activeCodeTimeMinutes > summary.getAverageDailyMinutes() ? "rocket.png" : "paw.png";
 		SoftwareCoUtils.setStatusLineMessage(msg, iconName,
 				"Active code time today. Click to see more from Code Time.");
 		
