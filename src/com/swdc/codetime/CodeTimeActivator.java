@@ -32,6 +32,7 @@ import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.KeystrokePayload.FileInfo;
+import com.swdc.codetime.util.SWCoreImages;
 
 import swdc.java.ops.event.UserStateChangeModel;
 import swdc.java.ops.event.UserStateChangeObserver;
@@ -108,7 +109,14 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				
-				ConfigManager.init(SoftwareCoUtils.api_endpoint, SoftwareCoUtils.launch_url, SoftwareCoUtils.pluginId, SoftwareCoUtils.pluginName, SoftwareCoUtils.getVersion());
+				ConfigManager.init(
+						SoftwareCoUtils.api_endpoint,
+						SoftwareCoUtils.launch_url,
+						SoftwareCoUtils.pluginId,
+						SoftwareCoUtils.pluginName,
+						SoftwareCoUtils.getVersion(),
+						SoftwareCoUtils.IDE_NAME,
+						SoftwareCoUtils.IDE_VERSION);
 
 				String jwt = FileUtilManager.getItem("jwt");
 				if (StringUtils.isBlank(jwt)) {
@@ -540,9 +548,9 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				MessageDialog dialog = new MessageDialog(
 						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), // parentShell
 						"Code Time Setup Complete", // dialogTitle
-						null, // dialogTitleImage
+						SWCoreImages.findImage("paw.png"), // dialogTitleImage
 						"Successfully logged onto Code Time", // dialogMessage
-						MessageDialog.INFORMATION, // dialogImageType
+						MessageDialog.NONE, // dialogImageType
 						new String[] { "Ok" }, // dialogButtonLabels
 						0 // defaultIndex
 				);

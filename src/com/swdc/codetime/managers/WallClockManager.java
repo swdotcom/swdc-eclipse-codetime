@@ -214,7 +214,6 @@ public class WallClockManager {
 		SoftwareCoUtils.setStatusLineMessage(msg, iconName,
 				"Active code time today. Click to see more from Code Time.");
 		
-		
 	}
 	
 	public static void refreshTree() {

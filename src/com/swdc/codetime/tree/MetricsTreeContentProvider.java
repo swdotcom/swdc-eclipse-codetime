@@ -27,6 +27,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 	public static final String ROOT_KEY = "root";
 	
+	public static final String SIGN_UP_ID = "signup";
+    public static final String LOG_IN_ID = "login";
 	public static final String GOOGLE_SIGNUP_ID = "google";
     public static final String GITHUB_SIGNUP_ID = "github";
     public static final String EMAIL_SIGNUP_ID = "email";
@@ -208,10 +210,9 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	}
 	
 	public List<MetricTreeNode> getSignupButtons() {
-		MetricTreeNode googleLoginItem = new MetricTreeNode("Sign up with Google", "google.png", GOOGLE_SIGNUP_ID);
-		MetricTreeNode githubLoginItem = new MetricTreeNode("Sign up with GitHub", "github.png", GITHUB_SIGNUP_ID);
-		MetricTreeNode emailLoginItem = new MetricTreeNode("Sign up using email", "icons8-envelope-16.png", EMAIL_SIGNUP_ID);
-		return new ArrayList<MetricTreeNode>(Arrays.asList(googleLoginItem, githubLoginItem, emailLoginItem));
+		MetricTreeNode signUpItem = new MetricTreeNode("Sign up", "signup.png", SIGN_UP_ID);
+        MetricTreeNode logInItem = new MetricTreeNode("Log in", "paw.png", LOG_IN_ID);
+		return new ArrayList<MetricTreeNode>(Arrays.asList(signUpItem, logInItem));
 	}
 	
 	public MetricTreeNode buildSlackWorkspacesNode() {

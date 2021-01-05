@@ -28,14 +28,15 @@ public class SessionDataManager {
 			try {
 				// show the success prompt
 				CodeTimeActivator.showLoginSuccessPrompt();
+				
+				WallClockManager wcMgr = WallClockManager.getInstance();
+				wcMgr.updateSessionSummaryFromServer();
+				
+				WallClockManager.refreshTree();
 			} catch (Exception e) {
 				System.err.println(e);
 			}
 		}).start();
-		
-		WallClockManager wcMgr = WallClockManager.getInstance();
-		wcMgr.updateSessionSummaryFromServer();
-		wcMgr.dispatchStatusViewUpdate();
     }
 
     public static void clearSessionSummaryData() {

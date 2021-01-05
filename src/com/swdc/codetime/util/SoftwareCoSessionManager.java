@@ -41,7 +41,7 @@ import com.google.gson.JsonObject;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.SessionDataManager;
-import com.swdc.codetime.managers.SwitchAccountManager;
+import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
@@ -343,7 +343,7 @@ public class SoftwareCoSessionManager {
                         JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
                 if (choice == 0) {
-                    SwitchAccountManager.initiateSignupFlow();
+                    AuthPromptManager.initiateSignupFlow();
                 }
             });
             return;

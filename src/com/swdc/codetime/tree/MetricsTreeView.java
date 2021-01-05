@@ -18,7 +18,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
-import com.swdc.codetime.managers.SwitchAccountManager;
+import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
@@ -86,7 +86,11 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 					if (selection.getFirstElement() != null) {
 						MetricTreeNode node = (MetricTreeNode) selection.getFirstElement();
 						String id = node.getId();
-						if (id.equals(MetricsTreeContentProvider.VIEW_SUMMARY_ID)) {
+						if (id.equals(MetricsTreeContentProvider.SIGN_UP_ID)) {
+			                AuthPromptManager.initiateSignupFlow();
+						} else if (id.equals(MetricsTreeContentProvider.LOG_IN_ID)) {
+			                AuthPromptManager.initiateLoginFlow();
+						} else if (id.equals(MetricsTreeContentProvider.VIEW_SUMMARY_ID)) {
 							SoftwareCoSessionManager.launchCodeTimeMetricsDashboard(UIInteractionType.click);
 						} else if (id.equals(MetricsTreeContentProvider.ADVANCED_METRICS_ID)) {
 							SoftwareCoSessionManager.launchWebDashboard(UIInteractionType.click);
@@ -103,7 +107,7 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 						} else if (id.equals(MetricsTreeContentProvider.EMAIL_SIGNUP_ID)) {
 							SoftwareCoSessionManager.launchLogin("email", false);
 						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ACCOUNT_ID)) {
-							SwitchAccountManager.initiateSwitchAccountFlow();
+							AuthPromptManager.initiateSwitchAccountFlow();
 						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ON_DND_ID)) {
 							SlackManager.enableSlackNotifications(() -> {
 								WallClockManager.refreshTree();

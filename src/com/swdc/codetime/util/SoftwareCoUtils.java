@@ -56,7 +56,9 @@ public class SoftwareCoUtils {
 
 	// sublime = 1, vs code = 2, eclipse = 3, intellij = 4, visual studio = 6, atom = 7
 	public final static int pluginId = 3;
-	public final static String pluginName = "Code Time";
+	public final static String pluginName = "codetime";
+	public static String IDE_VERSION = "";
+	public static String IDE_NAME = "eclipse";
 
 	private static String workspace_name = null;
 
@@ -64,6 +66,29 @@ public class SoftwareCoUtils {
 
 	private static boolean showStatusText = true;
 	private static String lastMsg = "";
+	
+	static {
+		// discover ide info
+        try {
+        	IDE_VERSION = Platform.getBundle("org.eclipse.platform").getVersion().toString();
+        } catch (Exception e) {
+            try {
+            	IDE_VERSION = Platform.getBundle("org.jkiss.dbeaver.core").getVersion().toString();
+            } catch  (Exception e2) {
+            	try {
+            		IDE_VERSION = Platform.getProduct().getDefiningBundle().getVersion().toString();
+                } catch  (Exception e3) {
+                	IDE_VERSION = "unknown";
+                }
+            }
+        }
+        
+        try {
+        	IDE_NAME = Platform.getProduct().getName();
+        } catch (Exception e) {
+        	IDE_NAME = "eclipse";
+        }
+	}
 
 
 	public static String getWorkspaceName() {
