@@ -9,10 +9,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.FileAggregateDataManager;
-import com.swdc.codetime.managers.FileManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
 import com.swdc.codetime.managers.WallClockManager;
@@ -21,6 +19,9 @@ import com.swdc.codetime.models.FileChangeInfo;
 import com.swdc.codetime.models.KeystrokeAggregate;
 import com.swdc.codetime.models.ResourceInfo;
 import com.swdc.codetime.models.TimeData;
+
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
 
 public class KeystrokePayload {
 
@@ -51,7 +52,7 @@ public class KeystrokePayload {
 		if (this.version.endsWith(".qualifier")) {
 			this.version = this.version.substring(0, this.version.lastIndexOf(".qualifier"));
 		}
-		this.os = SoftwareCoUtils.getOs();
+		this.os = UtilManager.getOs();
 	}
 
 	public void resetData() {
@@ -123,7 +124,7 @@ public class KeystrokePayload {
 			return source.get(fileName);
 		}
 
-		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		UtilManager.TimesData timesData = UtilManager.getTimesData();
 
 		if (this.start == 0) {
 			this.start = timesData.now;
@@ -141,7 +142,7 @@ public class KeystrokePayload {
 	}
 
 	public void endPreviousModifiedFiles(String currentFileName) {
-		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		UtilManager.TimesData timesData = UtilManager.getTimesData();
 		Map<String, FileInfo> fileInfoDataSet = this.source;
 
 		for (FileInfo fileInfoData : fileInfoDataSet.values()) {
@@ -162,7 +163,7 @@ public class KeystrokePayload {
 		TimeData td = TimeDataManager.incrementSessionAndFileSeconds(this.project, sessionSeconds);
 
 		// get the current payloads so we can compare our last cumulative seconds
-		if (SoftwareCoUtils.isNewDay()) {
+		if (UtilManager.isNewDay()) {
 			// clear out data from the previous day
 			WallClockManager.getInstance().newDayChecker();
 			if (td != null) {
@@ -190,7 +191,7 @@ public class KeystrokePayload {
 
 		this.validateAndUpdateCumulativeData(sessionSeconds);
 
-		SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+		UtilManager.TimesData timesData = UtilManager.getTimesData();
 		Map<String, FileInfo> fileInfoDataSet = this.source;
 		for (FileInfo fileInfoData : fileInfoDataSet.values()) {
 			// end the ones that don't have an end time
@@ -238,14 +239,9 @@ public class KeystrokePayload {
 			// send the event to the event tracker
 			EventTrackerManager.getInstance().trackCodeTimeEvent(this);
 
-			final String payload = CodeTimeActivator.gson.toJson(this);
-
-			// store to send later
-			SoftwareCoSessionManager.getInstance().storePayload(payload);
-
 			// update the payload end timestmap
-			SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
-			FileManager.setNumericItem("latestPayloadTimestampEndUtc", timesData.now);
+			UtilManager.TimesData timesData = UtilManager.getTimesData();
+			FileUtilManager.setNumericItem("latestPayloadTimestampEndUtc", timesData.now);
 		}
 
 		this.resetData();
@@ -300,7 +296,7 @@ public class KeystrokePayload {
 	}
 
 	public String getSource() {
-		return CodeTimeActivator.gson.toJson(source);
+		return UtilManager.gson.toJson(source);
 	}
 
 	public long getStart() {

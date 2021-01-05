@@ -1,11 +1,13 @@
 package com.swdc.codetime.handlers;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
 import com.swdc.codetime.util.SoftwareCoSessionManager;
-import com.swdc.codetime.util.SoftwareCoUtils;
+
+import swdc.java.ops.manager.FileUtilManager;
 
 public class SoftwareLoginHandler extends AbstractHandler {
 
@@ -18,7 +20,7 @@ public class SoftwareLoginHandler extends AbstractHandler {
 
 	@Override
 	public boolean isEnabled() {
-		return !SoftwareCoUtils.isLoggedIn();
+		return (StringUtils.isBlank(FileUtilManager.getItem("name")));
 	}
 
 }

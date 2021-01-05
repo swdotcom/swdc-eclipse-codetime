@@ -1,12 +1,14 @@
 package com.swdc.codetime.handlers;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
 import com.swdc.codetime.util.SoftwareCoSessionManager;
-import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
+
+import swdc.java.ops.manager.FileUtilManager;
 
 public class MetricsDashboardHandler extends AbstractHandler {
 
@@ -19,12 +21,8 @@ public class MetricsDashboardHandler extends AbstractHandler {
 
 	@Override
 	public boolean isEnabled() {
-		boolean sessionFileExists = SoftwareCoSessionManager.softwareSessionFileExists();
-		boolean hasJwt = SoftwareCoSessionManager.jwtExists();
-		if (!sessionFileExists || !hasJwt) {
-			return false;
-		}
-		return SoftwareCoUtils.isLoggedIn();
+		String name = FileUtilManager.getItem("name");
+		return StringUtils.isNotBlank(name);
 	}
 
 }

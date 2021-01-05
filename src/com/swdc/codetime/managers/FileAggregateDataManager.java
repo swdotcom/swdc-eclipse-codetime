@@ -6,41 +6,33 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.models.FileChangeInfo;
-import com.swdc.codetime.util.SoftwareCoUtils;
+
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
 
 public class FileAggregateDataManager {
 
-    public static String getFileChangeSummaryFile() {
-        String file = FileManager.getSoftwareDir(true);
-        if (SoftwareCoUtils.isWindows()) {
-            file += "\\fileChangeSummary.json";
-        } else {
-            file += "/fileChangeSummary.json";
-        }
-        return file;
-    }
 
     public static void clearFileChangeInfoSummaryData() {
         Map<String, FileChangeInfo> fileInfoMap = new HashMap<>();
-        FileManager.writeData(getFileChangeSummaryFile(), fileInfoMap);
+        FileUtilManager.writeData(FileUtilManager.getFileChangeSummaryFile(), fileInfoMap);
     }
 
     public static Map<String, FileChangeInfo>  getFileChangeInfo() {
         Map<String, FileChangeInfo> fileInfoMap = new HashMap<>();
-        JsonObject jsonObj = FileManager.getFileContentAsJson(getFileChangeSummaryFile());
+        JsonObject jsonObj = FileUtilManager.getFileContentAsJson(FileUtilManager.getFileChangeSummaryFile());
         if (jsonObj != null) {
             Type type = new TypeToken<Map<String, FileChangeInfo>>() {}.getType();
-			fileInfoMap = CodeTimeActivator.gson.fromJson(jsonObj, type);
+			fileInfoMap = UtilManager.gson.fromJson(jsonObj, type);
         } else {
             // create it
-            FileManager.writeData(getFileChangeSummaryFile(), fileInfoMap);
+        	FileUtilManager.writeData(FileUtilManager.getFileChangeSummaryFile(), fileInfoMap);
         }
         return fileInfoMap;
     }
 
     public static void updateFileChangeInfo(Map<String, FileChangeInfo> fileInfoMap) {
-        FileManager.writeData(getFileChangeSummaryFile(), fileInfoMap);
+    	FileUtilManager.writeData(FileUtilManager.getFileChangeSummaryFile(), fileInfoMap);
     }
 }

@@ -5,7 +5,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
-import org.apache.http.client.methods.HttpGet;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -15,12 +14,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.swdc.codetime.CodeTimeActivator;
-import com.swdc.codetime.models.CodeTimeSummary;
-import com.swdc.codetime.models.SessionSummary;
 import com.swdc.codetime.tree.MetricsTreeView;
 import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.SoftwareCoUtils;
-import com.swdc.codetime.util.SoftwareResponse;
+
+import swdc.java.ops.http.ClientResponse;
+import swdc.java.ops.http.OpsHttpClient;
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.CodeTimeSummary;
+import swdc.java.ops.model.SessionSummary;
 
 public class WallClockManager {
 
@@ -32,7 +35,7 @@ public class WallClockManager {
 	private Timer wallClockTimer;
 	private Timer newDayCheckerTimer;
 
-	private IViewPart treeView;
+	private static IViewPart treeView;
 
 	private boolean isCurrentlyActive = true;
 
@@ -52,8 +55,8 @@ public class WallClockManager {
 		this.init();
 	}
 
-	public void setTreeView(IViewPart treeView) {
-		this.treeView = treeView;
+	public static void setTreeView(IViewPart treeViewPart) {
+		treeView = treeViewPart;
 	}
 
 	private void init() {
@@ -110,7 +113,7 @@ public class WallClockManager {
 	}
 
 	public void newDayChecker() {
-		if (SoftwareCoUtils.isNewDay()) {
+		if (UtilManager.isNewDay()) {
 
 			// clear the wc time and the session summary and the file change info summary
 			clearWcTime();
@@ -119,11 +122,11 @@ public class WallClockManager {
 			FileAggregateDataManager.clearFileChangeInfoSummaryData();
 
 			// update the current day
-			String day = SoftwareCoUtils.getTodayInStandardFormat();
-			FileManager.setItem("currentDay", day);
+			String day = UtilManager.getTodayInStandardFormat();
+			FileUtilManager.setItem("currentDay", day);
 
 			// update the last payload timestamp
-			FileManager.setNumericItem("latestPayloadTimestampEndUtc", 0);
+			FileUtilManager.setNumericItem("latestPayloadTimestampEndUtc", 0);
 
 			dispatchStatusViewUpdate();
 
@@ -141,9 +144,9 @@ public class WallClockManager {
 	public void updateSessionSummaryFromServer() {
 		SessionSummary summary = SessionDataManager.getSessionSummaryData();
 
-		String jwt = FileManager.getItem("jwt");
+		String jwt = FileUtilManager.getItem("jwt");
 		String api = "/sessions/summary?refresh=true";
-		SoftwareResponse resp = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null, jwt);
+		ClientResponse resp = OpsHttpClient.softwareGet(api, jwt);
 		try {
 			if (resp.isOk()) {
 				JsonObject jsonObj = resp.getJsonObj();
@@ -169,15 +172,15 @@ public class WallClockManager {
 
 				Type type = new TypeToken<SessionSummary>() {
 				}.getType();
-				SessionSummary fetchedSummary = CodeTimeActivator.gson.fromJson(jsonObj, type);
+				SessionSummary fetchedSummary = UtilManager.gson.fromJson(jsonObj, type);
 
 				// clone all
 				summary.clone(fetchedSummary);
 
-				TimeDataManager.updateSessionFromSummaryApi(summary.currentDayMinutes);
+				TimeDataManager.updateSessionFromSummaryApi(summary.getCurrentDayMinutes());
 
 				// save the file
-				FileManager.writeData(SessionDataManager.getSessionDataSummaryFile(), summary);
+				FileUtilManager.writeData(FileUtilManager.getSessionDataSummaryFile(), summary);
 			}
 		} catch (Exception e) {
 			log.info("Error fetching averages: " + e.getMessage());
@@ -206,11 +209,14 @@ public class WallClockManager {
 		CodeTimeSummary ctSummary = TimeDataManager.getCodeTimeSummary();
 
 		// String icon = SoftwareCoUtils.showingStatusText() ? "paw.png" : "clock.png";
-		String msg = SoftwareCoUtils.humanizeMinutes(ctSummary.activeCodeTimeMinutes);
-		String iconName = ctSummary.activeCodeTimeMinutes > summary.averageDailyMinutes ? "rocket.png" : "paw.png";
+		String msg = UtilManager.humanizeMinutes(ctSummary.activeCodeTimeMinutes);
+		String iconName = ctSummary.activeCodeTimeMinutes > summary.getAverageDailyMinutes() ? "rocket.png" : "paw.png";
 		SoftwareCoUtils.setStatusLineMessage(msg, iconName,
 				"Active code time today. Click to see more from Code Time.");
 		
+	}
+	
+	public static void refreshTree() {
 		if (treeView == null) {
 			try {
 				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
@@ -229,7 +235,7 @@ public class WallClockManager {
 
 	private void updateWcTime() {
 		long wctime = getWcTimeInSeconds() + SECONDS_INCREMENT;
-		FileManager.setNumericItem("wctime", wctime);
+		FileUtilManager.setNumericItem("wctime", wctime);
 		dispatchStatusViewUpdate();
 
 		// update the json time data file
@@ -241,11 +247,11 @@ public class WallClockManager {
 	}
 
 	public long getWcTimeInSeconds() {
-		return FileManager.getNumericItem("wctime", 0L);
+		return FileUtilManager.getNumericItem("wctime", 0L);
 	}
 
 	public void setWcTime(long seconds) {
-		FileManager.setNumericItem("wctime", seconds);
+		FileUtilManager.setNumericItem("wctime", seconds);
 		updateWcTime();
 	}
 

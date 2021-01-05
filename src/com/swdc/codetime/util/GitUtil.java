@@ -11,6 +11,8 @@ import com.swdc.codetime.models.CommitInfo;
 import com.swdc.codetime.models.ResourceInfo;
 import com.swdc.codetime.models.TeamMember;
 
+import swdc.java.ops.manager.UtilManager;
+
 public class GitUtil {
 
 	public static CommitChangeStats accumulateStatChanges(List<String> results, boolean committedChanges) {
@@ -91,7 +93,7 @@ public class GitUtil {
 	
 	public static String getUsersEmail(String projectDir) {
         String[] emailCmd = { "git", "config", "user.email" };
-        String email = SoftwareCoUtils.runCommand(emailCmd, projectDir);
+        String email = UtilManager.runCommand(emailCmd, projectDir);
         return email;
     }
 	
@@ -106,31 +108,31 @@ public class GitUtil {
 		if (projectDir != null && !projectDir.equals("") && SoftwareCoUtils.isGitProject(projectDir)) {
 			try {
 				String[] branchCmd = { "git", "symbolic-ref", "--short", "HEAD" };
-				String branch = SoftwareCoUtils.runCommand(branchCmd, projectDir);
+				String branch = UtilManager.runCommand(branchCmd, projectDir);
 				if (branch != null) {
 					resourceInfo.branch = branch;
 				}
 
 				String[] identifierCmd = { "git", "config", "--get", "remote.origin.url" };
-				String identifier = SoftwareCoUtils.runCommand(identifierCmd, projectDir);
+				String identifier = UtilManager.runCommand(identifierCmd, projectDir);
 				if (identifier != null) {
 					resourceInfo.identifier = identifier;
 				}
 
 				String[] emailCmd = { "git", "config", "user.email" };
-				String email = SoftwareCoUtils.runCommand(emailCmd, projectDir);
+				String email = UtilManager.runCommand(emailCmd, projectDir);
 				if (email != null) {
 					resourceInfo.email = email;
 				}
 
 				String[] tagCmd = { "git", "describe", "--all" };
-				String tag = SoftwareCoUtils.runCommand(tagCmd, projectDir);
+				String tag = UtilManager.runCommand(tagCmd, projectDir);
 				if (tag != null) {
 					resourceInfo.tag = tag;
 				}
 				
 				String[] membersCmd = { "git", "log", "--pretty=%an,%ae" };
-				String devOutput = SoftwareCoUtils.runCommand(membersCmd, projectDir);
+				String devOutput = UtilManager.runCommand(membersCmd, projectDir);
 				
 				if (buildMembers) {
 
@@ -201,7 +203,7 @@ public class GitUtil {
             return new CommitChangeStats(true);
         }
     	
-    	SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+    	UtilManager.TimesData timesData = UtilManager.getTimesData();
         long startOfRange = 0l;
         if (rangeType == "today") {
             startOfRange = timesData.local_start_day;

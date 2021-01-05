@@ -1,6 +1,5 @@
 package com.swdc.codetime.util;
 
-import java.io.File;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
@@ -52,7 +51,7 @@ public class SWCoreImages
     }
     
     public static ImageIcon getImageIcon(String name) {
-    	return new ImageIcon("icons" + File.pathSeparatorChar + name);
+    	return new ImageIcon(makeImageURL(ICONS_PATH, name));
     }
     
 }

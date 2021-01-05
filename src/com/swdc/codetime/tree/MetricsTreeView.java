@@ -1,9 +1,5 @@
 package com.swdc.codetime.tree;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ITreeViewerListener;
@@ -22,33 +18,22 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
-import com.swdc.codetime.managers.EventTrackerManager;
-import com.swdc.codetime.managers.ReportManager;
-import com.swdc.codetime.managers.SwitchAccountManager;
+import com.swdc.codetime.managers.AuthPromptManager;
+import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
-import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
+
+import swdc.java.ops.manager.AppleScriptManager;
+import swdc.java.ops.manager.SlackManager;
 
 public class MetricsTreeView extends ViewPart implements ISelectionListener {
 
 	private MetricsTreeContentProvider contentProvider;
 	private MetricsTreeLabelProvider labelProvider;
 	private TreeViewer tv;
-	
+
 	private boolean refreshingTree = false;
-	
-	protected static List<String> toggleItems = Arrays.asList("ct_codetime_toggle_node",
-            "ct_active_codetime_toggle_node",
-            "ct_lines_added_toggle_node",
-            "ct_lines_removed_toggle_node",
-            "ct_keystrokes_toggle_node",
-            "ct_files_changed_toggle_node",
-            "ct_top_files_by_kpm_toggle_node",
-            "ct_top_files_by_keystrokes_toggle_node",
-            "ct_top_files_by_codetime_toggle_node",
-            "ct_open_changes_toggle_node",
-            "ct_committed_today_toggle_node");
 
 	public MetricsTreeView() {
 		super();
@@ -73,34 +58,21 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 		tv.setLabelProvider(labelProvider);
 		tv.setInput(MetricsTreeContentProvider.ROOT_KEY);
 
-		MetricsTreeNode[] initEls = contentProvider.getInitialExpandedElements();
-		if (initEls != null) {
-			try {
-				tv.setExpandedElements(initEls);
-			} catch (Exception e) {
-				//
-			}
-		}
-
 		tv.addTreeListener(new ITreeViewerListener() {
 
 			@Override
 			public void treeExpanded(TreeExpansionEvent event) {
-				MetricsTreeNode node = (MetricsTreeNode) event.getElement();
+				MetricTreeNode node = (MetricTreeNode) event.getElement();
 				if (node != null) {
-					String label = node.getLabel();
-					String toggleName = getToggleItem(label);
-					sendNodeToggleEvent(toggleName);
+					node.getLabel();
 				}
 			}
 
 			@Override
 			public void treeCollapsed(TreeExpansionEvent event) {
-				MetricsTreeNode node = (MetricsTreeNode) event.getElement();
+				MetricTreeNode node = (MetricTreeNode) event.getElement();
 				if (node != null) {
-					String label = node.getLabel();
-					String toggleName = getToggleItem(label);
-					sendNodeToggleEvent(toggleName);
+					node.getLabel();
 				}
 			}
 		});
@@ -112,35 +84,64 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 				try {
 					TreeSelection selection = (TreeSelection) event.getSelection();
 					if (selection.getFirstElement() != null) {
-						MetricsTreeNode node = (MetricsTreeNode) selection.getFirstElement();
+						MetricTreeNode node = (MetricTreeNode) selection.getFirstElement();
 						String id = node.getId();
-						if (id.equals("generateDashboardItem")) {
+						if (id.equals(MetricsTreeContentProvider.SIGN_UP_ID)) {
+			                AuthPromptManager.initiateSignupFlow();
+						} else if (id.equals(MetricsTreeContentProvider.LOG_IN_ID)) {
+			                AuthPromptManager.initiateLoginFlow();
+						} else if (id.equals(MetricsTreeContentProvider.VIEW_SUMMARY_ID)) {
 							SoftwareCoSessionManager.launchCodeTimeMetricsDashboard(UIInteractionType.click);
-						} else if (id.equals("webDashboardItem")) {
+						} else if (id.equals(MetricsTreeContentProvider.ADVANCED_METRICS_ID)) {
 							SoftwareCoSessionManager.launchWebDashboard(UIInteractionType.click);
-						} else if (id.equals("toggleStatusTextItem")) {
+						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_METRICS_ID)) {
 							SoftwareCoUtils.toggleStatusBarText(UIInteractionType.click);
-						} else if (id.equals("submitFeedbackItem")) {
+						} else if (id.equals(MetricsTreeContentProvider.SEND_FEEDBACK_ID)) {
 							SoftwareCoUtils.submitFeedback();
-						} else if (id.equals("learnMoreItem")) {
+						} else if (id.equals(MetricsTreeContentProvider.LEARN_MORE_ID)) {
 							SoftwareCoSessionManager.getInstance().launchReadmeFile();
-						} else if (id.equals("googleSignupItem")) {
+						} else if (id.equals(MetricsTreeContentProvider.GOOGLE_SIGNUP_ID)) {
 							SoftwareCoSessionManager.launchLogin("google", false);
-						} else if (id.equals("githubSignupItem")) {
+						} else if (id.equals(MetricsTreeContentProvider.GITHUB_SIGNUP_ID)) {
 							SoftwareCoSessionManager.launchLogin("github", false);
-						} else if (id.equals("emailSignupItem")) {
+						} else if (id.equals(MetricsTreeContentProvider.EMAIL_SIGNUP_ID)) {
 							SoftwareCoSessionManager.launchLogin("email", false);
-						} else if (id.equals("switchAccountItem")) {
-							SwitchAccountManager.initiateSwitchAccountFlow();
-						} else if (id.equals("contributionSummary")) {
-							ReportManager.displayProjectContributorSummaryDashboard(node.getLabel());
-						} else if (node.getData() != null && node.getData() instanceof String) {
-							// this check is last since it doesn't go off of a unique id
-							String fsPath = node.getData().toString();
-							File f = new File(fsPath);
-							if (f.isFile()) {
-								SoftwareCoSessionManager.launchFile(fsPath);
-							}
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ACCOUNT_ID)) {
+							AuthPromptManager.initiateSwitchAccountFlow();
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ON_DND_ID)) {
+							SlackManager.enableSlackNotifications(() -> {
+								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_OFF_DND_ID)) {
+							SlackManager.pauseSlackNotifications(() -> {
+								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.SET_PRESENCE_ACTIVE_ID)) {
+							SlackManager.toggleSlackPresence("auto", () -> {
+								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.SET_PRESENCE_AWAY_ID)) {
+							SlackManager.toggleSlackPresence("away", () -> {
+								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_DOCK_POSITION_ID)) {
+							AppleScriptManager.toggleDock();
+						} else if (id.equals(MetricsTreeContentProvider.CONNECT_SLACK_ID)) {
+							SlackManager.connectSlackWorkspace(() -> {
+								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ON_DARK_MODE_ID)) {
+							AppleScriptManager.toggleDarkMode(() -> {
+								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.SWITCH_OFF_DARK_MODE_ID)) {
+							AppleScriptManager.toggleDarkMode(() -> {
+								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.ADD_WORKSPACE_ID)) {
+							SlackManager.connectSlackWorkspace(() -> {
+								WallClockManager.refreshTree();
+							});
 						}
 					}
 				} catch (Exception e) {
@@ -171,7 +172,7 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 					public void run() {
 						try {
 							Object[] expandedEls = tv.getExpandedElements();
-							contentProvider.refreshData();
+							contentProvider.buildTreeNodes();
 							if (expandedEls != null) {
 								tv.setExpandedElements(expandedEls);
 							}
@@ -188,28 +189,6 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 			}
 
 		}
-	}
-
-	protected String getToggleItem(String label) {
-		String normalizedLabel = label.replaceAll("\\s+", "");
-        for (String toggleItem : toggleItems) {
-            // strip off "ct_" and "_toggle_node" and replace the "_" with ""
-            String normalizedToggleItem = toggleItem.replace("ct_", "").replace("_toggle_node", "").replaceAll("_", "");
-            if (normalizedLabel.toLowerCase().indexOf(normalizedToggleItem) != -1) {
-                return toggleItem;
-            }
-        }
-        return null;
-    }
-	
-	protected void sendNodeToggleEvent(String toggleItemName) {
-		if (toggleItemName != null) {
-            UIElementEntity uiElementEntity = new UIElementEntity();
-            uiElementEntity.element_location = "ct_metrics_tree";
-            uiElementEntity.element_name = toggleItemName;
-            uiElementEntity.cta_text = toggleItemName;
-            EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, uiElementEntity);
-        }
 	}
 
 }

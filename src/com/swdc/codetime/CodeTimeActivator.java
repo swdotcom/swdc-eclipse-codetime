@@ -26,13 +26,20 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.swdc.codetime.managers.EventTrackerManager;
-import com.swdc.codetime.managers.FileManager;
+import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.KeystrokePayload.FileInfo;
+import com.swdc.codetime.util.SWCoreImages;
+
+import swdc.java.ops.event.UserStateChangeModel;
+import swdc.java.ops.event.UserStateChangeObserver;
+import swdc.java.ops.manager.AccountManager;
+import swdc.java.ops.manager.ConfigManager;
+import swdc.java.ops.manager.FileUtilManager;
+
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
@@ -53,8 +60,8 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	public static final Logger LOG = Logger.getLogger("Software.com");
 
 	public static JsonParser jsonParser = new JsonParser();
-
-	public static Gson gson = new Gson();
+	
+	public static ProcessKeystrokePayloadTask task = null;
 
 	// Listeners (used to listen to file
 	// events such as opened, activated, input changed, etc
@@ -77,7 +84,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 	private static final IWorkbench workbench = PlatformUI.getWorkbench();
 	
-	public static ProcessKeystrokePayloadTask task = null;
+	private UserStateChangeObserver userStateChangeObserver;
 
 	/**
 	 * The constructor
@@ -99,12 +106,21 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	}
 
 	public void earlyStartup() {
-
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				String jwt = FileManager.getItem("jwt");
+				
+				ConfigManager.init(
+						SoftwareCoUtils.api_endpoint,
+						SoftwareCoUtils.launch_url,
+						SoftwareCoUtils.pluginId,
+						SoftwareCoUtils.pluginName,
+						SoftwareCoUtils.getVersion(),
+						SoftwareCoUtils.IDE_NAME,
+						SoftwareCoUtils.IDE_VERSION);
+
+				String jwt = FileUtilManager.getItem("jwt");
 				if (StringUtils.isBlank(jwt)) {
-					jwt = SoftwareCoUtils.createAnonymousUser(false);
+					jwt = AccountManager.createAnonymousUser(false);
 					if (StringUtils.isBlank(jwt)) {
 						boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
 						if (!serverIsOnline) {
@@ -154,13 +170,14 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				EventTrackerManager.getInstance().trackEditorAction("editor", "activate");
 
 				// start the wallclock
-				WallClockManager wcMgr = WallClockManager.getInstance();
-				wcMgr.updateSessionSummaryFromServer();
+				WallClockManager.getInstance().updateSessionSummaryFromServer();
+				
+				setupOpsListeners();
 
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				try {
 					ctMetricsTreeView = window.getActivePage().findView("com.swdc.codetime.tree.metricsTreeView");
-					wcMgr.setTreeView(ctMetricsTreeView);
+					WallClockManager.setTreeView(ctMetricsTreeView);
 				} catch (Exception e) {
 					System.err.println(e);
 				}
@@ -202,6 +219,14 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 			sendOfflineDataTimer = null;
 		}
 	}
+	
+	private void setupOpsListeners() {
+        if (userStateChangeObserver == null) {
+            userStateChangeObserver = new UserStateChangeObserver(new UserStateChangeModel(), () -> {
+                SessionDataManager.refreshSessionDataAndTree();
+            });
+        }
+    }
 
 	public static void displayCodeTimeMetricsTree() {
 		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
@@ -447,7 +472,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 	private void initializeUserInfo(boolean initializedUser) {
 		
-		String readmeDisplayed = FileManager.getItem("eclipse_CtReadme");
+		String readmeDisplayed = FileUtilManager.getItem("eclipse_CtReadme");
 		
         if (readmeDisplayed == null || Boolean.valueOf(readmeDisplayed) == false) {
             try {
@@ -455,7 +480,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 			} catch (Exception e) {
 				System.err.println(e);
 			}
-            FileManager.setItem("eclipse_CtReadme", "true");
+            FileUtilManager.setItem("eclipse_CtReadme", "true");
             
             CodeTimeActivator.displayCodeTimeMetricsTree();
         }
@@ -523,9 +548,9 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				MessageDialog dialog = new MessageDialog(
 						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), // parentShell
 						"Code Time Setup Complete", // dialogTitle
-						null, // dialogTitleImage
+						SWCoreImages.findImage("paw.png"), // dialogTitleImage
 						"Successfully logged onto Code Time", // dialogMessage
-						MessageDialog.INFORMATION, // dialogImageType
+						MessageDialog.NONE, // dialogImageType
 						new String[] { "Ok" }, // dialogButtonLabels
 						0 // defaultIndex
 				);

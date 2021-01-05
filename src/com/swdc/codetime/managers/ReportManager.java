@@ -20,6 +20,9 @@ import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
+
 public class ReportManager {
 
     private static int DASHBOARD_COL_WIDTH = 21;
@@ -29,23 +32,13 @@ public class ReportManager {
     private static SimpleDateFormat formatDayTime = new SimpleDateFormat("EEE, MMM d h:mma");
     private static SimpleDateFormat formatDayYear = new SimpleDateFormat("MMM d, YYYY");
 
-    public static String getProjectContributorSummaryFile() {
-        String file = FileManager.getSoftwareDir(true);
-        if (SoftwareCoUtils.isWindows()) {
-            file += "\\ProjectContributorCodeSummary.txt";
-        } else {
-            file += "/ProjectContributorCodeSummary.txt";
-        }
-        return file;
-    }
-
     public static void displayProjectContributorSummaryDashboard(String identifier) {
         StringBuffer sb = new StringBuffer();
-        String file = getProjectContributorSummaryFile();
+        String file = FileUtilManager.getProjectContributorSummaryFile();
 
         SoftwareCoProject p = SoftwareCoUtils.getActiveKeystrokeProject();
         if (p != null) {
-            SoftwareCoUtils.TimesData timesData = SoftwareCoUtils.getTimesData();
+            UtilManager.TimesData timesData = UtilManager.getTimesData();
             String email = GitUtil.getUsersEmail(p.directory);
             CommitChangeStats usersTodaysCommits = GitUtil.getTodaysCommits(p.directory, email);
             CommitChangeStats contribTodaysCommits = GitUtil.getTodaysCommits(p.directory, null);
@@ -118,8 +111,8 @@ public class ReportManager {
     }
 
     private static String getRowNumberData(String title, long userStat, long contribStat) {
-        String userStatStr = SoftwareCoUtils.humanizeLongNumbers(userStat);
-        String contribStatStr = SoftwareCoUtils.humanizeLongNumbers(contribStat);
+        String userStatStr = UtilManager.humanizeLongNumbers(userStat);
+        String contribStatStr = UtilManager.humanizeLongNumbers(contribStat);
         List<String> labels = Arrays.asList(title, userStatStr, contribStatStr);
         return getRowLabels(labels);
     }

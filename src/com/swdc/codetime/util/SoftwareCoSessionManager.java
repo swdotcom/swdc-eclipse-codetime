@@ -7,7 +7,6 @@ package com.swdc.codetime.util;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -17,14 +16,15 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 import java.util.logging.Logger;
 
-import org.apache.http.client.methods.HttpGet;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -40,10 +40,17 @@ import org.osgi.framework.Bundle;
 import com.google.gson.JsonObject;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.EventTrackerManager;
-import com.swdc.codetime.managers.FileManager;
-import com.swdc.codetime.managers.WallClockManager;
+import com.swdc.codetime.managers.SessionDataManager;
+import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
+
+import swdc.java.ops.http.ClientResponse;
+import swdc.java.ops.http.OpsHttpClient;
+import swdc.java.ops.manager.AccountManager;
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.UserState;
 
 /**
  * 
@@ -56,10 +63,7 @@ public class SoftwareCoSessionManager {
 
 	private static SoftwareCoSessionManager instance = null;
 
-	private static int lastDayOfMonth = 0;
-
 	private static String SERVICE_NOT_AVAIL = "Our service is temporarily unavailable.\n\nPlease try again later.\n";
-	private static long lastAppAvailableCheck = 0;
 
 	public static SoftwareCoSessionManager getInstance() {
 		if (instance == null) {
@@ -68,88 +72,39 @@ public class SoftwareCoSessionManager {
 		return instance;
 	}
 
-	public static boolean softwareSessionFileExists() {
-		// don't auto create the file
-		String file = FileManager.getSoftwareSessionFile(false);
-		// check if it exists
-		File f = new File(file);
-		return f.exists();
-	}
-
-	public static boolean jwtExists() {
-		String jwt = FileManager.getItem("jwt");
-		return (jwt != null && !jwt.equals(""));
-	}
-
 	public synchronized static boolean isServerOnline() {
-		long nowInSec = Math.round(System.currentTimeMillis() / 1000);
-		boolean pastThreshold = (nowInSec - lastAppAvailableCheck > 60) ? true : false;
-		if (pastThreshold) {
-			SoftwareResponse resp = SoftwareCoUtils.makeApiCall("/ping", HttpGet.METHOD_NAME, null);
-			SoftwareCoUtils.updateServerStatus(resp.isOk());
-			lastAppAvailableCheck = nowInSec;
-		}
-		return SoftwareCoUtils.isAppAvailable();
+		ClientResponse resp = OpsHttpClient.softwareGet("/ping", null);
+		return resp.isOk();
 	}
 
-	public void storePayload(String payload) {
-		if (payload == null || payload.length() == 0) {
-			return;
-		}
-		if (SoftwareCoUtils.isWindows()) {
-			payload += "\r\n";
-		} else {
-			payload += "\n";
-		}
-		String dataStoreFile = FileManager.getSoftwareDataStoreFile();
-		File f = new File(dataStoreFile);
-		try {
-			SWCoreLog.logInfoMessage("Code Time: Storing keystroke stats");
-			Writer output;
-			output = new BufferedWriter(new FileWriter(f, true)); // clears file every time
-			output.append(payload);
-			output.close();
-		} catch (Exception e) {
-			SWCoreLog.logErrorMessage("Code Time: Error appending to the Software data store file");
+	public static void fetchCodeTimeMetricsDashboard() {
+		String summaryInfoFile = FileUtilManager.getSummaryInfoFile();
+		String dashboardFile = FileUtilManager.getCodeTimeDashboardFile();
 
-			SWCoreLog.logException(e);
-		}
-	}
-
-	public static void fetchCodeTimeMetricsDashboard(JsonObject summary) {
-		String summaryInfoFile = FileManager.getSummaryInfoFile(true);
-		String dashboardFile = FileManager.getCodeTimeDashboardFile();
-
-		Calendar cal = Calendar.getInstance();
-		int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
 		Writer writer = null;
 		
 		// append the summary content
 		// Our service is temporarily unavailable
 		String summaryInfoContent = SoftwareCoOfflineManager.getInstance().getSessionSummaryInfoFileContent();
-		boolean hasServiceError = summaryInfoContent == null || summaryInfoContent.equals("") || summaryInfoContent.indexOf("unavailable") != -1 ? true : false;
 
-		if (hasServiceError || lastDayOfMonth == 0 || lastDayOfMonth != dayOfMonth) {
-			lastDayOfMonth = dayOfMonth;
-			String api = "/dashboard?linux=" + SoftwareCoUtils.isLinux() + "&showToday=true";
-			String dashboardSummary = SoftwareCoUtils.makeApiCall(api, HttpGet.METHOD_NAME, null).getJsonStr();
-			if (dashboardSummary == null || dashboardSummary.trim().isEmpty()) {
-				dashboardSummary = SERVICE_NOT_AVAIL;
-			}
+		String api = "/dashboard?linux=" + UtilManager.isLinux() + "&showToday=true";
+		String dashboardSummary = OpsHttpClient.softwareGet(api, FileUtilManager.getItem("jwt")).getJsonStr();
+		if (dashboardSummary == null || dashboardSummary.trim().isEmpty()) {
+			dashboardSummary = SERVICE_NOT_AVAIL;
+		}
 
-			// write the summary content
+		// write the summary content
+		try {
+			writer = new BufferedWriter(
+					new OutputStreamWriter(new FileOutputStream(summaryInfoFile), StandardCharsets.UTF_8));
+			writer.write(dashboardSummary);
+		} catch (IOException ex) {
+			// Report
+		} finally {
 			try {
-				writer = new BufferedWriter(
-						new OutputStreamWriter(new FileOutputStream(summaryInfoFile), StandardCharsets.UTF_8));
-				writer.write(dashboardSummary);
-			} catch (IOException ex) {
-				// Report
-			} finally {
-				try {
-					writer.close();
-				} catch (Exception ex) {
-					/* ignore */}
-			}
+				writer.close();
+			} catch (Exception ex) {
+				/* ignore */}
 		}
 
 		// concat summary info with the dashboard file
@@ -160,7 +115,7 @@ public class SoftwareCoSessionManager {
 		}
 
 		// write the dashboard content to the dashboard file
-		FileManager.saveFileContent(dashboardFile, dashboardContent);
+		FileUtilManager.saveFileContent(dashboardFile, dashboardContent);
 	}
 
 	public static void launchSoftwareTopForty() {
@@ -255,12 +210,11 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void launchCodeTimeMetricsDashboard(UIInteractionType type) {
-		JsonObject sessionSummary = FileManager.getSessionSummaryFileAsJson();
 		
 		// fetch the dashboard content and write it before displaying it
-		fetchCodeTimeMetricsDashboard(sessionSummary);
+		fetchCodeTimeMetricsDashboard();
 
-		String codeTimeFile = FileManager.getCodeTimeDashboardFile();
+		String codeTimeFile = FileUtilManager.getCodeTimeDashboardFile();
 
 		launchFile(codeTimeFile);
 		
@@ -284,49 +238,30 @@ public class SoftwareCoSessionManager {
 	}
 
 	protected static void lazilyFetchUserStatus(int retryCount) {
-		boolean loggedOn = SoftwareCoUtils.isLoggedOn();
+		UserState userState = AccountManager.getUserLoginState(false);
 
-		if (!loggedOn) {
+		if (!userState.loggedIn) {
 			if (retryCount > 0) {
 				final int newRetryCount = retryCount - 1;
 			
 				new Timer().schedule(new LazyUserStatusFetchTask(newRetryCount), 1000 * 10);
 			} else {
                 // clear the auth callback state
-                FileManager.setBooleanItem("switching_account", false);
-                FileManager.setAuthCallbackState(null);
+                FileUtilManager.setBooleanItem("switching_account", false);
+                FileUtilManager.setAuthCallbackState(null);
 			}
-		} else if (loggedOn) {
-			
-			// clear the auth callback state
-            FileManager.setBooleanItem("switching_account", false);
-            FileManager.setAuthCallbackState(null);
-			
-			// show the success prompt
-			CodeTimeActivator.showLoginSuccessPrompt();
-			
-			// update the session summary info to update the statusbar and tree
-			new Thread(() -> {
-				try {
-					Thread.sleep(1000);
-					WallClockManager wcMgr = WallClockManager.getInstance();
-					wcMgr.updateSessionSummaryFromServer();
-					wcMgr.dispatchStatusViewUpdate();
-				} catch (Exception e) {
-					System.err.println(e);
-				}
-			}).start();
+		} else {
+			SessionDataManager.refreshSessionDataAndTree();
 		}
 	}
 
 	public static void launchLogin(String loginType, boolean switching_account) {
 
-		String auth_callback_state = UUID.randomUUID().toString();
-        FileManager.setAuthCallbackState(auth_callback_state);
+		String auth_callback_state = FileUtilManager.getAuthCallbackState();
 
-        FileManager.setBooleanItem("switching_account", switching_account);
+        FileUtilManager.setBooleanItem("switching_account", switching_account);
 
-        String plugin_uuid = FileManager.getPluginUuid();
+        String plugin_uuid = FileUtilManager.getPluginUuid();
 
         JsonObject obj = new JsonObject();
         obj.addProperty("plugin", "codetime");
@@ -373,13 +308,17 @@ public class SoftwareCoSessionManager {
         }
         url += "?" + sb.toString();
 
-		FileManager.setItem("authType", loginType);
+		FileUtilManager.setItem("authType", loginType);
 
 		try {
-			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));
-		} catch (PartInitException | MalformedURLException e) {
-			SWCoreLog.logErrorMessage("Failed to launch the url: " + url);
-			SWCoreLog.logException(e);
+			UtilManager.launchUrl(url);
+		} catch (Exception e) {
+			try {
+				PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));
+			} catch (Exception ex) {
+				SWCoreLog.logErrorMessage("Failed to launch the url: " + url);
+				SWCoreLog.logException(ex);
+			}
 		}
 		
 		UIElementEntity elementEntity = new UIElementEntity();
@@ -394,6 +333,21 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void launchWebDashboard(UIInteractionType type) {
+		if (StringUtils.isBlank(FileUtilManager.getItem("name"))) {
+            SwingUtilities.invokeLater(() -> {
+                String msg = "Sign up or log in to see more data visualizations.";
+
+                Object[] options = {"Sign up"};
+                int choice = JOptionPane.showOptionDialog(
+                        null, msg, "Sign up", JOptionPane.OK_OPTION,
+                        JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+                if (choice == 0) {
+                    AuthPromptManager.initiateSignupFlow();
+                }
+            });
+            return;
+        }
 		String url = SoftwareCoUtils.webui_login_url;
 		try {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));

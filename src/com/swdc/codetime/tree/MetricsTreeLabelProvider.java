@@ -34,7 +34,7 @@ public class MetricsTreeLabelProvider implements ILabelProvider {
 
 	@Override
 	public Image getImage(Object node) {
-		String iconName = ((MetricsTreeNode)node).getIconName();
+		String iconName = ((MetricTreeNode)node).getIconName();
 		if (iconName != null) {
 			return SWCoreImages.findImage(iconName);
 		}
@@ -43,10 +43,10 @@ public class MetricsTreeLabelProvider implements ILabelProvider {
 
 	@Override
 	public String getText(Object node) {
-		if (((MetricsTreeNode)node).isSeparator()) {
+		if (((MetricTreeNode)node).isSeparator()) {
 			return "--------------------------------";
 		}
-		return ((MetricsTreeNode)node).getLabel();
+		return ((MetricTreeNode)node).getLabel();
 	}
 
 }
