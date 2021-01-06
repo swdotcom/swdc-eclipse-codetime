@@ -257,7 +257,7 @@ public class SoftwareCoSessionManager {
 
 	public static void launchLogin(String loginType, boolean switching_account) {
 
-		String auth_callback_state = FileUtilManager.getAuthCallbackState();
+		String auth_callback_state = FileUtilManager.getAuthCallbackState(true);
 
         FileUtilManager.setBooleanItem("switching_account", switching_account);
 
