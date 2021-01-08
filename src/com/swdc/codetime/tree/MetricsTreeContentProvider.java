@@ -214,7 +214,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	}
 
 	public MetricTreeNode buildSlackWorkspacesNode() {
-		List<Integration> workspaces = SlackManager.getSlackWorkspaces();
+		List<Integration> workspaces = SlackManager.getSlackWorkspaces(false);
 
 		List<MetricTreeNode> children = new ArrayList<MetricTreeNode>();
 		workspaces.forEach(workspace -> {
