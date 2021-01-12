@@ -1,5 +1,7 @@
 package com.swdc.codetime.handlers;
 
+import javax.swing.SwingUtilities;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -12,8 +14,10 @@ public class SlackConnectHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		SlackManager.connectSlackWorkspace(() -> {
-			WallClockManager.refreshTree();
+		SwingUtilities.invokeLater(() -> {
+			SlackManager.connectSlackWorkspace(() -> {
+				WallClockManager.refreshTree();
+			});
 		});
 		return null;
 	}
