@@ -15,6 +15,7 @@ import javax.swing.JPopupMenu;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 
+import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
 import com.swdc.codetime.managers.WallClockManager;
@@ -70,7 +71,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 	public static final String SLACK_WORKSPACES_NODE_ID = "slack_workspaces_node";
 	public static final String SWITCH_OFF_DARK_MODE_ID = "switch_off_dark_mode";
-	public static final String SWITCH_ON_DARK_MODE_ID = "switch_ON_dark_mode";
+	public static final String SWITCH_ON_DARK_MODE_ID = "switch_on_dark_mode";
 	public static final String TOGGLE_DOCK_POSITION_ID = "toggle_dock_position";
 	public static final String SWITCH_OFF_DND_ID = "switch_off_dnd";
 	public static final String SWITCH_ON_DND_ID = "switch_on_dnd";
@@ -79,6 +80,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public static final String SET_PRESENCE_AWAY_ID = "set_presence_away";
 	public static final String SET_PRESENCE_ACTIVE_ID = "set_presence_active";
 	public static final String SET_SLACK_STATUS_ID = "set_slack_status";
+	public static final String TOGGLE_FULL_SCREEN_MODE_ID = "toggle_full_screen_mode";
 
 	private MetricLabel mLabels = new MetricLabel();
 	private Map<String, MetricTreeNode[]> contentMap = new HashMap<String, MetricTreeNode[]>();
@@ -264,6 +266,9 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public static List<MetricTreeNode> buildTreeFlowNodes() {
 		List<MetricTreeNode> list = new ArrayList<>();
 		
+		// full screen toggle node
+		list.add(getToggleFullScreenNode());
+		
 		// add the status update button
 		list.add(getSetSlackStatusNode());
 
@@ -295,6 +300,16 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 		return list;
 	}
+	
+	public static MetricTreeNode getToggleFullScreenNode() {
+        String label = "Enter full screen";
+        String icon = "expand.png";
+        if (ScreenManager.isFullScreen()) {
+            label = "Exit full screen";
+            icon = "compress.png";
+        }
+        return new MetricTreeNode(label, icon, TOGGLE_FULL_SCREEN_MODE_ID);
+    }
 	
 	public static MetricTreeNode getSetSlackStatusNode() {
         SlackUserProfile userProfile = SlackManager.getSlackStatus();

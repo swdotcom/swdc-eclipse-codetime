@@ -28,6 +28,7 @@ import org.osgi.framework.BundleContext;
 
 import com.google.gson.JsonParser;
 import com.swdc.codetime.managers.EventTrackerManager;
+import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.KeystrokePayload;
@@ -183,6 +184,8 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				}
 
 				initializeUserInfo(initializedUser);
+				
+				ScreenManager.workbench = workbench;
 			}
 		});
 	}

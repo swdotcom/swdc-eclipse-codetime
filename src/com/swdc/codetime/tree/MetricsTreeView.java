@@ -19,6 +19,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
 import com.swdc.codetime.managers.AuthPromptManager;
+import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
@@ -160,6 +161,10 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 							FileUtilManager.setItem("reference-class", refClass);
 							SwingUtilities.invokeLater(() -> {
 								WallClockManager.refreshTree();
+							});
+						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_FULL_SCREEN_MODE_ID)) {
+							SwingUtilities.invokeLater(() -> {
+								ScreenManager.toggleFullScreen();
 							});
 						} else if (parentId != null
 								&& parentId.equals(MetricsTreeContentProvider.SLACK_WORKSPACES_NODE_ID)
