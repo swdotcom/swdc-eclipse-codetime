@@ -1,16 +1,24 @@
 package com.swdc.codetime.tree;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 
+import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
+import com.swdc.codetime.managers.WallClockManager;
 
 import swdc.java.ops.manager.AppleScriptManager;
 import swdc.java.ops.manager.FileUtilManager;
@@ -22,6 +30,7 @@ import swdc.java.ops.model.MetricLabel;
 import swdc.java.ops.model.SessionSummary;
 import swdc.java.ops.model.SlackDndInfo;
 import swdc.java.ops.model.SlackUserPresence;
+import swdc.java.ops.model.SlackUserProfile;
 
 public class MetricsTreeContentProvider implements ITreeContentProvider {
 
@@ -44,6 +53,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public static final String ACTIVE_CODETIME_TODAY_ID = "active_codetime_today";
 	public static final String ACTIVE_CODETIME_AVG_TODAY_ID = "active_codetime_avg_today";
 	public static final String ACTIVE_CODETIME_GLOBAL_AVG_TODAY_ID = "active_codetime_global_avg_today";
+	public static final String TODAY_VS_AVG_ID = "today_vs_average";
 
 	public static final String LINES_ADDED_TODAY_ID = "lines_added_today";
 	public static final String LINES_ADDED_AVG_TODAY_ID = "lines_added_avg_today";
@@ -61,7 +71,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 	public static final String SLACK_WORKSPACES_NODE_ID = "slack_workspaces_node";
 	public static final String SWITCH_OFF_DARK_MODE_ID = "switch_off_dark_mode";
-	public static final String SWITCH_ON_DARK_MODE_ID = "switch_ON_dark_mode";
+	public static final String SWITCH_ON_DARK_MODE_ID = "switch_on_dark_mode";
 	public static final String TOGGLE_DOCK_POSITION_ID = "toggle_dock_position";
 	public static final String SWITCH_OFF_DND_ID = "switch_off_dnd";
 	public static final String SWITCH_ON_DND_ID = "switch_on_dnd";
@@ -69,6 +79,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public static final String ADD_WORKSPACE_ID = "add_workspace";
 	public static final String SET_PRESENCE_AWAY_ID = "set_presence_away";
 	public static final String SET_PRESENCE_ACTIVE_ID = "set_presence_active";
+	public static final String SET_SLACK_STATUS_ID = "set_slack_status";
+	public static final String TOGGLE_FULL_SCREEN_MODE_ID = "toggle_full_screen_mode";
 
 	private MetricLabel mLabels = new MetricLabel();
 	private Map<String, MetricTreeNode[]> contentMap = new HashMap<String, MetricTreeNode[]>();
@@ -121,6 +133,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		// create the separator
 		mNodeList.add(getSeparatorLine());
 
+		mNodeList.add(buildTodayVsAverageNode());
 		mNodeList.add(getCodeTimeStatsButton(mLabels));
 		mNodeList.add(getActiveCodeTimeStatsButton(mLabels));
 		mNodeList.add(getLinesAddedStatsButton(mLabels));
@@ -214,17 +227,21 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	}
 
 	public MetricTreeNode buildSlackWorkspacesNode() {
+		MetricTreeNode workspacesFolderNode = new MetricTreeNode("Slack workspaces", null, SLACK_WORKSPACES_NODE_ID);
 		List<Integration> workspaces = SlackManager.getSlackWorkspaces(false);
 
 		List<MetricTreeNode> children = new ArrayList<MetricTreeNode>();
 		workspaces.forEach(workspace -> {
-			children.add(new MetricTreeNode(workspace.team_domain, "slack.png", workspace.authId));
+			MetricTreeNode workspaceNode = new MetricTreeNode(workspace.team_domain, "slack.png", workspace.authId);
+			workspaceNode.setAllowsChildren(false);
+			workspaceNode.setParent(workspacesFolderNode);
+			children.add(workspaceNode);
 		});
 		children.add(getAddSlackWorkspaceNode());
 		MetricTreeNode[] childnodes = Arrays.copyOf(children.toArray(), children.size(), MetricTreeNode[].class);
 		contentMap.put(SLACK_WORKSPACES_NODE_ID, childnodes);
 
-		return new MetricTreeNode("Slack workspaces", null, SLACK_WORKSPACES_NODE_ID);
+		return workspacesFolderNode;
 	}
 
 	public static MetricTreeNode getAddSlackWorkspaceNode() {
@@ -248,6 +265,12 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	//////////////////////////////////////
 	public static List<MetricTreeNode> buildTreeFlowNodes() {
 		List<MetricTreeNode> list = new ArrayList<>();
+		
+		// full screen toggle node
+		list.add(getToggleFullScreenNode());
+		
+		// add the status update button
+		list.add(getSetSlackStatusNode());
 
 		SlackDndInfo slackDndInfo = SlackManager.getSlackDnDInfo();
 
@@ -277,6 +300,22 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 		return list;
 	}
+	
+	public static MetricTreeNode getToggleFullScreenNode() {
+        String label = "Enter full screen";
+        String icon = "expand.png";
+        if (ScreenManager.isFullScreen()) {
+            label = "Exit full screen";
+            icon = "compress.png";
+        }
+        return new MetricTreeNode(label, icon, TOGGLE_FULL_SCREEN_MODE_ID);
+    }
+	
+	public static MetricTreeNode getSetSlackStatusNode() {
+        SlackUserProfile userProfile = SlackManager.getSlackStatus();
+        String status = (userProfile != null && StringUtils.isNotBlank(userProfile.status_text)) ? " (" + userProfile.status_text + ")" : "";
+        return new MetricTreeNode("Update profile status" + status, "profile.png", SET_SLACK_STATUS_ID);
+    }
 
 	public static MetricTreeNode getSwitchOffDarkModeNode() {
 		return new MetricTreeNode("Turn off dark mode", "adjust.png", SWITCH_OFF_DARK_MODE_ID);
@@ -307,8 +346,14 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	//////////////////////////////////////
 	// KPM TREE VIEW BUTTONS
 	//////////////////////////////////////
+	public static MetricTreeNode buildTodayVsAverageNode() {
+        String refClass = FileUtilManager.getItem("reference-class", "user");
+        String labelExt = refClass.equals("user") ? " your daily average" : " the global daily average";
+        return new MetricTreeNode("Today vs." + labelExt, "today.png", TODAY_VS_AVG_ID);
+    }
+	
 	public MetricTreeNode getCodeTimeStatsButton(MetricLabel labels) {
-		return new MetricTreeNode(labels.codeTime, "rocket.png", CODETIME_TODAY_ID);
+		return new MetricTreeNode(labels.codeTime, labels.codeTimeIcon, CODETIME_TODAY_ID);
 	}
 
 	public MetricTreeNode getActiveCodeTimeStatsButton(MetricLabel labels) {
@@ -334,5 +379,29 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public MetricTreeNode getWebDashboardButton() {
 		return new MetricTreeNode("More data at Software.com", "paw.png", ADVANCED_METRICS_ID);
 	}
+	
+	public static void handleRightClickEvent(MetricTreeNode node, MouseEvent e) {
+        String parentId = node.getParent() != null ? ((MetricTreeNode)node.getParent()).getId() : null;
+        // handle the slack workspace selection
+        if (parentId != null
+                && parentId.equals(SLACK_WORKSPACES_NODE_ID)
+                && !node.getId().equals(ADD_WORKSPACE_ID)) {
+            JPopupMenu popupMenu = buildWorkspaceMenu(node.getId());
+            popupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+    }
+	
+	public static JPopupMenu buildWorkspaceMenu(String authId) {
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem removeWorkspaceItem = new JMenuItem("Remove workspace");
+        removeWorkspaceItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SlackManager.disconnectSlackAuth(authId, () -> {WallClockManager.refreshTree();});
+			}
+		});
+        menu.add(removeWorkspaceItem);
+        return menu;
+    }
 
 }

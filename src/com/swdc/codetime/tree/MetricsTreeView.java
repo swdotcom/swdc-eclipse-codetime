@@ -1,10 +1,10 @@
 package com.swdc.codetime.tree;
 
+import javax.swing.SwingUtilities;
+
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -19,12 +19,14 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
 import com.swdc.codetime.managers.AuthPromptManager;
+import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 import swdc.java.ops.manager.AppleScriptManager;
+import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.SlackManager;
 
 public class MetricsTreeView extends ViewPart implements ISelectionListener {
@@ -32,6 +34,7 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 	private MetricsTreeContentProvider contentProvider;
 	private MetricsTreeLabelProvider labelProvider;
 	private TreeViewer tv;
+	Object[] expandedEls;
 
 	private boolean refreshingTree = false;
 
@@ -58,25 +61,6 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 		tv.setLabelProvider(labelProvider);
 		tv.setInput(MetricsTreeContentProvider.ROOT_KEY);
 
-		tv.addTreeListener(new ITreeViewerListener() {
-
-			@Override
-			public void treeExpanded(TreeExpansionEvent event) {
-				MetricTreeNode node = (MetricTreeNode) event.getElement();
-				if (node != null) {
-					node.getLabel();
-				}
-			}
-
-			@Override
-			public void treeCollapsed(TreeExpansionEvent event) {
-				MetricTreeNode node = (MetricTreeNode) event.getElement();
-				if (node != null) {
-					node.getLabel();
-				}
-			}
-		});
-
 		tv.addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override
@@ -86,10 +70,11 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 					if (selection.getFirstElement() != null) {
 						MetricTreeNode node = (MetricTreeNode) selection.getFirstElement();
 						String id = node.getId();
+						String parentId = node.getParent() != null ? ((MetricTreeNode)node.getParent()).getId() : null;
 						if (id.equals(MetricsTreeContentProvider.SIGN_UP_ID)) {
-			                AuthPromptManager.initiateSignupFlow();
+							AuthPromptManager.initiateSignupFlow();
 						} else if (id.equals(MetricsTreeContentProvider.LOG_IN_ID)) {
-			                AuthPromptManager.initiateLoginFlow();
+							AuthPromptManager.initiateLoginFlow();
 						} else if (id.equals(MetricsTreeContentProvider.VIEW_SUMMARY_ID)) {
 							SoftwareCoSessionManager.launchCodeTimeMetricsDashboard(UIInteractionType.click);
 						} else if (id.equals(MetricsTreeContentProvider.ADVANCED_METRICS_ID)) {
@@ -109,39 +94,82 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ACCOUNT_ID)) {
 							AuthPromptManager.initiateSwitchAccountFlow();
 						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ON_DND_ID)) {
-							SlackManager.enableSlackNotifications(() -> {
-								WallClockManager.refreshTree();
+							SwingUtilities.invokeLater(() -> {
+								SlackManager.enableSlackNotifications(() -> {
+									WallClockManager.refreshTree();
+								});
 							});
 						} else if (id.equals(MetricsTreeContentProvider.SWITCH_OFF_DND_ID)) {
-							SlackManager.pauseSlackNotifications(() -> {
-								WallClockManager.refreshTree();
+							SwingUtilities.invokeLater(() -> {
+								SlackManager.pauseSlackNotifications(() -> {
+									WallClockManager.refreshTree();
+								});
 							});
 						} else if (id.equals(MetricsTreeContentProvider.SET_PRESENCE_ACTIVE_ID)) {
-							SlackManager.toggleSlackPresence("auto", () -> {
-								WallClockManager.refreshTree();
+							SwingUtilities.invokeLater(() -> {
+								SlackManager.toggleSlackPresence("auto", () -> {
+									WallClockManager.refreshTree();
+								});
 							});
 						} else if (id.equals(MetricsTreeContentProvider.SET_PRESENCE_AWAY_ID)) {
-							SlackManager.toggleSlackPresence("away", () -> {
-								WallClockManager.refreshTree();
+							SwingUtilities.invokeLater(() -> {
+								SlackManager.toggleSlackPresence("away", () -> {
+									WallClockManager.refreshTree();
+								});
 							});
 						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_DOCK_POSITION_ID)) {
-							AppleScriptManager.toggleDock();
+							SwingUtilities.invokeLater(() -> {
+								AppleScriptManager.toggleDock();
+							});
 						} else if (id.equals(MetricsTreeContentProvider.CONNECT_SLACK_ID)) {
-							SlackManager.connectSlackWorkspace(() -> {
-								WallClockManager.refreshTree();
+							SwingUtilities.invokeLater(() -> {
+								SlackManager.connectSlackWorkspace(() -> {
+									WallClockManager.refreshTree();
+								});
 							});
 						} else if (id.equals(MetricsTreeContentProvider.SWITCH_ON_DARK_MODE_ID)) {
-							AppleScriptManager.toggleDarkMode(() -> {
-								WallClockManager.refreshTree();
+							SwingUtilities.invokeLater(() -> {
+								AppleScriptManager.toggleDarkMode(() -> {
+									WallClockManager.refreshTree();
+								});
 							});
 						} else if (id.equals(MetricsTreeContentProvider.SWITCH_OFF_DARK_MODE_ID)) {
-							AppleScriptManager.toggleDarkMode(() -> {
-								WallClockManager.refreshTree();
+							SwingUtilities.invokeLater(() -> {
+								AppleScriptManager.toggleDarkMode(() -> {
+									WallClockManager.refreshTree();
+								});
 							});
 						} else if (id.equals(MetricsTreeContentProvider.ADD_WORKSPACE_ID)) {
-							SlackManager.connectSlackWorkspace(() -> {
+							SwingUtilities.invokeLater(() -> {
+								SlackManager.connectSlackWorkspace(() -> {
+									WallClockManager.refreshTree();
+								});
+							});
+						} else if (id.equals(MetricsTreeContentProvider.SET_SLACK_STATUS_ID)) {
+							SwingUtilities.invokeLater(() -> {
+								SlackManager.setProfileStatus(() -> {
+									WallClockManager.refreshTree();
+								});
+							});
+						} else if (id.equals(MetricsTreeContentProvider.TODAY_VS_AVG_ID)) {
+							String refClass = FileUtilManager.getItem("reference-class", "user");
+							if (refClass.equals("user")) {
+								refClass = "global";
+							} else {
+								refClass = "user";
+							}
+							FileUtilManager.setItem("reference-class", refClass);
+							SwingUtilities.invokeLater(() -> {
 								WallClockManager.refreshTree();
 							});
+						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_FULL_SCREEN_MODE_ID)) {
+							SwingUtilities.invokeLater(() -> {
+								ScreenManager.toggleFullScreen();
+							});
+						} else if (parentId != null
+								&& parentId.equals(MetricsTreeContentProvider.SLACK_WORKSPACES_NODE_ID)
+								&& !id.equals(MetricsTreeContentProvider.ADD_WORKSPACE_ID)) {
+							// show the right click menu
 						}
 					}
 				} catch (Exception e) {
@@ -165,14 +193,17 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 
 	public void refreshTree() {
 		if (contentProvider != null && !refreshingTree) {
-			refreshingTree = true;
 
 			try {
 				Display.getDefault().asyncExec(new Runnable() {
 					public void run() {
+						refreshingTree = true;
 						try {
+							// get the expanded elements before we rebuild the tree nodes
 							Object[] expandedEls = tv.getExpandedElements();
+							// rebuild
 							contentProvider.buildTreeNodes();
+							// update the tree with the expanded elements
 							if (expandedEls != null) {
 								tv.setExpandedElements(expandedEls);
 							}
