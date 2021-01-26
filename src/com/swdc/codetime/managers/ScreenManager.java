@@ -20,6 +20,58 @@ public class ScreenManager {
 		}
 		return false;
 	}
+	
+	public static boolean enterFullScreenMode() {
+		boolean shouldExpand = false;
+        Shell shell = null;
+        try {
+        	shell = workbench.getActiveWorkbenchWindow().getShell();
+            if (shell != null) {
+                if (!shell.getFullScreen()) {
+                	shouldExpand = true;
+                }
+            }
+        } catch (Exception e) {
+            //
+        }
+        if (shell != null && shouldExpand) {
+            final Shell winShell = shell;
+            try {
+                SwingUtilities.invokeLater(() -> {
+                    winShell.setFullScreen(false);
+                });
+            } catch (Exception e) {
+                //
+            }
+        }
+        return shouldExpand;
+    }
+    
+    public static boolean exitFullScreenMode() {
+        boolean shouldCollapse = false;
+        Shell shell = null;
+        try {
+        	shell = workbench.getActiveWorkbenchWindow().getShell();
+            if (shell != null) {
+                if (shell.getFullScreen()) {
+                    shouldCollapse = true;
+                }
+            }
+        } catch (Exception e) {
+            //
+        }
+        if (shell != null && shouldCollapse) {
+            final Shell winShell = shell;
+            try {
+                SwingUtilities.invokeLater(() -> {
+                    winShell.setFullScreen(false);
+                });
+            } catch (Exception e) {
+                //
+            }
+        }
+        return shouldCollapse;
+    }
 
 	public static void toggleFullScreen() {
 		if (workbench != null) {

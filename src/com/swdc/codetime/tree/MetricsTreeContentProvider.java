@@ -221,7 +221,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	}
 
 	public List<MetricTreeNode> getSignupButtons() {
-		MetricTreeNode signUpItem = new MetricTreeNode("Sign up", "signup.png", SIGN_UP_ID);
+		MetricTreeNode signUpItem = new MetricTreeNode("Sign up", "paw.png", SIGN_UP_ID);
 		MetricTreeNode logInItem = new MetricTreeNode("Log in", "paw.png", LOG_IN_ID);
 		return new ArrayList<MetricTreeNode>(Arrays.asList(signUpItem, logInItem));
 	}
