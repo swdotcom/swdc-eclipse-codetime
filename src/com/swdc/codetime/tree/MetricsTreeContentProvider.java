@@ -15,16 +15,19 @@ import javax.swing.JPopupMenu;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 
+import com.swdc.codetime.managers.FlowManager;
 import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
 import com.swdc.codetime.managers.WallClockManager;
 
 import swdc.java.ops.manager.AppleScriptManager;
+import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.SlackManager;
 import swdc.java.ops.manager.UtilManager;
 import swdc.java.ops.model.CodeTimeSummary;
+import swdc.java.ops.model.ConfigSettings;
 import swdc.java.ops.model.Integration;
 import swdc.java.ops.model.MetricLabel;
 import swdc.java.ops.model.SessionSummary;
@@ -70,6 +73,10 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public static final String SWITCH_ACCOUNT_ID = "switch_account";
 
 	public static final String SLACK_WORKSPACES_NODE_ID = "slack_workspaces_node";
+    public static final String AUTOMATIONS_NODE_ID = "flow_mode_automations";
+    public static final String FLOW_MODE_SETTINGS_ID = "flow_mode_settings";
+    public static final String ENABLE_FLOW_MODE_ID = "enable_flow_mode";
+    public static final String PAUSE_FLOW_MODE_ID = "pause_flow_mode";
 	public static final String SWITCH_OFF_DARK_MODE_ID = "switch_off_dark_mode";
 	public static final String SWITCH_ON_DARK_MODE_ID = "switch_on_dark_mode";
 	public static final String TOGGLE_DOCK_POSITION_ID = "toggle_dock_position";
@@ -80,7 +87,13 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public static final String SET_PRESENCE_AWAY_ID = "set_presence_away";
 	public static final String SET_PRESENCE_ACTIVE_ID = "set_presence_active";
 	public static final String SET_SLACK_STATUS_ID = "set_slack_status";
-	public static final String TOGGLE_FULL_SCREEN_MODE_ID = "toggle_full_screen_mode";
+	public static final String ENTER_FULL_SCREEN_MODE_ID = "enter_full_screen_mode";
+    public static final String EXIT_FULL_SCREEN_MODE_ID = "exit_full_screen_mode";
+	
+	public static final String PAUSE_NOTIFICATIONS_SETTING_ID = "pause_notifications_setting";
+    public static final String SLACK_AWAY_STATUS_SETTING_ID = "slack_away_status_setting";
+    public static final String SLACK_AWAY_STATUS_TEXT_SETTING_ID = "slack_away_status_text_setting";
+    public static final String SCREEN_MODE_SETTING_ID = "screen_mode_setting";
 
 	private MetricLabel mLabels = new MetricLabel();
 	private Map<String, MetricTreeNode[]> contentMap = new HashMap<String, MetricTreeNode[]>();
@@ -128,7 +141,9 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		mNodeList.add(getSeparatorLine());
 
 		// create the flow nodes
-		mNodeList.addAll(buildTreeFlowNodes());
+		mNodeList.add(getFlowModeNode());
+		mNodeList.add(buildFlowModeSettingsNode());
+		mNodeList.add(buildAutomationNode());
 
 		// create the separator
 		mNodeList.add(getSeparatorLine());
@@ -233,8 +248,6 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		List<MetricTreeNode> children = new ArrayList<MetricTreeNode>();
 		workspaces.forEach(workspace -> {
 			MetricTreeNode workspaceNode = new MetricTreeNode(workspace.team_domain, "slack.png", workspace.authId);
-			workspaceNode.setAllowsChildren(false);
-			workspaceNode.setParent(workspacesFolderNode);
 			children.add(workspaceNode);
 		});
 		children.add(getAddSlackWorkspaceNode());
@@ -246,6 +259,37 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 	public static MetricTreeNode getAddSlackWorkspaceNode() {
 		return new MetricTreeNode("Add workspace", "add.png", ADD_WORKSPACE_ID);
+	}
+	
+	public MetricTreeNode buildFlowModeSettingsNode() {
+		MetricTreeNode settingsFolder = new MetricTreeNode("Settings", null, FLOW_MODE_SETTINGS_ID);
+		
+		List<MetricTreeNode> children = new ArrayList<MetricTreeNode>();
+		
+		ConfigSettings settings = ConfigManager.getConfigSettings();
+        String notificationsVal = settings.pauseSlackNotifications ? "on" : "off";
+        // Pause notifications
+        MetricTreeNode pauseNode = new MetricTreeNode("Pause notifications (" + notificationsVal + ")", "profile.png", PAUSE_NOTIFICATIONS_SETTING_ID);
+        children.add(pauseNode);
+        
+        String awayStatusVal = settings.slackAwayStatus ? "on" : "off";
+        // Slack away status
+        MetricTreeNode slackAwayNode = new MetricTreeNode("Slack away status (" + awayStatusVal + ")", "profile.png", SLACK_AWAY_STATUS_SETTING_ID);
+        children.add(slackAwayNode);
+        
+        String awayStatusTextVal = (StringUtils.isNotBlank(settings.slackAwayStatusText)) ? " (" + settings.slackAwayStatusText + ")" : "";
+        // Slackaway status text
+        MetricTreeNode slackAwayTextNode = new MetricTreeNode("Slack away text" + awayStatusTextVal, "profile.png", SLACK_AWAY_STATUS_TEXT_SETTING_ID);
+        children.add(slackAwayTextNode);
+        
+        // Screen mode
+        MetricTreeNode screenModeNode = new MetricTreeNode("Screen mode (" + settings.screenMode + ")", "profile.png", SCREEN_MODE_SETTING_ID);
+        children.add(screenModeNode);
+        
+        MetricTreeNode[] childnodes = Arrays.copyOf(children.toArray(), children.size(), MetricTreeNode[].class);
+		contentMap.put(FLOW_MODE_SETTINGS_ID, childnodes);
+        
+		return settingsFolder;
 	}
 
 	public MetricTreeNode getLoggedInButton() {
@@ -263,52 +307,71 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	//////////////////////////////////////
 	// FLOW TREE VIEW BUTTONS
 	//////////////////////////////////////
-	public static List<MetricTreeNode> buildTreeFlowNodes() {
-		List<MetricTreeNode> list = new ArrayList<>();
+	public MetricTreeNode getFlowModeNode() {
+        String label = "Enable flow mode";
+        String icon = "dot-outlined.png";
+        String id = ENABLE_FLOW_MODE_ID;
+        if (FlowManager.isInFlowMode()) {
+            label = "Pause Flow Mode";
+            icon = "dot.png";
+            id = PAUSE_FLOW_MODE_ID;
+        }
+        return new MetricTreeNode(label, icon, id);
+    }
+	
+	public MetricTreeNode buildAutomationNode() {
+		MetricTreeNode automationFolder = new MetricTreeNode("Automations", null, AUTOMATIONS_NODE_ID);
+		
+		List<MetricTreeNode> children = new ArrayList<>();
 		
 		// full screen toggle node
-		list.add(getToggleFullScreenNode());
+		children.add(getToggleFullScreenNode());
 		
 		// add the status update button
-		list.add(getSetSlackStatusNode());
+		children.add(getSetSlackStatusNode());
 
 		SlackDndInfo slackDndInfo = SlackManager.getSlackDnDInfo();
 
 		// snooze node
 		if (slackDndInfo.snooze_enabled) {
-			list.add(getUnPausenotificationsNode(slackDndInfo));
+			children.add(getUnPausenotificationsNode(slackDndInfo));
 		} else {
-			list.add(getPauseNotificationsNode());
+			children.add(getPauseNotificationsNode());
 		}
 		// presence toggle
 		SlackUserPresence slackUserPresence = SlackManager.getSlackUserPresence();
 		if (slackUserPresence != null && slackUserPresence.presence.equals("active")) {
-			list.add(getSetAwayPresenceNode());
+			children.add(getSetAwayPresenceNode());
 		} else {
-			list.add(getSetActivePresenceNode());
+			children.add(getSetActivePresenceNode());
 		}
 
 		if (UtilManager.isMac()) {
 			if (AppleScriptManager.isDarkMode()) {
-				list.add(getSwitchOffDarkModeNode());
+				children.add(getSwitchOffDarkModeNode());
 			} else {
-				list.add(getSwitchOnDarkModeNode());
+				children.add(getSwitchOnDarkModeNode());
 			}
 
-			list.add(new MetricTreeNode("Toggle dock position", "position.png", TOGGLE_DOCK_POSITION_ID));
+			children.add(new MetricTreeNode("Toggle dock position", "position.png", TOGGLE_DOCK_POSITION_ID));
 		}
+		
+		MetricTreeNode[] childnodes = Arrays.copyOf(children.toArray(), children.size(), MetricTreeNode[].class);
+		contentMap.put(AUTOMATIONS_NODE_ID, childnodes);
 
-		return list;
+		return automationFolder;
 	}
 	
 	public static MetricTreeNode getToggleFullScreenNode() {
         String label = "Enter full screen";
         String icon = "expand.png";
+        String id = ENTER_FULL_SCREEN_MODE_ID;
         if (ScreenManager.isFullScreen()) {
             label = "Exit full screen";
             icon = "compress.png";
+            id = EXIT_FULL_SCREEN_MODE_ID;
         }
-        return new MetricTreeNode(label, icon, TOGGLE_FULL_SCREEN_MODE_ID);
+        return new MetricTreeNode(label, icon, id);
     }
 	
 	public static MetricTreeNode getSetSlackStatusNode() {
