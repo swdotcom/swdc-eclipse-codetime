@@ -19,6 +19,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
 import com.swdc.codetime.managers.AuthPromptManager;
+import com.swdc.codetime.managers.FlowManager;
 import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
@@ -26,6 +27,7 @@ import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 import swdc.java.ops.manager.AppleScriptManager;
+import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.SlackManager;
 
@@ -162,14 +164,30 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 							SwingUtilities.invokeLater(() -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricsTreeContentProvider.TOGGLE_FULL_SCREEN_MODE_ID)) {
-							SwingUtilities.invokeLater(() -> {
-								ScreenManager.toggleFullScreen();
-							});
 						} else if (parentId != null
 								&& parentId.equals(MetricsTreeContentProvider.SLACK_WORKSPACES_NODE_ID)
 								&& !id.equals(MetricsTreeContentProvider.ADD_WORKSPACE_ID)) {
 							// show the right click menu
+						} else if (id.equals(MetricsTreeContentProvider.ENTER_FULL_SCREEN_MODE_ID)) {
+			                SwingUtilities.invokeLater(() -> {
+			                    ScreenManager.enterFullScreenMode();
+			                });
+						} else if (id.equals(MetricsTreeContentProvider.EXIT_FULL_SCREEN_MODE_ID)) {
+			                SwingUtilities.invokeLater(() -> {
+			                    ScreenManager.exitFullScreenMode();
+			                });
+						} else if (id.equals(MetricsTreeContentProvider.ENABLE_FLOW_MODE_ID)) {
+							FlowManager.initiateFlow();
+						} else if (id.equals(MetricsTreeContentProvider.PAUSE_FLOW_MODE_ID)) {
+							FlowManager.pauseFlowInitiate();
+						} else if (id.equals(MetricsTreeContentProvider.SCREEN_MODE_SETTING_ID)) {
+							ConfigManager.modifyScreenMode(() -> {WallClockManager.refreshTree();});
+						} else if (id.equals(MetricsTreeContentProvider.PAUSE_NOTIFICATIONS_SETTING_ID)) {
+							ConfigManager.modifyPauseNotifications(() -> {WallClockManager.refreshTree();});
+						} else if (id.equals(MetricsTreeContentProvider.SLACK_AWAY_STATUS_SETTING_ID)) {
+							ConfigManager.modifySlackAwayStatus(() -> {WallClockManager.refreshTree();});
+						} else if (id.equals(MetricsTreeContentProvider.SLACK_AWAY_STATUS_TEXT_SETTING_ID)) {
+							ConfigManager.modifySlackStatusText(() -> {WallClockManager.refreshTree();});
 						}
 					}
 				} catch (Exception e) {
@@ -201,13 +219,17 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 						try {
 							// get the expanded elements before we rebuild the tree nodes
 							Object[] expandedEls = tv.getExpandedElements();
+							
 							// rebuild
 							contentProvider.buildTreeNodes();
+							
 							// update the tree with the expanded elements
-							if (expandedEls != null) {
+							if (expandedEls != null && expandedEls.length > 0) {
 								tv.setExpandedElements(expandedEls);
 							}
+							
 							tv.refresh();
+							
 						} catch (Exception e) {
 							//
 						} finally {

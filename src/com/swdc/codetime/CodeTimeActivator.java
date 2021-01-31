@@ -169,6 +169,8 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				EventTrackerManager.getInstance().init();
 				// send the 1st event: activate
 				EventTrackerManager.getInstance().trackEditorAction("editor", "activate");
+				
+				ScreenManager.init(null);
 
 				// start the wallclock
 				WallClockManager.getInstance().updateSessionSummaryFromServer();
@@ -184,8 +186,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				}
 
 				initializeUserInfo(initializedUser);
-				
-				ScreenManager.workbench = workbench;
 			}
 		});
 	}
@@ -234,10 +234,12 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	public static void displayCodeTimeMetricsTree() {
 		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 		try {
-			window.getActivePage().showView("com.swdc.codetime.tree.metricsTreeView");
-			if (ctMetricsTreeView != null) {
-				ctMetricsTreeView.setFocus();
-				window.getActivePage().activate(ctMetricsTreeView);
+			if (window != null) {
+				window.getActivePage().showView("com.swdc.codetime.tree.metricsTreeView");
+				if (ctMetricsTreeView != null) {
+					ctMetricsTreeView.setFocus();
+					window.getActivePage().activate(ctMetricsTreeView);
+				}
 			}
 		} catch (Exception e) {
 			System.err.println(e);
