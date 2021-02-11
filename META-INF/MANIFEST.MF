@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Code Time
 Bundle-SymbolicName: com.swdc.codetime;singleton:=true
-Bundle-Version: 2.3.5
+Bundle-Version: 2.3.6
 Bundle-Activator: com.swdc.codetime.CodeTimeActivator
 Bundle-Vendor: Software.com
 Require-Bundle: org.eclipse.ui,
