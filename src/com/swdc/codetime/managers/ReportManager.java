@@ -99,7 +99,7 @@ public class ReportManager {
             try {writer.close();} catch (Exception ex) {/*ignore*/}
         }
 
-        SoftwareCoSessionManager.launchFile(file);
+        SoftwareCoSessionManager.launchFile(file, false);
         
         UIElementEntity elementEntity = new UIElementEntity();
         elementEntity.element_name = "ct_contributor_repo_identifier_btn";

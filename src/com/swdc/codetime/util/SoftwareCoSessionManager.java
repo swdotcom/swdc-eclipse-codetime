@@ -4,18 +4,13 @@
  */
 package com.swdc.codetime.util;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,14 +29,16 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.browser.IWebBrowser;
+import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.ide.IDE;
 import org.osgi.framework.Bundle;
 
 import com.google.gson.JsonObject;
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.codetime.managers.EventTrackerManager;
 import com.swdc.codetime.managers.SessionDataManager;
-import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
@@ -63,8 +60,6 @@ public class SoftwareCoSessionManager {
 
 	private static SoftwareCoSessionManager instance = null;
 
-	private static String SERVICE_NOT_AVAIL = "Our service is temporarily unavailable.\n\nPlease try again later.\n";
-
 	public static SoftwareCoSessionManager getInstance() {
 		if (instance == null) {
 			instance = new SoftwareCoSessionManager();
@@ -78,44 +73,11 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void fetchCodeTimeMetricsDashboard() {
-		String summaryInfoFile = FileUtilManager.getSummaryInfoFile();
-		String dashboardFile = FileUtilManager.getCodeTimeDashboardFile();
-
-		Writer writer = null;
-		
-		// append the summary content
-		// Our service is temporarily unavailable
-		String summaryInfoContent = SoftwareCoOfflineManager.getInstance().getSessionSummaryInfoFileContent();
-
-		String api = "/dashboard?linux=" + UtilManager.isLinux() + "&showToday=true";
-		String dashboardSummary = OpsHttpClient.softwareGet(api, FileUtilManager.getItem("jwt")).getJsonStr();
-		if (dashboardSummary == null || dashboardSummary.trim().isEmpty()) {
-			dashboardSummary = SERVICE_NOT_AVAIL;
-		}
-
-		// write the summary content
-		try {
-			writer = new BufferedWriter(
-					new OutputStreamWriter(new FileOutputStream(summaryInfoFile), StandardCharsets.UTF_8));
-			writer.write(dashboardSummary);
-		} catch (IOException ex) {
-			// Report
-		} finally {
-			try {
-				writer.close();
-			} catch (Exception ex) {
-				/* ignore */}
-		}
-
-		// concat summary info with the dashboard file
-		String dashboardContent = "";
-		
-		if (summaryInfoContent != null) {
-			dashboardContent += summaryInfoContent;
-		}
+		ClientResponse resp = OpsHttpClient.softwareGet("/v1/plugin_dashboard", FileUtilManager.getItem("jwt"));
 
 		// write the dashboard content to the dashboard file
-		FileUtilManager.saveFileContent(dashboardFile, dashboardContent);
+		String html = resp.isOk() ? resp.getJsonObj().get("html").getAsString() : "<html></html>";
+		FileUtilManager.saveFileContent(FileUtilManager.getCodeTimeDashboardHtmlFile(), html);
 	}
 
 	public static void launchSoftwareTopForty() {
@@ -177,7 +139,7 @@ public class SoftwareCoSessionManager {
         EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 	}
 
-	public static void launchFile(String fsPath) {
+	public static void launchFile(String fsPath, boolean isHtml) {
 		IProject p = SoftwareCoUtils.getActiveProject();
 		if (p == null) {
 			return;
@@ -188,9 +150,24 @@ public class SoftwareCoSessionManager {
 			IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 			IWorkbenchPage page = window.getActivePage();
 			URI uri = f.toURI();
+			
+			if (isHtml) {
+				IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
+						  PlatformUI.getWorkbench().getBrowserSupport();
+				try {
+					IWebBrowser browser = support.createBrowser("html_dashboard");
+					browser.openURL(uri.toURL());
+					return;
+				} catch (Exception e3) {
+					SWCoreLog
+					.logErrorMessage("Code Time: unable to launch editor to view code time metrics, error: "
+							+ e3.getMessage());
+				}
+			}
 
 			String genericEditor = "org.eclipse.ui.genericeditor.GenericEditor";
 			String defaultEditor = "org.eclipse.ui.DefaultTextEditor";
+			
 			try {
 				IDE.openEditor(page, uri, defaultEditor, true);
 			} catch (Exception e) {
@@ -214,9 +191,9 @@ public class SoftwareCoSessionManager {
 		// fetch the dashboard content and write it before displaying it
 		fetchCodeTimeMetricsDashboard();
 
-		String codeTimeFile = FileUtilManager.getCodeTimeDashboardFile();
+		String codeTimeFile = FileUtilManager.getCodeTimeDashboardHtmlFile();
 
-		launchFile(codeTimeFile);
+		launchFile(codeTimeFile, true);
 		
 		UIElementEntity elementEntity = new UIElementEntity();
         elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_summary_btn" : "ct_summary_cmd";
