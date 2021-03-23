@@ -14,14 +14,16 @@ import com.swdc.codetime.managers.FileAggregateDataManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
 import com.swdc.codetime.managers.WallClockManager;
-import com.swdc.codetime.models.ElapsedTime;
 import com.swdc.codetime.models.FileChangeInfo;
 import com.swdc.codetime.models.KeystrokeAggregate;
-import com.swdc.codetime.models.ResourceInfo;
-import com.swdc.codetime.models.TimeData;
 
 import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.GitUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.ElapsedTime;
+import swdc.java.ops.model.KeystrokeProject;
+import swdc.java.ops.model.ResourceInfo;
+import swdc.java.ops.model.TimeData;
 
 public class KeystrokePayload {
 
@@ -36,7 +38,7 @@ public class KeystrokePayload {
 	public int keystrokes = 0; // keystroke count
 	public long start;
 	private long local_start;
-	private SoftwareCoProject project;
+	private KeystrokeProject project;
 	private String version;
 	private String os;
 	private String timezone = "";
@@ -59,7 +61,7 @@ public class KeystrokePayload {
 		this.keystrokes = 0;
 		this.source = new HashMap<>();
 		if (this.project != null) {
-			this.project.resetData();
+			this.project = new KeystrokeProject(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
 		}
 		this.start = 0L;
 		this.local_start = 0L;
@@ -177,8 +179,8 @@ public class KeystrokePayload {
 		this.cumulative_editor_seconds = 60;
 
 		if (td != null) {
-			this.cumulative_editor_seconds = td.editor_seconds;
-			this.cumulative_session_seconds = td.session_seconds;
+			this.cumulative_editor_seconds = td.getEditor_seconds();
+			this.cumulative_session_seconds = td.getSession_seconds();
 		}
 
 		if (cumulative_editor_seconds < cumulative_session_seconds) {
@@ -212,19 +214,19 @@ public class KeystrokePayload {
 		if (this.hasData()) {
 
 			// make sure we have a valid project
-			SoftwareCoProject activeProject = SoftwareCoUtils.getActiveKeystrokeProject();
-			if (this.project == null || this.project.directory == null || this.project.directory.equals("")
-					|| this.project.directory.equals("Untitled")) {
+			KeystrokeProject activeProject = SoftwareCoUtils.getActiveKeystrokeProject();
+			if (this.project == null || this.project.getDirectory() == null || this.project.getDirectory().equals("")
+					|| this.project.getDirectory().equals("Untitled")) {
 				this.setProject(activeProject);
 			}
 
 			// get the resource identifier info
-			if (!this.getProject().directory.equals("Untitled")) {
+			if (!this.getProject().getDirectory().equals("Untitled")) {
 				// get the resource information
-				ResourceInfo resourceInfo = GitUtil.getResourceInfo(this.getProject().directory);
+				ResourceInfo resourceInfo = GitUtilManager.getResourceInfo(this.getProject().getDirectory());
 				if (resourceInfo != null) {
-					this.getProject().resource = resourceInfo;
-					this.getProject().identifier = resourceInfo.identifier;
+					this.getProject().setResource(resourceInfo);
+					this.getProject().setIdentifier(resourceInfo.getIdentifier());
 				}
 			}
 
@@ -253,7 +255,7 @@ public class KeystrokePayload {
 		Map<String, FileChangeInfo> fileChangeInfoMap = FileAggregateDataManager.getFileChangeInfo();
 		KeystrokeAggregate aggregate = new KeystrokeAggregate();
 		if (this.project != null) {
-			aggregate.directory = this.project.directory;
+			aggregate.directory = this.project.getDirectory();
 		} else {
 			aggregate.directory = "Unnamed";
 		}
@@ -323,11 +325,11 @@ public class KeystrokePayload {
 		this.timezone = timezone;
 	}
 
-	public SoftwareCoProject getProject() {
+	public KeystrokeProject getProject() {
 		return project;
 	}
 
-	public void setProject(SoftwareCoProject project) {
+	public void setProject(KeystrokeProject project) {
 		this.project = project;
 	}
 

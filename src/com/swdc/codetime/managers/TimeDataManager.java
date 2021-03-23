@@ -8,13 +8,13 @@ import org.eclipse.core.resources.IProject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.models.TimeData;
-import com.swdc.codetime.util.SoftwareCoProject;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
 import swdc.java.ops.model.CodeTimeSummary;
+import swdc.java.ops.model.KeystrokeProject;
+import swdc.java.ops.model.TimeData;
 
 public class TimeDataManager {
 
@@ -28,29 +28,29 @@ public class TimeDataManager {
 		IProject project = SoftwareCoUtils.getActiveProject();
 		if (project != null) {
 			// build the keystroke project
-			SoftwareCoProject keystrokeProj = new SoftwareCoProject(project.getName(),
+			KeystrokeProject keystrokeProj = new KeystrokeProject(project.getName(),
 					project.getFullPath().toString());
 
 			TimeData td = getTodayTimeDataSummary(keystrokeProj);
 
 			if (td != null) {
-				td.editor_seconds = td.editor_seconds + editorSeconds;
-				td.timestamp_local = timesData.local_now;
-				td.editor_seconds = Math.max(td.editor_seconds, td.session_seconds);
+				td.setEditor_seconds(td.getEditor_seconds() + editorSeconds);
+				td.setTimestamp_local(timesData.local_now);
+				td.setEditor_seconds(Math.max(td.getEditor_seconds(), td.getSession_seconds()));
 
 				saveTimeDataSummaryToDisk(td);
 			}
 		}
 	}
 
-	public static TimeData incrementSessionAndFileSeconds(SoftwareCoProject keystrokeProj, long sessionSeconds) {
+	public static TimeData incrementSessionAndFileSeconds(KeystrokeProject keystrokeProj, long sessionSeconds) {
 		TimeData td = getTodayTimeDataSummary(keystrokeProj);
 		if (td != null) {
-			td.session_seconds += sessionSeconds;
-			td.file_seconds += 60;
+			td.setSession_seconds(td.getSession_seconds() + sessionSeconds);;
+			td.setFile_seconds(td.getFile_seconds() + 60);
 
-			td.editor_seconds = Math.max(td.editor_seconds, td.session_seconds);
-			td.file_seconds = Math.min(td.file_seconds, td.session_seconds);
+			td.setEditor_seconds(Math.max(td.getEditor_seconds(), td.getSession_seconds()));
+			td.setFile_seconds(Math.min(td.getFile_seconds(), td.getSession_seconds()));
 
 			saveTimeDataSummaryToDisk(td);
 		}
@@ -70,7 +70,7 @@ public class TimeDataManager {
 		IProject activeProject = SoftwareCoUtils.getActiveProject();
 		TimeData td = null;
 		if (activeProject != null) {
-			SoftwareCoProject project = new SoftwareCoProject(activeProject.getName(),
+			KeystrokeProject project = new KeystrokeProject(activeProject.getName(),
 					activeProject.getFullPath().toString());
 			td = getTodayTimeDataSummary(project);
 		} else {
@@ -78,7 +78,7 @@ public class TimeDataManager {
 			List<TimeData> timeDataList = getTimeDataList();
 			if (timeDataList != null && timeDataList.size() > 0) {
 				for (TimeData timeData : timeDataList) {
-					if (timeData != null && timeData.day != null && timeData.day.equals(day)) {
+					if (timeData != null && timeData.getDay() != null && timeData.getDay().equals(day)) {
 						// use this one
 						td = timeData;
 						break;
@@ -88,17 +88,17 @@ public class TimeDataManager {
 		}
 
 		if (td == null) {
-			SoftwareCoProject project = new SoftwareCoProject("Unnamed", "Untitled");
+			KeystrokeProject project = new KeystrokeProject(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
 			td = new TimeData();
-			td.day = day;
-			td.timestamp = timesData.now;
-			td.timestamp_local = timesData.local_now;
-			td.project = project;
+			td.setDay(day);
+			td.setTimestamp(timesData.now);
+			td.setTimestamp_local(timesData.local_now);
+			td.setProject(project);
 		}
 
 		long secondsToAdd = diffActiveCodeMinutesToAdd * 60;
-		td.session_seconds += secondsToAdd;
-		td.editor_seconds += secondsToAdd;
+		td.setSession_seconds(td.getSession_seconds() + secondsToAdd);
+		td.setEditor_seconds(td.getEditor_seconds() + secondsToAdd);
 
 		// save the info to disk
 		// make sure editor seconds isn't less
@@ -122,8 +122,8 @@ public class TimeDataManager {
 	 * 
 	 * @return
 	 */
-	public static TimeData getTodayTimeDataSummary(SoftwareCoProject p) {
-		if (p == null || p.directory == null) {
+	public static TimeData getTodayTimeDataSummary(KeystrokeProject p) {
+		if (p == null || p.getDirectory() == null) {
 			return null;
 		}
 		String day = UtilManager.getTodayInStandardFormat();
@@ -132,9 +132,9 @@ public class TimeDataManager {
 
 		if (timeDataList != null && timeDataList.size() > 0) {
 			for (TimeData timeData : timeDataList) {
-				if (timeData != null && timeData.day != null && timeData.project != null &&
-						timeData.project.directory != null &&
-						timeData.day.equals(day) && timeData.project.directory.equals(p.directory)) {
+				if (timeData != null && timeData.getDay() != null && timeData.getProject() != null &&
+						timeData.getProject().getDirectory() != null &&
+						timeData.getDay().equals(day) && timeData.getProject().getDirectory().equals(p.getDirectory())) {
 					// return it
 					return timeData;
 				}
@@ -144,10 +144,10 @@ public class TimeDataManager {
 		UtilManager.TimesData timesData = UtilManager.getTimesData();
 
 		TimeData td = new TimeData();
-		td.day = day;
-		td.timestamp_local = timesData.local_now;
-		td.timestamp = timesData.now;
-		td.project = p.clone();
+		td.setDay(day);
+		td.setTimestamp_local(timesData.local_now);
+		td.setTimestamp(timesData.now);
+		td.setProject(p);
 
 		if (timeDataList == null) {
 			timeDataList = new ArrayList<>();
@@ -168,10 +168,10 @@ public class TimeDataManager {
 
 		if (timeDataList != null && timeDataList.size() > 0) {
 			for (TimeData timeData : timeDataList) {
-				if (timeData.day.equals(day)) {
-					summary.activeCodeTimeMinutes += (timeData.session_seconds / 60);
-					summary.codeTimeMinutes += (timeData.editor_seconds / 60);
-					summary.fileTimeMinutes += (timeData.file_seconds / 60);
+				if (timeData.getDay().equals(day)) {
+					summary.activeCodeTimeMinutes += (timeData.getSession_seconds() / 60);
+					summary.codeTimeMinutes += (timeData.getEditor_seconds() / 60);
+					summary.fileTimeMinutes += (timeData.getFile_seconds() / 60);
 				}
 			}
 		}
@@ -183,8 +183,8 @@ public class TimeDataManager {
 		if (timeData == null) {
 			return;
 		}
-		String dir = timeData.project.directory;
-		String day = timeData.day;
+		String dir = timeData.getProject().getDirectory();
+		String day = timeData.getDay();
 
 		// get the existing list
 		List<TimeData> timeDataList = getTimeDataList();
@@ -192,9 +192,9 @@ public class TimeDataManager {
         if (timeDataList != null && timeDataList.size() > 0) {
             for (int i = timeDataList.size() - 1; i >= 0; i--) {
                 TimeData td = timeDataList.get(i);
-                if (td != null && td.day != null && td.project != null &&
-                		td.project.directory != null &&
-                				td.day.equals(day) && td.project.directory.equals(dir)) {
+                if (td != null && td.getDay() != null && td.getProject() != null &&
+                		td.getProject().getDirectory() != null &&
+                				td.getDay().equals(day) && td.getProject().getDirectory().equals(dir)) {
                     timeDataList.remove(i);
                     break;
                 }

@@ -12,16 +12,16 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import com.swdc.codetime.models.CommitChangeStats;
-import com.swdc.codetime.util.GitUtil;
-import com.swdc.codetime.util.SoftwareCoProject;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.GitUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.CommitChangeStats;
+import swdc.java.ops.model.KeystrokeProject;
 
 public class ReportManager {
 
@@ -36,18 +36,18 @@ public class ReportManager {
         StringBuffer sb = new StringBuffer();
         String file = FileUtilManager.getProjectContributorSummaryFile();
 
-        SoftwareCoProject p = SoftwareCoUtils.getActiveKeystrokeProject();
+        KeystrokeProject p = SoftwareCoUtils.getActiveKeystrokeProject();
         if (p != null) {
             UtilManager.TimesData timesData = UtilManager.getTimesData();
-            String email = GitUtil.getUsersEmail(p.directory);
-            CommitChangeStats usersTodaysCommits = GitUtil.getTodaysCommits(p.directory, email);
-            CommitChangeStats contribTodaysCommits = GitUtil.getTodaysCommits(p.directory, null);
+            String email = GitUtilManager.getUsersEmail(p.getDirectory());
+            CommitChangeStats usersTodaysCommits = GitUtilManager.getTodaysCommits(p.getDirectory(), email);
+            CommitChangeStats contribTodaysCommits = GitUtilManager.getTodaysCommits(p.getDirectory(), null);
 
-            CommitChangeStats usersYesterdaysCommits = GitUtil.getYesterdaysCommits(p.directory, email);
-            CommitChangeStats contribYesterdaysCommits = GitUtil.getYesterdaysCommits(p.directory, null);
+            CommitChangeStats usersYesterdaysCommits = GitUtilManager.getYesterdaysCommits(p.getDirectory(), email);
+            CommitChangeStats contribYesterdaysCommits = GitUtilManager.getYesterdaysCommits(p.getDirectory(), null);
 
-            CommitChangeStats usersThisWeeksCommits = GitUtil.getThisWeeksCommits(p.directory, email);
-            CommitChangeStats contribThisWeeksCommits = GitUtil.getThisWeeksCommits(p.directory, null);
+            CommitChangeStats usersThisWeeksCommits = GitUtilManager.getThisWeeksCommits(p.getDirectory(), email);
+            CommitChangeStats contribThisWeeksCommits = GitUtilManager.getThisWeeksCommits(p.getDirectory(), null);
 
             String lastUpdatedStr = formatDayTime.format(new Date());
             sb.append(getTableHeader("PROJECT SUMMARY", " (Last updated on " + lastUpdatedStr + ")", true));
@@ -57,30 +57,30 @@ public class ReportManager {
             String projectDate = formatDayYear.format(timesData.local_start_today_date);
             sb.append(getRightAlignedTableHeader("Today (" + projectDate + ")"));
             sb.append(getColumnHeaders(Arrays.asList("Metric", "You", "All Contributors")));
-            sb.append(getRowNumberData("Commits", usersTodaysCommits.commitCount, contribTodaysCommits.commitCount));
-            sb.append(getRowNumberData("Files changed", usersTodaysCommits.fileCount, contribTodaysCommits.fileCount));
-            sb.append(getRowNumberData("Insertions", usersTodaysCommits.insertions, contribTodaysCommits.insertions));
-            sb.append(getRowNumberData("Deletions", usersTodaysCommits.deletions, contribTodaysCommits.deletions));
+            sb.append(getRowNumberData("Commits", usersTodaysCommits.getCommitCount(), contribTodaysCommits.getCommitCount()));
+            sb.append(getRowNumberData("Files changed", usersTodaysCommits.getFileCount(), contribTodaysCommits.getFileCount()));
+            sb.append(getRowNumberData("Insertions", usersTodaysCommits.getInsertions(), contribTodaysCommits.getInsertions()));
+            sb.append(getRowNumberData("Deletions", usersTodaysCommits.getDeletions(), contribTodaysCommits.getDeletions()));
             sb.append("\n");
 
             // YESTERDAY
             String yesterday = formatDayYear.format(timesData.local_start_of_yesterday_date);
             sb.append(getRightAlignedTableHeader("Yesterday (" + yesterday + ")"));
             sb.append(getColumnHeaders(Arrays.asList("Metric", "You", "All Contributors")));
-            sb.append(getRowNumberData("Commits", usersYesterdaysCommits.commitCount, contribYesterdaysCommits.commitCount));
-            sb.append(getRowNumberData("Files changed", usersYesterdaysCommits.fileCount, contribYesterdaysCommits.fileCount));
-            sb.append(getRowNumberData("Insertions", usersYesterdaysCommits.insertions, contribYesterdaysCommits.insertions));
-            sb.append(getRowNumberData("Deletions", usersYesterdaysCommits.deletions, contribYesterdaysCommits.deletions));
+            sb.append(getRowNumberData("Commits", usersYesterdaysCommits.getCommitCount(), contribYesterdaysCommits.getCommitCount()));
+            sb.append(getRowNumberData("Files changed", usersYesterdaysCommits.getFileCount(), contribYesterdaysCommits.getFileCount()));
+            sb.append(getRowNumberData("Insertions", usersYesterdaysCommits.getInsertions(), contribYesterdaysCommits.getInsertions()));
+            sb.append(getRowNumberData("Deletions", usersYesterdaysCommits.getDeletions(), contribYesterdaysCommits.getDeletions()));
             sb.append("\n");
 
             // THIS WEEK
             String startOfWeek = formatDayYear.format(timesData.local_start_of_week_date);
             sb.append(getRightAlignedTableHeader("This week (" + startOfWeek + " to " + projectDate + ")"));
             sb.append(getColumnHeaders(Arrays.asList("Metric", "You", "All Contributors")));
-            sb.append(getRowNumberData("Commits", usersThisWeeksCommits.commitCount, contribThisWeeksCommits.commitCount));
-            sb.append(getRowNumberData("Files changed", usersThisWeeksCommits.fileCount, contribThisWeeksCommits.fileCount));
-            sb.append(getRowNumberData("Insertions", usersThisWeeksCommits.insertions, contribThisWeeksCommits.insertions));
-            sb.append(getRowNumberData("Deletions", usersThisWeeksCommits.deletions, contribThisWeeksCommits.deletions));
+            sb.append(getRowNumberData("Commits", usersThisWeeksCommits.getCommitCount(), contribThisWeeksCommits.getCommitCount()));
+            sb.append(getRowNumberData("Files changed", usersThisWeeksCommits.getFileCount(), contribThisWeeksCommits.getFileCount()));
+            sb.append(getRowNumberData("Insertions", usersThisWeeksCommits.getInsertions(), contribThisWeeksCommits.getInsertions()));
+            sb.append(getRowNumberData("Deletions", usersThisWeeksCommits.getDeletions(), contribThisWeeksCommits.getDeletions()));
             sb.append("\n");
 
         } else {

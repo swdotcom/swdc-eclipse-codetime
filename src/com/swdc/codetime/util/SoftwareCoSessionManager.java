@@ -12,8 +12,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
@@ -38,16 +36,13 @@ import com.google.gson.JsonObject;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.codetime.managers.EventTrackerManager;
-import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.snowplow.tracker.entities.UIElementEntity;
 import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 import swdc.java.ops.http.ClientResponse;
 import swdc.java.ops.http.OpsHttpClient;
-import swdc.java.ops.manager.AccountManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
-import swdc.java.ops.model.UserState;
 
 /**
  * 
@@ -203,34 +198,6 @@ public class SoftwareCoSessionManager {
         elementEntity.icon_name = type.equals(UIInteractionType.click) ? "guage" : null;
         EventTrackerManager.getInstance().trackUIInteraction(type, elementEntity);
 	}
-	
-	public static class LazyUserStatusFetchTask extends TimerTask {
-		private int retryCount = 0;
-		public LazyUserStatusFetchTask(int count) {
-			this.retryCount = count;
-		}
-		public void run() {
-			lazilyFetchUserStatus(this.retryCount);
-		}
-	}
-
-	protected static void lazilyFetchUserStatus(int retryCount) {
-		UserState userState = AccountManager.getUserLoginState(false);
-
-		if (!userState.loggedIn) {
-			if (retryCount > 0) {
-				final int newRetryCount = retryCount - 1;
-			
-				new Timer().schedule(new LazyUserStatusFetchTask(newRetryCount), 1000 * 10);
-			} else {
-                // clear the auth callback state
-                FileUtilManager.setBooleanItem("switching_account", false);
-                FileUtilManager.setAuthCallbackState(null);
-			}
-		} else {
-			SessionDataManager.refreshSessionDataAndTree();
-		}
-	}
 
 	public static void launchLogin(String loginType, boolean switching_account) {
 
@@ -305,8 +272,6 @@ public class SoftwareCoSessionManager {
         elementEntity.cta_text = cta_text;
         elementEntity.icon_name = icon_name;
         EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
-		
-		new Timer().schedule(new LazyUserStatusFetchTask(40), 1000 * 10);
 	}
 
 	public static void launchWebDashboard(UIInteractionType type) {

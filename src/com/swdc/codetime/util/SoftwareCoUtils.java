@@ -34,6 +34,7 @@ import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.KeystrokeProject;
 
 public class SoftwareCoUtils {
 
@@ -103,7 +104,7 @@ public class SoftwareCoUtils {
 		return version;
 	}
 
-	public static SoftwareCoProject getActiveKeystrokeProject() {
+	public static KeystrokeProject getActiveKeystrokeProject() {
 		IProject iproj = getActiveProject();
 		if (iproj != null) {
 			// build the keystroke project
@@ -112,7 +113,7 @@ public class SoftwareCoUtils {
 				directory = iproj.getLocation().toString();
 			}
 			String name = iproj.getName();
-			return new SoftwareCoProject(name, directory);
+			return new KeystrokeProject(name, directory);
 		}
 		return null;
 	}
@@ -340,16 +341,6 @@ public class SoftwareCoUtils {
 			content += " ";
 		}
 		return content + "" + data;
-	}
-
-	public static boolean isGitProject(String projectDir) {
-		if (projectDir == null || projectDir.equals("")) {
-			return false;
-		}
-
-		String gitFile = projectDir + File.separator + ".git";
-		File f = new File(gitFile);
-		return f.exists();
 	}
 	
 	/**
