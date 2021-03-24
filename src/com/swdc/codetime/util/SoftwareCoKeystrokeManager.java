@@ -9,6 +9,9 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 
+import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.KeystrokeProject;
+
 public class SoftwareCoKeystrokeManager {
 
 	private static SoftwareCoKeystrokeManager instance = null;
@@ -71,7 +74,7 @@ public class SoftwareCoKeystrokeManager {
         // create the project based on the incoming projectName and fileName
         IProject iproj = SoftwareCoUtils.getFileProject(fileName);
         
-        SoftwareCoProject project = null;
+        KeystrokeProject project = null;
         if (iproj != null) {
         	// awesome, we found the workspace project. use it
         	String directory = iproj.getLocationURI().getPath();
@@ -79,9 +82,9 @@ public class SoftwareCoKeystrokeManager {
 				directory = iproj.getLocation().toString();
 			}
 			String name = iproj.getName();
-			project = new SoftwareCoProject(name, directory);
+			project = new KeystrokeProject(name, directory);
         } else {
-        	project = new SoftwareCoProject("Unnamed", "Untitled");
+        	project = new KeystrokeProject(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
         }
         keystrokeCount.setProject(project);
         
@@ -90,7 +93,7 @@ public class SoftwareCoKeystrokeManager {
         KeystrokeCountWrapper wrapper = new KeystrokeCountWrapper();
         wrapper.setKeystrokeCount(keystrokeCount);
         wrapper.setLastUpdateTime(System.currentTimeMillis());
-        wrapper.setProjectName(project.name);
+        wrapper.setProjectName(project.getName());
         keystrokeCountWrapperList.add(wrapper);
     }
 

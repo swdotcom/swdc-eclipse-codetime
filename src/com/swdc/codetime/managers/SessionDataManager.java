@@ -5,12 +5,11 @@ import java.lang.reflect.Type;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.CodeTimeActivator;
-import com.swdc.codetime.models.ElapsedTime;
 import com.swdc.codetime.models.KeystrokeAggregate;
 
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.ElapsedTime;
 import swdc.java.ops.model.SessionSummary;
 
 public class SessionDataManager {
@@ -26,9 +25,6 @@ public class SessionDataManager {
 		// update the session summary info to update the statusbar and tree
 		new Thread(() -> {
 			try {
-				// show the success prompt
-				CodeTimeActivator.showLoginSuccessPrompt();
-				
 				WallClockManager wcMgr = WallClockManager.getInstance();
 				wcMgr.updateSessionSummaryFromServer();
 				
