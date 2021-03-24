@@ -34,21 +34,16 @@ import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.KeystrokePayload;
 import com.swdc.codetime.util.KeystrokePayload.FileInfo;
 import com.swdc.codetime.util.SWCoreImages;
-
-import swdc.java.ops.event.SlackStateChangeModel;
-import swdc.java.ops.event.SlackStateChangeObserver;
-import swdc.java.ops.event.UserStateChangeModel;
-import swdc.java.ops.event.UserStateChangeObserver;
-import swdc.java.ops.manager.AccountManager;
-import swdc.java.ops.manager.ConfigManager;
-import swdc.java.ops.manager.FileUtilManager;
-import swdc.java.ops.websockets.WebsocketClient;
-
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
+
+import swdc.java.ops.manager.AccountManager;
+import swdc.java.ops.manager.ConfigManager;
+import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.websockets.WebsocketClient;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -87,9 +82,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
 
 	private static final IWorkbench workbench = PlatformUI.getWorkbench();
-
-	private UserStateChangeObserver userStateChangeObserver;
-	private SlackStateChangeObserver slackStateChangeObserver;
 	
 	/**
 	 * The constructor
@@ -117,7 +109,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 				ConfigManager.init(SoftwareCoUtils.api_endpoint, SoftwareCoUtils.launch_url, SoftwareCoUtils.pluginId,
 						SoftwareCoUtils.pluginName, SoftwareCoUtils.getVersion(), SoftwareCoUtils.IDE_NAME,
-						SoftwareCoUtils.IDE_VERSION);
+						SoftwareCoUtils.IDE_VERSION, ()-> {SessionDataManager.refreshSessionDataAndTree();});
 
 				String jwt = FileUtilManager.getItem("jwt");
 				if (StringUtils.isBlank(jwt)) {
@@ -175,8 +167,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				// start the wallclock
 				WallClockManager.getInstance().updateSessionSummaryFromServer();
 
-				setupOpsListeners();
-
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				try {
 					ctMetricsTreeView = window.getActivePage().findView("com.swdc.codetime.tree.metricsTreeView");
@@ -227,19 +217,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 			sendOfflineDataTimer.cancel();
 			sendOfflineDataTimer = null;
 		}
-	}
-
-	private void setupOpsListeners() {
-		if (userStateChangeObserver == null) {
-			userStateChangeObserver = new UserStateChangeObserver(new UserStateChangeModel(), () -> {
-				SessionDataManager.refreshSessionDataAndTree();
-			});
-		}
-		if (slackStateChangeObserver == null) {
-            slackStateChangeObserver = new SlackStateChangeObserver(new SlackStateChangeModel(), () -> {
-            	SessionDataManager.refreshSessionDataAndTree();
-            });
-        }
 	}
 
 	public static void displayCodeTimeMetricsTree() {
