@@ -45,7 +45,7 @@ public class EclipseProject implements IdeProject {
 			// not found, just return the 1st proj
 			return createProject(projects[0]);
 		}
-		return null;
+		return new Project(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class EclipseProject implements IdeProject {
 	@Override
 	public Project getProjectForPath(String fileName) {
 		if (StringUtils.isBlank(fileName)) {
-			return null;
+			return new Project(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
 		}
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		if (projects != null && projects.length > 0) {
