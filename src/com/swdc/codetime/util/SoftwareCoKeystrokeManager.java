@@ -7,10 +7,11 @@ package com.swdc.codetime.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
+import com.swdc.codetime.managers.EclipseProjectUtil;
 
 import swdc.java.ops.manager.UtilManager;
-import swdc.java.ops.model.KeystrokeProject;
+import swdc.java.ops.model.CodeTime;
+import swdc.java.ops.model.Project;
 
 public class SoftwareCoKeystrokeManager {
 
@@ -43,7 +44,7 @@ public class SoftwareCoKeystrokeManager {
         keystrokeCountWrapperList.clear();
     }
 
-    public KeystrokePayload getKeystrokeCount(String projectName) {
+    public CodeTime getKeystrokeCount(String projectName) {
         for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
             if (wrapper.getProjectName() != null && projectName.equals(wrapper.getProjectName())) {
                 return wrapper.getKeystrokeCount();
@@ -52,8 +53,8 @@ public class SoftwareCoKeystrokeManager {
         return null;
     }
     
-    public List<KeystrokePayload> getKeystrokeCounts() {
-    	List<KeystrokePayload> list = new ArrayList<>();
+    public List<CodeTime> getKeystrokeCounts() {
+    	List<CodeTime> list = new ArrayList<>();
     	if (keystrokeCountWrapperList != null && keystrokeCountWrapperList.size() > 0) {
     		for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
                 list.add(wrapper.getKeystrokeCount());
@@ -62,7 +63,7 @@ public class SoftwareCoKeystrokeManager {
     	return list;
     }
 
-    public void setKeystrokeCount(String projectName, KeystrokePayload keystrokeCount, String fileName) {
+    public void setKeystrokeCount(String projectName, CodeTime keystrokeCount, String fileName) {
         for (KeystrokeCountWrapper wrapper : keystrokeCountWrapperList) {
             if (wrapper.getProjectName() != null && projectName.equals(wrapper.getProjectName())) {
                 wrapper.setKeystrokeCount(keystrokeCount);
@@ -72,19 +73,10 @@ public class SoftwareCoKeystrokeManager {
         
         // not found by project
         // create the project based on the incoming projectName and fileName
-        IProject iproj = SoftwareCoUtils.getFileProject(fileName);
+        Project project = EclipseProjectUtil.getInstance().getProjectForPath(fileName);
         
-        KeystrokeProject project = null;
-        if (iproj != null) {
-        	// awesome, we found the workspace project. use it
-        	String directory = iproj.getLocationURI().getPath();
-			if (directory == null || directory.equals("")) {
-				directory = iproj.getLocation().toString();
-			}
-			String name = iproj.getName();
-			project = new KeystrokeProject(name, directory);
-        } else {
-        	project = new KeystrokeProject(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
+        if (project == null) {
+        	project = new Project(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
         }
         keystrokeCount.setProject(project);
         
@@ -119,16 +111,16 @@ public class SoftwareCoKeystrokeManager {
 	
 	public class KeystrokeCountWrapper {
 		// KeystrokeCount cache metadata
-		protected KeystrokePayload keystrokeCount;
+		protected CodeTime keystrokeCount;
 		protected String projectName;
 		protected long lastUpdateTime = 0; // in millis
 		protected int currentTextLength = 0;
 		
-		public KeystrokePayload getKeystrokeCount() {
+		public CodeTime getKeystrokeCount() {
             return keystrokeCount;
         }
 
-        public void setKeystrokeCount(KeystrokePayload keystrokeCount) {
+        public void setKeystrokeCount(CodeTime keystrokeCount) {
             this.keystrokeCount = keystrokeCount;
         }
 

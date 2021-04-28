@@ -24,12 +24,12 @@ import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
-import com.swdc.snowplow.tracker.events.UIInteractionType;
 
 import swdc.java.ops.manager.AppleScriptManager;
 import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.SlackManager;
+import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class MetricsTreeView extends ViewPart implements ISelectionListener {
 

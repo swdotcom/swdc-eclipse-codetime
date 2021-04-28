@@ -13,15 +13,15 @@ import java.util.Date;
 import java.util.List;
 
 import com.swdc.codetime.util.SoftwareCoSessionManager;
-import com.swdc.codetime.util.SoftwareCoUtils;
-import com.swdc.snowplow.tracker.entities.UIElementEntity;
-import com.swdc.snowplow.tracker.events.UIInteractionType;
 
+import swdc.java.ops.manager.EventTrackerManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.GitUtilManager;
 import swdc.java.ops.manager.UtilManager;
 import swdc.java.ops.model.CommitChangeStats;
-import swdc.java.ops.model.KeystrokeProject;
+import swdc.java.ops.model.Project;
+import swdc.java.ops.snowplow.entities.UIElementEntity;
+import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class ReportManager {
 
@@ -36,7 +36,7 @@ public class ReportManager {
         StringBuffer sb = new StringBuffer();
         String file = FileUtilManager.getProjectContributorSummaryFile();
 
-        KeystrokeProject p = SoftwareCoUtils.getActiveKeystrokeProject();
+        Project p = EclipseProjectUtil.getInstance().getFirstActiveProject();
         if (p != null) {
             UtilManager.TimesData timesData = UtilManager.getTimesData();
             String email = GitUtilManager.getUsersEmail(p.getDirectory());

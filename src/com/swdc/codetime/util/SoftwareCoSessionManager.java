@@ -18,7 +18,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorRegistry;
@@ -35,14 +34,16 @@ import org.osgi.framework.Bundle;
 import com.google.gson.JsonObject;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.AuthPromptManager;
-import com.swdc.codetime.managers.EventTrackerManager;
-import com.swdc.snowplow.tracker.entities.UIElementEntity;
-import com.swdc.snowplow.tracker.events.UIInteractionType;
+import com.swdc.codetime.managers.EclipseProjectUtil;
 
 import swdc.java.ops.http.ClientResponse;
 import swdc.java.ops.http.OpsHttpClient;
+import swdc.java.ops.manager.EventTrackerManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.Project;
+import swdc.java.ops.snowplow.entities.UIElementEntity;
+import swdc.java.ops.snowplow.events.UIInteractionType;
 
 /**
  * 
@@ -135,7 +136,7 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void launchFile(String fsPath, boolean isHtml) {
-		IProject p = SoftwareCoUtils.getActiveProject();
+		Project p = EclipseProjectUtil.getInstance().getFirstActiveProject();
 		if (p == null) {
 			return;
 		}

@@ -5,7 +5,8 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
 import com.swdc.codetime.util.SoftwareCoSessionManager;
-import com.swdc.snowplow.tracker.events.UIInteractionType;
+
+import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class CodeTimeDashboardHandler extends AbstractHandler {
 

@@ -4,16 +4,13 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
-
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.util.SoftwareCoUtils;
 
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
 import swdc.java.ops.model.CodeTimeSummary;
-import swdc.java.ops.model.KeystrokeProject;
+import swdc.java.ops.model.Project;
 import swdc.java.ops.model.TimeData;
 
 public class TimeDataManager {
@@ -25,13 +22,9 @@ public class TimeDataManager {
 	public static void updateEditorSeconds(long editorSeconds) {
 		UtilManager.TimesData timesData = UtilManager.getTimesData();
 		// get the current active project
-		IProject project = SoftwareCoUtils.getActiveProject();
+		Project project = EclipseProjectUtil.getInstance().getFirstActiveProject();
 		if (project != null) {
-			// build the keystroke project
-			KeystrokeProject keystrokeProj = new KeystrokeProject(project.getName(),
-					project.getFullPath().toString());
-
-			TimeData td = getTodayTimeDataSummary(keystrokeProj);
+			TimeData td = getTodayTimeDataSummary(project);
 
 			if (td != null) {
 				td.setEditor_seconds(td.getEditor_seconds() + editorSeconds);
@@ -43,7 +36,7 @@ public class TimeDataManager {
 		}
 	}
 
-	public static TimeData incrementSessionAndFileSeconds(KeystrokeProject keystrokeProj, long sessionSeconds) {
+	public static TimeData incrementSessionAndFileSeconds(Project keystrokeProj, long sessionSeconds) {
 		TimeData td = getTodayTimeDataSummary(keystrokeProj);
 		if (td != null) {
 			td.setSession_seconds(td.getSession_seconds() + sessionSeconds);;
@@ -67,12 +60,10 @@ public class TimeDataManager {
 				? currentDayMinutes - ctSummary.activeCodeTimeMinutes
 				: 0;
 
-		IProject activeProject = SoftwareCoUtils.getActiveProject();
+		Project activeProject = EclipseProjectUtil.getInstance().getFirstActiveProject();
 		TimeData td = null;
 		if (activeProject != null) {
-			KeystrokeProject project = new KeystrokeProject(activeProject.getName(),
-					activeProject.getFullPath().toString());
-			td = getTodayTimeDataSummary(project);
+			td = getTodayTimeDataSummary(activeProject);
 		} else {
 			// find the 1st one
 			List<TimeData> timeDataList = getTimeDataList();
@@ -88,7 +79,7 @@ public class TimeDataManager {
 		}
 
 		if (td == null) {
-			KeystrokeProject project = new KeystrokeProject(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
+			Project project = new Project(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
 			td = new TimeData();
 			td.setDay(day);
 			td.setTimestamp(timesData.now);
@@ -122,7 +113,7 @@ public class TimeDataManager {
 	 * 
 	 * @return
 	 */
-	public static TimeData getTodayTimeDataSummary(KeystrokeProject p) {
+	public static TimeData getTodayTimeDataSummary(Project p) {
 		if (p == null || p.getDirectory() == null) {
 			return null;
 		}
