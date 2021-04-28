@@ -2,6 +2,7 @@ package com.swdc.codetime.managers;
 
 import java.io.File;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -49,8 +50,7 @@ public class EclipseProject implements IdeProject {
 
 	@Override
 	public Project getOpenProject() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -78,7 +78,6 @@ public class EclipseProject implements IdeProject {
 				directory = iproj.getLocation().toString();
 			}
         	return new Project(directory, iproj.getName());
-            // return new Project(p.getProjectDirectory().getName(), p.getProjectDirectory().getPath());
         }
         return new Project(UtilManager.unnamed_project_name, UtilManager.untitled_file_name);
     }
