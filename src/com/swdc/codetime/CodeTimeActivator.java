@@ -12,6 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.swt.SWT;
@@ -36,6 +39,7 @@ import com.swdc.codetime.models.KeystrokeCountUtil;
 import com.swdc.codetime.util.SWCoreImages;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
+import com.swdc.codetime.util.SoftwareCoIResourceListener;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
@@ -153,6 +157,15 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 							activateListener();
 						}
 					}, 3000);
+				}
+				
+				try {
+					IResourceChangeListener listener = new SoftwareCoIResourceListener();
+					
+					ResourcesPlugin.getWorkspace().addResourceChangeListener(
+							listener, IResourceChangeEvent.POST_CHANGE);
+				} catch (Exception e) {
+					LOG.warning("Error adding resource change listener: " + e.getMessage());
 				}
 			}
 

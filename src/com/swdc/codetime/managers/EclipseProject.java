@@ -33,13 +33,9 @@ public class EclipseProject implements IdeProject {
 	public Project getFirstActiveProject() {
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		if (projects != null && projects.length > 0) {
-			if (lastOpenFile != null && !lastOpenFile.isEmpty()) {
-				for (IProject proj : projects) {
-					IPath locationPath = proj.getLocation();
-					String pathStr = locationPath.toString();
-					if (lastOpenFile.indexOf(pathStr) != -1) {
-						return createProject(proj);
-					}
+			for (IProject proj : projects) {
+				if (proj.isOpen()) {
+					return createProject(proj);
 				}
 			}
 			// not found, just return the 1st proj

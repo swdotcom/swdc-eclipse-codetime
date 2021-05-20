@@ -20,6 +20,7 @@ import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.TimeDataManager;
 import com.swdc.codetime.managers.WallClockManager;
+import com.swdc.codetime.util.SoftwareCoUtils;
 
 import swdc.java.ops.manager.AppleScriptManager;
 import swdc.java.ops.manager.ConfigManager;
@@ -72,6 +73,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 
 	public static final String SWITCH_ACCOUNT_ID = "switch_account";
 
+	public static final String ACCOUNT_ID = "account_node";
 	public static final String SLACK_WORKSPACES_NODE_ID = "slack_workspaces_node";
     public static final String AUTOMATIONS_NODE_ID = "flow_mode_automations";
     public static final String FLOW_MODE_SETTINGS_ID = "flow_mode_settings";
@@ -112,30 +114,14 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		List<MetricTreeNode> mNodeList = new ArrayList<>();
 		SessionSummary sessionSummary = SessionDataManager.getSessionSummaryData();
 		CodeTimeSummary codeTimeSummary = TimeDataManager.getCodeTimeSummary();
-		String name = FileUtilManager.getItem("name");
 
 		mLabels.updateLabels(codeTimeSummary, sessionSummary);
+		
+		mNodeList.add(buildAccountButtons());
 
-		if (StringUtils.isEmpty(name)) {
-			// add the sign up buttons
-			mNodeList.addAll(getSignupButtons());
-		} else {
-			// add the logged in button and switch account button
-			mNodeList.add(getLoggedInButton());
-			mNodeList.add(getSwitchAccountButton());
-		}
-
-		// create the menu nodes
-		// to create a parent tree do this...
-		// MetricsTreeNode[] codeTimeChildren = { switchAccountItem,
-		// toggleStatusTextItem, learnMoreItem, submitFeedbackItem };
-		// contentMap.put(signedUpAsItem.getId(), codeTimeChildren);
-
-		mNodeList.add(getLearnMoreButton());
-		mNodeList.add(getSubmitFeedbackButton());
+		mNodeList.add(getEditorDashboardButton());
+		mNodeList.add(getWebDashboardButton());
 		mNodeList.add(getToggleStatusbarMetricsButton());
-
-		mNodeList.add(buildSlackWorkspacesNode());
 
 		// create the separator
 		mNodeList.add(getSeparatorLine());
@@ -144,6 +130,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		mNodeList.add(getFlowModeNode());
 		mNodeList.add(buildFlowModeSettingsNode());
 		mNodeList.add(buildAutomationNode());
+		mNodeList.add(buildSlackWorkspacesNode());
 
 		// create the separator
 		mNodeList.add(getSeparatorLine());
@@ -154,8 +141,6 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		mNodeList.add(getLinesAddedStatsButton(mLabels));
 		mNodeList.add(getLinesRemovedStatsButton(mLabels));
 		mNodeList.add(getKeystrokesStatsButton(mLabels));
-		mNodeList.add(getEditorDashboardButton());
-		mNodeList.add(getWebDashboardButton());
 
 		MetricTreeNode[] roots = Arrays.copyOf(mNodeList.toArray(), mNodeList.size(), MetricTreeNode[].class);
 		contentMap.put(ROOT_KEY, roots);
@@ -228,7 +213,8 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	}
 
 	public MetricTreeNode getToggleStatusbarMetricsButton() {
-		return new MetricTreeNode("Hide status bar metrics", "visible.png", TOGGLE_METRICS_ID);
+		String buttonLabel = SoftwareCoUtils.showingStatusText() ? "Hide status bar metrics" : "Show status bar metrics";
+		return new MetricTreeNode(buttonLabel, "visible.png", TOGGLE_METRICS_ID);
 	}
 
 	public MetricTreeNode getSubmitFeedbackButton() {
@@ -255,6 +241,32 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		contentMap.put(SLACK_WORKSPACES_NODE_ID, childnodes);
 
 		return workspacesFolderNode;
+	}
+	
+	public MetricTreeNode buildAccountButtons() {
+		MetricTreeNode accountFolderNode = new MetricTreeNode("Account", null, ACCOUNT_ID);
+
+		List<MetricTreeNode> children = new ArrayList<MetricTreeNode>();
+		
+		String name = FileUtilManager.getItem("name");
+
+		if (StringUtils.isEmpty(name)) {
+			// add the sign up buttons
+			children.addAll(getSignupButtons());
+		} else {
+			// add the logged in button and switch account button
+			children.add(getLoggedInButton());
+			children.add(getSwitchAccountButton());
+		}
+
+		children.add(getLearnMoreButton());
+		children.add(getSubmitFeedbackButton());
+
+
+		MetricTreeNode[] childnodes = Arrays.copyOf(children.toArray(), children.size(), MetricTreeNode[].class);
+		contentMap.put(ACCOUNT_ID, childnodes);
+
+		return accountFolderNode;
 	}
 
 	public static MetricTreeNode getAddSlackWorkspaceNode() {

@@ -44,7 +44,7 @@ public class MetricsTreeLabelProvider implements ILabelProvider {
 	@Override
 	public String getText(Object node) {
 		if (((MetricTreeNode)node).isSeparator()) {
-			return "--------------------------------";
+			return "----------------------------------";
 		}
 		return ((MetricTreeNode)node).getLabel();
 	}
