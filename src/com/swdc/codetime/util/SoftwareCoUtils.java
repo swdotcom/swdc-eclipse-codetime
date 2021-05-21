@@ -17,24 +17,22 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
 import com.google.gson.JsonParser;
 import com.swdc.codetime.CodeTimeActivator;
-import com.swdc.codetime.managers.EventTrackerManager;
+import com.swdc.codetime.managers.EclipseProjectUtil;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.models.FileDetails;
-import com.swdc.snowplow.tracker.entities.UIElementEntity;
-import com.swdc.snowplow.tracker.events.UIInteractionType;
 
+import swdc.java.ops.manager.EventTrackerManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
-import swdc.java.ops.model.KeystrokeProject;
+import swdc.java.ops.model.Project;
+import swdc.java.ops.snowplow.entities.UIElementEntity;
+import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class SoftwareCoUtils {
 
@@ -62,8 +60,6 @@ public class SoftwareCoUtils {
 	public static String IDE_NAME = "eclipse";
 
 	private static String workspace_name = null;
-
-	public static String lastOpenFile = "";
 
 	private static boolean showStatusText = true;
 	private static String lastMsg = "";
@@ -104,66 +100,13 @@ public class SoftwareCoUtils {
 		return version;
 	}
 
-	public static KeystrokeProject getActiveKeystrokeProject() {
-		IProject iproj = getActiveProject();
-		if (iproj != null) {
-			// build the keystroke project
-			String directory = iproj.getLocationURI().getPath();
-			if (directory == null || directory.equals("")) {
-				directory = iproj.getLocation().toString();
-			}
-			String name = iproj.getName();
-			return new KeystrokeProject(name, directory);
-		}
-		return null;
-	}
-
-	public static IProject getActiveProject() {
-		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		if (projects != null && projects.length > 0) {
-			if (lastOpenFile != null && !lastOpenFile.isEmpty()) {
-				for (IProject proj : projects) {
-					IPath locationPath = proj.getLocation();
-					String pathStr = locationPath.toString();
-					if (lastOpenFile.indexOf(pathStr) != -1) {
-						return proj;
-					}
-				}
-			}
-			// not found, just return the 1st proj
-			return projects[0];
-		}
-		return null;
-	}
-
-	public static IProject getFileProject(String fileName) {
-		if (fileName == null) {
-			return null;
-		}
-		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		if (projects != null && projects.length > 0) {
-			for (IProject project : projects) {
-				IPath locationPath = project.getLocation();
-				String pathStr = locationPath.toString();
-				if (pathStr != null && fileName.indexOf(pathStr) != -1) {
-					return project;
-				}
-			}
-		}
-		return getActiveProject();
-	}
-
 	public static FileDetails getFileDetails(String fullFileName) {
 		FileDetails fileDetails = new FileDetails();
 		if (StringUtils.isNotBlank(fullFileName)) {
 			fileDetails.full_file_name = fullFileName;
-			IProject p = getFileProject(fullFileName);
+			Project p = EclipseProjectUtil.getInstance().getProjectForPath(fullFileName);
 			if (p != null) {
-				String directory = p.getLocationURI().getPath();
-				if (directory == null || directory.equals("")) {
-					directory = p.getLocation().toString();
-				}
-				fileDetails.project_directory = directory;
+				fileDetails.project_directory = p.getDirectory();
 				fileDetails.project_name = p.getName();
 			}
 
@@ -180,7 +123,7 @@ public class SoftwareCoUtils {
 				}
 				fileDetails.line_count = SoftwareCoUtils.getLineCount(fullFileName);
 
-				fileDetails.syntax = getSyntax(fullFileName);
+				fileDetails.syntax = EclipseProjectUtil.getInstance().getFileSyntax(new File(fullFileName));
 			}
 		}
 
@@ -205,10 +148,6 @@ public class SoftwareCoUtils {
             }
         }
     }
-	
-	public static String getSyntax(String fileName) {
-		return com.google.common.io.Files.getFileExtension(fileName);
-	}
 
 	public static boolean showingStatusText() {
 		return showStatusText;

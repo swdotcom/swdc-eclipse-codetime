@@ -1,5 +1,6 @@
 package com.swdc.codetime;
 
+import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.Timer;
@@ -11,7 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.swt.SWT;
@@ -27,22 +30,28 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.google.gson.JsonParser;
-import com.swdc.codetime.managers.EventTrackerManager;
+import com.swdc.codetime.managers.EclipseProject;
+import com.swdc.codetime.managers.EclipseProjectUtil;
 import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.WallClockManager;
-import com.swdc.codetime.util.KeystrokePayload;
-import com.swdc.codetime.util.KeystrokePayload.FileInfo;
+import com.swdc.codetime.models.KeystrokeCountUtil;
 import com.swdc.codetime.util.SWCoreImages;
 import com.swdc.codetime.util.SWCoreLog;
 import com.swdc.codetime.util.SoftwareCoFileEditorListener;
+import com.swdc.codetime.util.SoftwareCoIResourceListener;
 import com.swdc.codetime.util.SoftwareCoKeystrokeManager;
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
 import swdc.java.ops.manager.AccountManager;
 import swdc.java.ops.manager.ConfigManager;
+import swdc.java.ops.manager.ConfigManager.IdeType;
+import swdc.java.ops.manager.EventTrackerManager;
 import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.model.CodeTime;
+import swdc.java.ops.model.CodeTime.FileInfo;
+import swdc.java.ops.model.Project;
 import swdc.java.ops.websockets.WebsocketClient;
 
 /**
@@ -109,7 +118,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 				ConfigManager.init(SoftwareCoUtils.api_endpoint, SoftwareCoUtils.launch_url, SoftwareCoUtils.pluginId,
 						SoftwareCoUtils.pluginName, SoftwareCoUtils.getVersion(), SoftwareCoUtils.IDE_NAME,
-						SoftwareCoUtils.IDE_VERSION, ()-> {SessionDataManager.refreshSessionDataAndTree();});
+						SoftwareCoUtils.IDE_VERSION, ()-> {SessionDataManager.refreshSessionDataAndTree();}, IdeType.eclipse);
 
 				String jwt = FileUtilManager.getItem("jwt");
 				if (StringUtils.isBlank(jwt)) {
@@ -149,6 +158,15 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 						}
 					}, 3000);
 				}
+				
+				try {
+					IResourceChangeListener listener = new SoftwareCoIResourceListener();
+					
+					ResourcesPlugin.getWorkspace().addResourceChangeListener(
+							listener, IResourceChangeEvent.POST_CHANGE);
+				} catch (Exception e) {
+					LOG.warning("Error adding resource change listener: " + e.getMessage());
+				}
 			}
 
 			protected void initializePlugin(boolean initializedUser) {
@@ -158,7 +176,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				SoftwareCoUtils.setStatusLineMessage("Code Time", "paw.png", "Loaded v" + version);
 
 				// initialize the tracker
-				EventTrackerManager.getInstance().init();
+				EventTrackerManager.getInstance().init(new EclipseProject());
 				// send the 1st event: activate
 				EventTrackerManager.getInstance().trackEditorAction("editor", "activate");
 
@@ -242,7 +260,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 		initializeKeystrokeObjectGraph(projectName, fileName);
 
-		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		CodeTime keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		fileInfo.open += 1;
@@ -259,7 +277,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 		initializeKeystrokeObjectGraph(projectName, fileName);
 
-		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		CodeTime keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		fileInfo.close += 1;
@@ -277,7 +295,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		// make sure keystrokeCount is available
 		initializeKeystrokeObjectGraph(projectName, fileName);
 
-		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		CodeTime keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		if (keystrokeCount == null || docEvent == null || docEvent.getText() == null) {
 			return;
 		}
@@ -304,7 +322,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		// get the project name
 		String projectName = getActiveProjectName(fileName);
 
-		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		CodeTime keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		if (keystrokeCount == null || docEvent == null || docEvent.getText() == null) {
 			return;
 		}
@@ -312,14 +330,14 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		FileInfo fileInfo = keystrokeCount.getSourceByFileName(fileName);
 
 		if (StringUtils.isBlank(fileInfo.syntax)) {
-			fileInfo.syntax = SoftwareCoUtils.getSyntax(fileName);
+			fileInfo.syntax = EclipseProjectUtil.getInstance().getFileSyntax(new File(fileName));
 		}
 
 		updateFileInfoMetrics(docEvent, fileInfo, keystrokeCount);
 	}
 
 	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo,
-			KeystrokePayload keystrokeCount) {
+			CodeTime keystrokeCount) {
 
 		String text = docEvent.getText();
 		int new_line_count = 0;
@@ -422,7 +440,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	}
 
 	public static void initializeKeystrokeObjectGraph(String projectName, String fileName) {
-		KeystrokePayload keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
+		CodeTime keystrokeCount = keystrokeMgr.getKeystrokeCount(projectName);
 		if (keystrokeCount == null) {
 			if (task != null) {
 				// cancel the previous timer
@@ -433,7 +451,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 			// Create one since it hasn't been created yet
 			// and set the start time (in seconds)
 			//
-			keystrokeCount = new KeystrokePayload();
+			keystrokeCount = new CodeTime();
 
 			//
 			// Update the manager with the newly created KeystrokeCount object
@@ -455,9 +473,10 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	public static class ProcessKeystrokePayloadTask extends TimerTask {
 		public void run() {
 			if (keystrokeMgr != null) {
-				List<KeystrokePayload> list = keystrokeMgr.getKeystrokeCounts();
-				for (KeystrokePayload keystrokeCount : list) {
-					keystrokeCount.processKeystrokes();
+				List<CodeTime> list = keystrokeMgr.getKeystrokeCounts();
+				
+				for (CodeTime keystrokeCount : list) {
+					KeystrokeCountUtil.processKeystrokes(keystrokeCount);
 				}
 
 				keystrokeMgr.resetData();
@@ -482,7 +501,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	}
 
 	public static String getActiveProjectName(String fileName) {
-		IProject project = SoftwareCoUtils.getFileProject(fileName);
+		Project project = EclipseProjectUtil.getInstance().getProjectForPath(fileName);
 		if (project != null) {
 			return project.getName();
 		}

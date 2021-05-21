@@ -6,10 +6,10 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.models.FileChangeInfo;
 
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.FileChangeInfo;
 
 public class FileAggregateDataManager {
 

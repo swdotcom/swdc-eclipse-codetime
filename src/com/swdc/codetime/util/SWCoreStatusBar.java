@@ -12,9 +12,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import com.swdc.codetime.CodeTimeActivator;
-import com.swdc.codetime.managers.EventTrackerManager;
-import com.swdc.snowplow.tracker.entities.UIElementEntity;
-import com.swdc.snowplow.tracker.events.UIInteractionType;
+
+import swdc.java.ops.manager.EventTrackerManager;
+import swdc.java.ops.snowplow.entities.UIElementEntity;
+import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControlContribution {
 
