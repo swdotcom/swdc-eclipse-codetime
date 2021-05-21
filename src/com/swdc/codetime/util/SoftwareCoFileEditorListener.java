@@ -20,6 +20,8 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.managers.EclipseProject;
+import com.swdc.codetime.managers.EclipseProjectUtil;
 
 /**
  * 
@@ -53,7 +55,7 @@ public class SoftwareCoFileEditorListener implements IPartListener2 {
 				URI uri = ((IURIEditorInput) input).getURI();
 				if (uri != null && uri.getPath() != null) {
 					fileName = uri.getPath();
-					SoftwareCoUtils.lastOpenFile = fileName;
+					EclipseProject.lastOpenFile = fileName;
 					String projectName = CodeTimeActivator.getActiveProjectName(fileName);
 
 					CodeTimeActivator.initializeKeystrokeObjectGraph(projectName, fileName);

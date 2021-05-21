@@ -61,8 +61,6 @@ public class SoftwareCoUtils {
 
 	private static String workspace_name = null;
 
-	public static String lastOpenFile = "";
-
 	private static boolean showStatusText = true;
 	private static String lastMsg = "";
 	

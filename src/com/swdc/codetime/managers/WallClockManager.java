@@ -146,7 +146,7 @@ public class WallClockManager {
 		SessionSummary summary = SessionDataManager.getSessionSummaryData();
 
 		String jwt = FileUtilManager.getItem("jwt");
-		String api = "/sessions/summary?refresh=true";
+		String api = "/sessions/summary";
 		ClientResponse resp = OpsHttpClient.softwareGet(api, jwt);
 		try {
 			if (resp.isOk()) {
