@@ -2,17 +2,24 @@ package com.swdc.codetime.managers;
 
 import java.lang.reflect.Type;
 
+import javax.swing.SwingUtilities;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.swdc.codetime.models.KeystrokeAggregate;
+import com.swdc.codetime.util.SoftwareCoUtils;
 
+import swdc.java.ops.http.ClientResponse;
+import swdc.java.ops.http.OpsHttpClient;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
+import swdc.java.ops.model.CodeTimeSummary;
 import swdc.java.ops.model.ElapsedTime;
 import swdc.java.ops.model.SessionSummary;
+import swdc.java.ops.websockets.SessionSummaryHandler;
 
-public class SessionDataManager {
+public class SessionDataManager implements SessionSummaryHandler {
     
     public static void refreshSessionDataAndTree() {
     	SessionDataManager.clearSessionSummaryData();
@@ -110,4 +117,49 @@ public class SessionDataManager {
 
         return eTime;
     }
+    
+
+    public static void updateSessionSummaryFromServer() {
+        SessionSummary summary = SessionDataManager.getSessionSummaryData();
+
+        String jwt = FileUtilManager.getItem("jwt");
+        String api = "/sessions/summary";
+        ClientResponse resp = OpsHttpClient.softwareGet(api, jwt);
+        if (resp.isOk()) {
+            try {
+                Type type = new TypeToken<SessionSummary>() {}.getType();
+                summary = UtilManager.gson.fromJson(resp.getJsonObj(), type);
+            } catch (Exception e) {
+                //
+            }
+        }
+
+        updateFileSummaryAndStatsBar(summary);
+    }
+    
+    private static void updateFileSummaryAndStatsBar(SessionSummary sessionSummary) {
+        if (sessionSummary != null) {
+            TimeDataManager.updateSessionFromSummaryApi(sessionSummary.getCurrentDayMinutes());
+
+            // save the file
+            FileUtilManager.writeData(FileUtilManager.getSessionDataSummaryFile(), sessionSummary);
+
+            SwingUtilities.invokeLater(() -> {
+            	// update the status bar
+        		CodeTimeSummary ctSummary = TimeDataManager.getCodeTimeSummary();
+
+        		// String icon = SoftwareCoUtils.showingStatusText() ? "paw.png" : "clock.png";
+        		String msg = UtilManager.humanizeMinutes(ctSummary.activeCodeTimeMinutes);
+        		String iconName = ctSummary.activeCodeTimeMinutes > sessionSummary.getAverageDailyMinutes() ? "rocket.png" : "paw.png";
+        		SoftwareCoUtils.setStatusLineMessage(msg, iconName,
+        				"Active code time today. Click to see more from Code Time.");
+            });
+        }
+    }
+
+	@Override
+	public void updateEditorStatus(SessionSummary sessionSummary) {
+		updateFileSummaryAndStatsBar(sessionSummary);
+		
+	}
 }

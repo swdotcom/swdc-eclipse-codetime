@@ -116,9 +116,18 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
 
-				ConfigManager.init(SoftwareCoUtils.api_endpoint, SoftwareCoUtils.launch_url, SoftwareCoUtils.pluginId,
-						SoftwareCoUtils.pluginName, SoftwareCoUtils.getVersion(), SoftwareCoUtils.IDE_NAME,
-						SoftwareCoUtils.IDE_VERSION, ()-> {SessionDataManager.refreshSessionDataAndTree();}, IdeType.eclipse);
+				ConfigManager.init(
+						SoftwareCoUtils.api_endpoint,
+						SoftwareCoUtils.launch_url,
+						SoftwareCoUtils.pluginId,
+						SoftwareCoUtils.pluginName,
+						SoftwareCoUtils.getVersion(),
+						SoftwareCoUtils.IDE_NAME,
+						SoftwareCoUtils.IDE_VERSION,
+						SoftwareCoUtils.software_dir,
+						()-> {SessionDataManager.refreshSessionDataAndTree();},
+						new SessionDataManager(),
+						IdeType.eclipse);
 
 				String jwt = FileUtilManager.getItem("jwt");
 				if (StringUtils.isBlank(jwt)) {

@@ -48,6 +48,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public static final String LOGGED_IN_ID = "logged_in";
 	public static final String LEARN_MORE_ID = "learn_more";
 	public static final String SEND_FEEDBACK_ID = "send_feedback";
+	public static final String SUBMIT_ISSUES_ID = "submit_issues";
 	public static final String ADVANCED_METRICS_ID = "advanced_metrics";
 	public static final String TOGGLE_METRICS_ID = "toggle_metrics";
 	public static final String VIEW_SUMMARY_ID = "view_summary";
@@ -220,6 +221,10 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 	public MetricTreeNode getSubmitFeedbackButton() {
 		return new MetricTreeNode("Submit feedback", "message.png", SEND_FEEDBACK_ID);
 	}
+	
+	public MetricTreeNode getSubmitIssuesButton() {
+		return new MetricTreeNode("Submit an issue", "message.png", SUBMIT_ISSUES_ID);
+	}
 
 	public List<MetricTreeNode> getSignupButtons() {
 		MetricTreeNode signUpItem = new MetricTreeNode("Sign up", "paw.png", SIGN_UP_ID);
@@ -260,7 +265,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
 		}
 
 		children.add(getLearnMoreButton());
-		children.add(getSubmitFeedbackButton());
+		children.add(getSubmitIssuesButton());
 
 
 		MetricTreeNode[] childnodes = Arrays.copyOf(children.toArray(), children.size(), MetricTreeNode[].class);
@@ -472,7 +477,7 @@ public class MetricsTreeContentProvider implements ITreeContentProvider {
         removeWorkspaceItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SlackManager.disconnectSlackAuth(authId, () -> {WallClockManager.refreshTree();});
+				SlackManager.disconnectSlackAuth(SlackManager.getWorkspaceByAuthId(authId), () -> {WallClockManager.refreshTree();});
 			}
 		});
         menu.add(removeWorkspaceItem);

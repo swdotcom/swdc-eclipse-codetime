@@ -45,15 +45,19 @@ public class SoftwareCoUtils {
 	// set the launch url to use
 	private final static String PROD_URL_ENDPOINT = "https://app.software.com";
 
+	public static String issues_url = "https://github.com/swdotcom/swdc-eclipse-codetime/issues";
+
 	// set the api endpoint to use
 	public final static String api_endpoint = PROD_API_ENDPOINT;
 	// set the launch url to use
 	public final static String launch_url = PROD_URL_ENDPOINT;
 	public final static String webui_login_url = PROD_URL_ENDPOINT + "/login";
+	public final static String software_dir = ".software";
 
 	public static JsonParser jsonParser = new JsonParser();
 
-	// sublime = 1, vs code = 2, eclipse = 3, intellij = 4, visual studio = 6, atom = 7
+	// sublime = 1, vs code = 2, eclipse = 3, intellij = 4, visual studio = 6, atom
+	// = 7
 	public final static int pluginId = 3;
 	public final static String pluginName = "codetime";
 	public static String IDE_VERSION = "";
@@ -63,30 +67,29 @@ public class SoftwareCoUtils {
 
 	private static boolean showStatusText = true;
 	private static String lastMsg = "";
-	
+
 	static {
 		// discover ide info
-        try {
-        	IDE_VERSION = Platform.getBundle("org.eclipse.platform").getVersion().toString();
-        } catch (Exception e) {
-            try {
-            	IDE_VERSION = Platform.getBundle("org.jkiss.dbeaver.core").getVersion().toString();
-            } catch  (Exception e2) {
-            	try {
-            		IDE_VERSION = Platform.getProduct().getDefiningBundle().getVersion().toString();
-                } catch  (Exception e3) {
-                	IDE_VERSION = "unknown";
-                }
-            }
-        }
-        
-        try {
-        	IDE_NAME = Platform.getProduct().getName();
-        } catch (Exception e) {
-        	IDE_NAME = "eclipse";
-        }
-	}
+		try {
+			IDE_VERSION = Platform.getBundle("org.eclipse.platform").getVersion().toString();
+		} catch (Exception e) {
+			try {
+				IDE_VERSION = Platform.getBundle("org.jkiss.dbeaver.core").getVersion().toString();
+			} catch (Exception e2) {
+				try {
+					IDE_VERSION = Platform.getProduct().getDefiningBundle().getVersion().toString();
+				} catch (Exception e3) {
+					IDE_VERSION = "unknown";
+				}
+			}
+		}
 
+		try {
+			IDE_NAME = Platform.getProduct().getName();
+		} catch (Exception e) {
+			IDE_NAME = "eclipse";
+		}
+	}
 
 	public static String getWorkspaceName() {
 		if (workspace_name == null) {
@@ -129,28 +132,41 @@ public class SoftwareCoUtils {
 
 		return fileDetails;
 	}
-	
+
 	public static int getLineCount(String fileName) {
-        Stream<String> stream = null;
-        try {
-            Path path = Paths.get(fileName);
-            stream = Files.lines(path);
-            return (int) stream.count();
-        } catch (Exception e) {
-            return 0;
-        } finally {
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (Exception e) {
-                    //
-                }
-            }
-        }
-    }
+		Stream<String> stream = null;
+		try {
+			Path path = Paths.get(fileName);
+			stream = Files.lines(path);
+			return (int) stream.count();
+		} catch (Exception e) {
+			return 0;
+		} finally {
+			if (stream != null) {
+				try {
+					stream.close();
+				} catch (Exception e) {
+					//
+				}
+			}
+		}
+	}
 
 	public static boolean showingStatusText() {
 		return showStatusText;
+	}
+
+	public static void submitIssue() {
+		try {
+			UtilManager.launchUrl(issues_url);
+		} catch (Exception e) {
+			try {
+				PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(issues_url));
+			} catch (Exception ex) {
+				SWCoreLog.logErrorMessage("Failed to launch the url: " + issues_url);
+				SWCoreLog.logException(ex);
+			}
+		}
 	}
 
 	public static void submitFeedback() {
@@ -158,12 +174,12 @@ public class SoftwareCoUtils {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser()
 					.openURL(new URL("mailto:cody@software.com"));
 			UIElementEntity elementEntity = new UIElementEntity();
-	        elementEntity.element_name = "ct_submit_feedback_btn";
-	        elementEntity.element_location = "ct_menu_tree";
-	        elementEntity.color = "green";
-	        elementEntity.cta_text = "Submit feedback";
-	        elementEntity.icon_name = "text-bubble";
-	        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
+			elementEntity.element_name = "ct_submit_feedback_btn";
+			elementEntity.element_location = "ct_menu_tree";
+			elementEntity.color = "green";
+			elementEntity.cta_text = "Submit feedback";
+			elementEntity.icon_name = "text-bubble";
+			EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 		} catch (Exception e) {
 			SWCoreLog.logException(e);
 		}
@@ -173,14 +189,15 @@ public class SoftwareCoUtils {
 		String cta_text = !showStatusText ? "Show status bar metrics" : "Hide status bar metrics";
 		showStatusText = !showStatusText;
 		WallClockManager.getInstance().dispatchStatusViewUpdate();
-		
+
 		UIElementEntity elementEntity = new UIElementEntity();
-        elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_toggle_status_bar_metrics_btn" : "ct_toggle_status_bar_metrics_cmd";
-        elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
-        elementEntity.color = type.equals(UIInteractionType.click) ? "blue" : null;
-        elementEntity.cta_text = cta_text;
-        elementEntity.icon_name = type.equals(UIInteractionType.click) ? "slash-eye" : null;
-        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
+		elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_toggle_status_bar_metrics_btn"
+				: "ct_toggle_status_bar_metrics_cmd";
+		elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
+		elementEntity.color = type.equals(UIInteractionType.click) ? "blue" : null;
+		elementEntity.cta_text = cta_text;
+		elementEntity.icon_name = type.equals(UIInteractionType.click) ? "slash-eye" : null;
+		EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 	}
 
 	public static void setStatusLineMessage(final String statusMsg, final String iconName, final String tooltip) {
@@ -224,7 +241,6 @@ public class SoftwareCoUtils {
 				}
 			});
 	}
-
 
 	public static List<String> getCommandResult(List<String> cmdList, String dir) {
 		String[] args = Arrays.copyOf(cmdList.toArray(), cmdList.size(), String[].class);
@@ -281,28 +297,30 @@ public class SoftwareCoUtils {
 		}
 		return content + "" + data;
 	}
-	
+
 	/**
-     * Replace byte order mark, new lines, and trim
-     * @param data
-     * @return clean data
-     */
-    public static String cleanJsonString(String data) {
-        data = data.replace("\ufeff", "").replace("/\r\n/g", "").replace("/\n/g", "").trim();
+	 * Replace byte order mark, new lines, and trim
+	 * 
+	 * @param data
+	 * @return clean data
+	 */
+	public static String cleanJsonString(String data) {
+		data = data.replace("\ufeff", "").replace("/\r\n/g", "").replace("/\n/g", "").trim();
 
-        int braceIdx = data.indexOf("{");
-        int bracketIdx = data.indexOf("[");
+		int braceIdx = data.indexOf("{");
+		int bracketIdx = data.indexOf("[");
 
-        // multi editor writes to the data.json file can cause an undefined string before the json object, remove it
-        if (braceIdx > 0 && (braceIdx < bracketIdx || bracketIdx == -1)) {
-            // there's something before the 1st brace
-            data = data.substring(braceIdx);
-        } else if (bracketIdx > 0 && (bracketIdx < braceIdx || braceIdx == -1)) {
-            // there's something before the 1st bracket
-            data = data.substring(bracketIdx);
-        }
+		// multi editor writes to the data.json file can cause an undefined string
+		// before the json object, remove it
+		if (braceIdx > 0 && (braceIdx < bracketIdx || bracketIdx == -1)) {
+			// there's something before the 1st brace
+			data = data.substring(braceIdx);
+		} else if (bracketIdx > 0 && (bracketIdx < braceIdx || braceIdx == -1)) {
+			// there's something before the 1st bracket
+			data = data.substring(bracketIdx);
+		}
 
-        return data;
-    }
+		return data;
+	}
 
 }

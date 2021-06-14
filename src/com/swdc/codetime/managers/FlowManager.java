@@ -3,6 +3,7 @@ package com.swdc.codetime.managers;
 
 import org.apache.commons.lang.StringUtils;
 
+import swdc.java.ops.manager.AccountManager;
 import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.SlackManager;
 import swdc.java.ops.model.ConfigSettings;
@@ -33,10 +34,10 @@ public class FlowManager {
     }
 
     public static void initiateFlow() {
-        boolean isRegistered = SlackManager.checkRegistration(false, null);
+        boolean isRegistered = AccountManager.checkRegistration(false, null);
         if (!isRegistered) {
             // show the flow mode prompt
-            SlackManager.showModalSignupPrompt("To use Flow Mode, please first sign up or login.", () -> { WallClockManager.refreshTree();});
+        	AccountManager.showModalSignupPrompt("To use Flow Mode, please first sign up or login.", () -> { WallClockManager.refreshTree();});
             return;
         }
         enablingFlow = true;

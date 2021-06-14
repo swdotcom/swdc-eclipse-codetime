@@ -86,8 +86,8 @@ public class MetricsTreeView extends ViewPart implements ISelectionListener {
 							SwingUtilities.invokeLater(() -> {
 								WallClockManager.refreshTree();
 							});
-						} else if (id.equals(MetricsTreeContentProvider.SEND_FEEDBACK_ID)) {
-							SoftwareCoUtils.submitFeedback();
+						} else if (id.equals(MetricsTreeContentProvider.SUBMIT_ISSUES_ID)) {
+							SoftwareCoUtils.submitIssue();
 						} else if (id.equals(MetricsTreeContentProvider.LEARN_MORE_ID)) {
 							SoftwareCoSessionManager.getInstance().launchReadmeFile();
 						} else if (id.equals(MetricsTreeContentProvider.GOOGLE_SIGNUP_ID)) {
