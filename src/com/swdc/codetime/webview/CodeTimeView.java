@@ -209,7 +209,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 	                    break;
 		            case "configureSettings":
 	                    SwingUtilities.invokeLater(() -> {
-	                    	UtilManager.launchUrl(ConfigManager.app_url + "/data_settings");
+	                    	UtilManager.launchUrl(ConfigManager.app_url + "/preferences");
 	                    });
 	                    break;
                 }

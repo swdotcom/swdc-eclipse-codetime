@@ -42,10 +42,10 @@ public class SoftwareCoUtils {
 
 	public static String issues_url = "https://github.com/swdotcom/swdc-eclipse-codetime/issues";
 
-	public final static String api_endpoint = "http://localhost:5000";//"https://api.software.com";
-	public final static String app_url = "http://localhost:3000";//"https://app.software.com";
+	public final static String api_endpoint = "https://api.software.com";
+	public final static String app_url = "https://app.software.com";
 	public final static String webui_login_url = app_url + "/login";
-	public final static String software_dir = ".software-local";//".software";
+	public final static String software_dir = ".software";
 
 	public static JsonParser jsonParser = new JsonParser();
 
