@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -34,7 +36,10 @@ import com.swdc.codetime.managers.EclipseProject;
 import com.swdc.codetime.managers.EclipseProjectUtil;
 import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
+import com.swdc.codetime.managers.SessionStatusUpdateManager;
+import com.swdc.codetime.managers.ThemeModeInfoManager;
 import com.swdc.codetime.managers.WallClockManager;
+import com.swdc.codetime.managers.WebsocketMessageManager;
 import com.swdc.codetime.models.KeystrokeCountUtil;
 import com.swdc.codetime.util.SWCoreImages;
 import com.swdc.codetime.util.SWCoreLog;
@@ -49,8 +54,10 @@ import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.ConfigManager.IdeType;
 import swdc.java.ops.manager.EventTrackerManager;
 import swdc.java.ops.manager.FileUtilManager;
+import swdc.java.ops.manager.UtilManager;
 import swdc.java.ops.model.CodeTime;
 import swdc.java.ops.model.CodeTime.FileInfo;
+import swdc.java.ops.model.ConfigOptions;
 import swdc.java.ops.model.Project;
 import swdc.java.ops.websockets.WebsocketClient;
 
@@ -91,11 +98,38 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	public static final AtomicBoolean SEND_TELEMTRY = new AtomicBoolean(true);
 
 	private static final IWorkbench workbench = PlatformUI.getWorkbench();
-	
+
+	private static boolean initialized = false;
+
 	/**
 	 * The constructor
 	 */
 	public CodeTimeActivator() {
+	}
+
+	public static boolean initializedOps() {
+		return initialized;
+	}
+	
+	public static void initializeConfig() {
+		ConfigOptions options = new ConfigOptions();
+		options.ideName = SoftwareCoUtils.IDE_NAME;
+		options.pluginType = "codetime";
+		options.pluginEditor = "eclipse";
+		options.appUrl = SoftwareCoUtils.app_url;
+		options.ideVersion = SoftwareCoUtils.getVersion();
+		options.metricsEndpoint = SoftwareCoUtils.api_endpoint;
+		options.pluginId = SoftwareCoUtils.pluginId;
+		options.pluginName = SoftwareCoUtils.pluginName;
+		options.pluginVersion = SoftwareCoUtils.getVersion();
+		options.pluginEditor = "eclipse";
+		options.softwareDir = SoftwareCoUtils.software_dir;
+
+		ConfigManager.init(options, () -> SessionDataManager.refreshSessionAndView(),
+				new WebsocketMessageManager(), new SessionStatusUpdateManager(), new ThemeModeInfoManager(),
+				IdeType.eclipse);
+
+		initialized = true;
 	}
 
 	/*
@@ -115,19 +149,10 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	public void earlyStartup() {
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
-
-				ConfigManager.init(
-						SoftwareCoUtils.api_endpoint,
-						SoftwareCoUtils.launch_url,
-						SoftwareCoUtils.pluginId,
-						SoftwareCoUtils.pluginName,
-						SoftwareCoUtils.getVersion(),
-						SoftwareCoUtils.IDE_NAME,
-						SoftwareCoUtils.IDE_VERSION,
-						SoftwareCoUtils.software_dir,
-						()-> {SessionDataManager.refreshSessionDataAndTree();},
-						new SessionDataManager(),
-						IdeType.eclipse);
+				
+				if (!initialized) {
+					initializeConfig();
+				}
 
 				String jwt = FileUtilManager.getItem("jwt");
 				if (StringUtils.isBlank(jwt)) {
@@ -167,12 +192,12 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 						}
 					}, 3000);
 				}
-				
+
 				try {
 					IResourceChangeListener listener = new SoftwareCoIResourceListener();
-					
-					ResourcesPlugin.getWorkspace().addResourceChangeListener(
-							listener, IResourceChangeEvent.POST_CHANGE);
+
+					ResourcesPlugin.getWorkspace().addResourceChangeListener(listener,
+							IResourceChangeEvent.POST_CHANGE);
 				} catch (Exception e) {
 					LOG.warning("Error adding resource change listener: " + e.getMessage());
 				}
@@ -192,12 +217,13 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				ScreenManager.init(null);
 
 				// start the wallclock
-				WallClockManager.getInstance().updateSessionSummaryFromServer();
+				WallClockManager.getInstance();
 
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				try {
-					ctMetricsTreeView = window.getActivePage().findView("com.swdc.codetime.tree.metricsTreeView");
-					WallClockManager.setTreeView(ctMetricsTreeView);
+					// ctMetricsTreeView =
+					// window.getActivePage().findView("com.swdc.codetime.tree.metricsTreeView");
+					ctMetricsTreeView = window.getActivePage().findView("com.swdc.codetime.webview.codeTimeView");
 				} catch (Exception e) {
 					System.err.println(e);
 				}
@@ -209,6 +235,10 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				} catch (Exception e) {
 					LOG.log(Level.WARNING, "Websocket connect error: " + e.getMessage());
 				}
+
+				SwingUtilities.invokeLater(() -> {
+					SessionDataManager.updateSessionSummaryFromServer();
+				});
 			}
 		});
 	}
@@ -250,11 +280,13 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 		try {
 			if (window != null) {
-				window.getActivePage().showView("com.swdc.codetime.tree.metricsTreeView");
+				window.getActivePage().showView("com.swdc.codetime.webview.codeTimeView");
+
 				if (ctMetricsTreeView != null) {
 					ctMetricsTreeView.setFocus();
 					window.getActivePage().activate(ctMetricsTreeView);
 				}
+
 			}
 		} catch (Exception e) {
 			System.err.println(e);
@@ -345,8 +377,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		updateFileInfoMetrics(docEvent, fileInfo, keystrokeCount);
 	}
 
-	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo,
-			CodeTime keystrokeCount) {
+	private static void updateFileInfoMetrics(DocumentEvent docEvent, FileInfo fileInfo, CodeTime keystrokeCount) {
 
 		String text = docEvent.getText();
 		int new_line_count = 0;
@@ -483,7 +514,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		public void run() {
 			if (keystrokeMgr != null) {
 				List<CodeTime> list = keystrokeMgr.getKeystrokeCounts();
-				
+
 				for (CodeTime keystrokeCount : list) {
 					KeystrokeCountUtil.processKeystrokes(keystrokeCount);
 				}
@@ -498,11 +529,9 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		String readmeDisplayed = FileUtilManager.getItem("eclipse_CtReadme");
 
 		if (readmeDisplayed == null || Boolean.valueOf(readmeDisplayed) == false) {
-			try {
-				SoftwareCoSessionManager.getInstance().launchReadmeFile();
-			} catch (Exception e) {
-				System.err.println(e);
-			}
+			SwingUtilities.invokeLater(() -> {
+            	UtilManager.launchUrl("https://github.com/swdotcom/swdc-eclipse-codetime");
+            });
 			FileUtilManager.setItem("eclipse_CtReadme", "true");
 
 			CodeTimeActivator.displayCodeTimeMetricsTree();

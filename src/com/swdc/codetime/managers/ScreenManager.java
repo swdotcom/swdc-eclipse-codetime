@@ -1,12 +1,12 @@
 package com.swdc.codetime.managers;
 
 
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+
+import com.swdc.codetime.webview.CodeTimeView;
 
 public class ScreenManager {
 
@@ -24,19 +24,6 @@ public class ScreenManager {
 					} else {
 						ideWindow = workbench.getActiveWorkbenchWindow().getShell();
 					}
-					ideWindow.addControlListener(new ControlListener() {
-						@Override
-						public void controlResized(ControlEvent e) {
-							isFullScreen = ideWindow.getFullScreen();
-							FlowManager.checkToDisableFlow();
-						}
-
-						@Override
-						public void controlMoved(ControlEvent e) {
-							// TODO Auto-generated method stub
-
-						}
-					});
 					if (callback != null) {
 						callback.run();
 					}
@@ -51,37 +38,37 @@ public class ScreenManager {
 		return isFullScreen;
 	}
 
-	public static void enterFullScreenMode() {
+	public static void enterFullScreen() {
 		Display.getDefault().asyncExec(() -> {
 			if (ideWindow != null && !ideWindow.getFullScreen()) {
 				try {
 	                ideWindow.setFullScreen(true);
 	                isFullScreen = true;
-	                WallClockManager.refreshTree();
+	                CodeTimeView.initializeRefresh();
 	            } catch (Exception e) {
 	                //
 	            }
 			} else {
 				// try one more time
-				init(() -> {ScreenManager.enterFullScreenMode();});
+				init(() -> {ScreenManager.enterFullScreen();});
 
 			}
 		});
     }
 
-	public static void exitFullScreenMode() {
+	public static void exitFullScreen() {
 		Display.getDefault().asyncExec(() -> {
 			if (ideWindow != null && ideWindow.getFullScreen()) {
 				try {
 					ideWindow.setFullScreen(false);
 					isFullScreen = false;
-					WallClockManager.refreshTree();
+					CodeTimeView.initializeRefresh();
 				} catch (Exception e) {
 					//
 				}
 			} else {
 				// try one more time
-				init(() -> {ScreenManager.exitFullScreenMode();});
+				init(() -> {ScreenManager.exitFullScreen();});
 
 			}
 		});

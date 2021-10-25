@@ -16,9 +16,9 @@
       </startup>
    </extension>
    <extension point="org.eclipse.ui.views">
-        <view id="com.swdc.codetime.tree.metricsTreeView"
+        <view id="com.swdc.codetime.webview.codeTimeView"
           name="Code Time"
-          class="com.swdc.codetime.tree.MetricsTreeView"
+          class="com.swdc.codetime.webview.CodeTimeView"
           icon="icons/paw.png"/>
    </extension>
    <extension

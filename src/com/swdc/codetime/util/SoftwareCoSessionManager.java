@@ -21,9 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorRegistry;
-import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
@@ -69,7 +67,7 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void fetchCodeTimeMetricsDashboard() {
-		ClientResponse resp = OpsHttpClient.softwareGet("/v1/plugin_dashboard", FileUtilManager.getItem("jwt"));
+		ClientResponse resp = OpsHttpClient.appGet("/settings/dashboard");
 
 		// write the dashboard content to the dashboard file
 		String html = resp.isOk() ? resp.getJsonObj().get("html").getAsString() : "<html></html>";
@@ -100,41 +98,6 @@ public class SoftwareCoSessionManager {
 		return file;
 	}
 
-	public void launchReadmeFile() throws URISyntaxException, IOException {
-		File f = getReadmeFile();
-		if (f == null) {
-			return;
-		}
-
-		IWorkbench workbench = PlatformUI.getWorkbench();
-
-		URI uri = f.toURI();
-		// String editorSupport = "org.eclipse.ui.browser.editorSupport";
-		String genericEditor = "org.eclipse.ui.genericeditor.GenericEditor";
-		String defaultEditor = "org.eclipse.ui.DefaultTextEditor";
-		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage page = window.getActivePage();
-
-		try {
-			IDE.openEditor(page, uri, defaultEditor, true);
-		} catch (Exception e1) {
-			try {
-				IDE.openEditor(page, uri, genericEditor, true);
-			} catch (Exception e2) {
-				SWCoreLog.logErrorMessage(
-						"Code Time: unable to launch editor to view code time metrics, error: " + e2.getMessage());
-			}
-		}
-		
-		UIElementEntity elementEntity = new UIElementEntity();
-        elementEntity.element_name = "ct_learn_more_btn";
-        elementEntity.element_location = "ct_menu_tree";
-        elementEntity.color = "yellow";
-        elementEntity.cta_text = "Learn more";
-        elementEntity.icon_name = "document";
-        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
-	}
-
 	public static void launchFile(String fsPath, boolean isHtml) {
 		Project p = EclipseProjectUtil.getInstance().getFirstActiveProject();
 		if (p == null) {
@@ -143,13 +106,10 @@ public class SoftwareCoSessionManager {
 
 		File f = new File(fsPath);
 		if (f.exists() && f.isFile()) {
-			IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-			IWorkbenchPage page = window.getActivePage();
 			URI uri = f.toURI();
 			
 			if (isHtml) {
 				IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
-						  PlatformUI.getWorkbench().getBrowserSupport();
 				try {
 					IWebBrowser browser = support.createBrowser("html_dashboard");
 					browser.openURL(uri.toURL());
@@ -164,6 +124,7 @@ public class SoftwareCoSessionManager {
 			String genericEditor = "org.eclipse.ui.genericeditor.GenericEditor";
 			String defaultEditor = "org.eclipse.ui.DefaultTextEditor";
 			
+			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			try {
 				IDE.openEditor(page, uri, defaultEditor, true);
 			} catch (Exception e) {
@@ -200,11 +161,11 @@ public class SoftwareCoSessionManager {
         EventTrackerManager.getInstance().trackUIInteraction(type, elementEntity);
 	}
 
-	public static void launchLogin(String loginType, boolean switching_account) {
+	public static void launchLogin(String loginType, boolean isSignup) {
 
 		String auth_callback_state = FileUtilManager.getAuthCallbackState(true);
 
-        FileUtilManager.setBooleanItem("switching_account", switching_account);
+        FileUtilManager.setBooleanItem("switching_account", !isSignup);
 
         String plugin_uuid = FileUtilManager.getPluginUuid();
 
@@ -214,22 +175,26 @@ public class SoftwareCoSessionManager {
         obj.addProperty("pluginVersion", SoftwareCoUtils.getVersion());
         obj.addProperty("plugin_id", SoftwareCoUtils.pluginId);
         obj.addProperty("auth_callback_state", auth_callback_state);
-        obj.addProperty("redirect", SoftwareCoUtils.launch_url);
+        obj.addProperty("redirect", SoftwareCoUtils.app_url);
 
 		String url = "";
 		String element_name = "ct_sign_up_email_btn";
         String cta_text = "Sign up with email";
         String icon_name = "envelope";
         String icon_color = "blue";
-        if (loginType == null || loginType.equals("software") || loginType.equals("email")) {
+        if (loginType == null || loginType.equalsIgnoreCase("software") || loginType.equalsIgnoreCase("email")) {
             element_name = "ct_sign_up_email_btn";
             cta_text = "Sign up with email";
             icon_name = "envelope";
             icon_color = "gray";
-            url = SoftwareCoUtils.launch_url + "/email-signup";
-        } else if (loginType.equals("google")) {
+            if (isSignup) {
+            	url = SoftwareCoUtils.app_url + "/email-signup";
+            } else {
+            	url = SoftwareCoUtils.app_url + "/onboarding";
+            }
+        } else if (loginType.equalsIgnoreCase("google")) {
             url = SoftwareCoUtils.api_endpoint + "/auth/google";
-        } else if (loginType.equals("github")) {
+        } else if (loginType.equalsIgnoreCase("github")) {
             element_name = "ct_sign_up_github_btn";
             cta_text = "Sign up with GitHub";
             icon_name = "github";

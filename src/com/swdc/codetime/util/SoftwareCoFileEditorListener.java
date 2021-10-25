@@ -21,7 +21,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.EclipseProject;
-import com.swdc.codetime.managers.EclipseProjectUtil;
 
 /**
  * 
