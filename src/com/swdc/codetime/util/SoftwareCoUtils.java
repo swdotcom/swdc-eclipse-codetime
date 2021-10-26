@@ -24,7 +24,6 @@ import org.eclipse.ui.PlatformUI;
 import com.google.gson.JsonParser;
 import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.EclipseProjectUtil;
-import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.models.FileDetails;
 
 import swdc.java.ops.manager.EventTrackerManager;
@@ -40,24 +39,17 @@ public class SoftwareCoUtils {
 	private static int DASHBOARD_VALUE_WIDTH = 25;
 
 	public static final Logger LOG = Logger.getLogger("SoftwareCoUtils");
-	// set the api endpoint to use
-	private final static String PROD_API_ENDPOINT = "https://api.software.com";
-	// set the launch url to use
-	private final static String PROD_URL_ENDPOINT = "https://app.software.com";
 
 	public static String issues_url = "https://github.com/swdotcom/swdc-eclipse-codetime/issues";
 
-	// set the api endpoint to use
-	public final static String api_endpoint = PROD_API_ENDPOINT;
-	// set the launch url to use
-	public final static String launch_url = PROD_URL_ENDPOINT;
-	public final static String webui_login_url = PROD_URL_ENDPOINT + "/login";
+	public final static String api_endpoint = "https://api.software.com";
+	public final static String app_url = "https://app.software.com";
+	public final static String webui_login_url = app_url + "/login";
 	public final static String software_dir = ".software";
 
 	public static JsonParser jsonParser = new JsonParser();
 
-	// sublime = 1, vs code = 2, eclipse = 3, intellij = 4, visual studio = 6, atom
-	// = 7
+	// sublime = 1, vs code = 2, eclipse = 3, intellij = 4, visual studio = 6, atom = 7
 	public final static int pluginId = 3;
 	public final static String pluginName = "codetime";
 	public static String IDE_VERSION = "";
@@ -188,7 +180,6 @@ public class SoftwareCoUtils {
 	public static void toggleStatusBarText(UIInteractionType type) {
 		String cta_text = !showStatusText ? "Show status bar metrics" : "Hide status bar metrics";
 		showStatusText = !showStatusText;
-		WallClockManager.getInstance().dispatchStatusViewUpdate();
 
 		UIElementEntity elementEntity = new UIElementEntity();
 		elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_toggle_status_bar_metrics_btn"

@@ -6,7 +6,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
-import com.swdc.codetime.managers.WallClockManager;
+import com.swdc.codetime.webview.CodeTimeView;
 
 import swdc.java.ops.manager.SlackManager;
 
@@ -16,7 +16,7 @@ public class SlackDisconnectHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		SwingUtilities.invokeLater(() -> {
 			SlackManager.disconnectSlackWorkspace(() -> {
-				WallClockManager.refreshTree();
+				CodeTimeView.initializeRefresh();
 			});
 		});
 		return null;
