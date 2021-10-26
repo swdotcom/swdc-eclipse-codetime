@@ -148,7 +148,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 	                    break;
 	                case "viewDashboard":
 	                    SwingUtilities.invokeLater(() -> {
-	                    	UtilManager.launchUrl(ConfigManager.app_url + "/dashboard");
+	                    	UtilManager.launchUrl(ConfigManager.app_url + "/dashboard/code_time");
 	                    });
 	                    break;
 	                case "enableFlowMode":

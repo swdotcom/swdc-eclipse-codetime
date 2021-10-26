@@ -115,7 +115,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		ConfigOptions options = new ConfigOptions();
 		options.ideName = SoftwareCoUtils.IDE_NAME;
 		options.pluginType = "codetime";
-		options.pluginEditor = "eclipse";
 		options.appUrl = SoftwareCoUtils.app_url;
 		options.ideVersion = SoftwareCoUtils.getVersion();
 		options.metricsEndpoint = SoftwareCoUtils.api_endpoint;
