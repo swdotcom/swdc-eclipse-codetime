@@ -35,9 +35,6 @@ import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class SoftwareCoUtils {
 
-	private static int DASHBOARD_LABEL_WIDTH = 25;
-	private static int DASHBOARD_VALUE_WIDTH = 25;
-
 	public static final Logger LOG = Logger.getLogger("SoftwareCoUtils");
 
 	public static String issues_url = "https://github.com/swdotcom/swdc-eclipse-codetime/issues";
@@ -250,48 +247,9 @@ public class SoftwareCoUtils {
 		return uuid.replace("-", "");
 	}
 
-	public static String getDashboardRow(String label, String value) {
-		String content = getDashboardLabel(label) + " : " + getDashboardValue(value) + "\n";
-		return content;
-	}
-
-	public static String getSectionHeader(String label) {
-		String content = label + "\n";
-		// add 3 to account for the " : " between the columns
-		int dashLen = DASHBOARD_LABEL_WIDTH + DASHBOARD_VALUE_WIDTH + 15;
-		for (int i = 0; i < dashLen; i++) {
-			content += "-";
-		}
-		content += "\n";
-		return content;
-	}
-
-	public static String getDashboardLabel(String label) {
-		return getDashboardDataDisplay(DASHBOARD_LABEL_WIDTH, label);
-	}
-
-	public static String getDashboardValue(String value) {
-		String valueContent = getDashboardDataDisplay(DASHBOARD_VALUE_WIDTH, value);
-		String paddedContent = "";
-		for (int i = 0; i < 11; i++) {
-			paddedContent += " ";
-		}
-		paddedContent += valueContent;
-		return paddedContent;
-	}
-
-	public static String getDashboardDataDisplay(int widthLen, String data) {
-		int len = widthLen - data.length();
-		String content = "";
-		for (int i = 0; i < len; i++) {
-			content += " ";
-		}
-		return content + "" + data;
-	}
-
 	/**
 	 * Replace byte order mark, new lines, and trim
-	 * 
+	 *
 	 * @param data
 	 * @return clean data
 	 */

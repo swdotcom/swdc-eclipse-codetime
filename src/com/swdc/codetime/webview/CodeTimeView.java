@@ -40,7 +40,7 @@ import swdc.java.ops.model.IntegrationConnection;
 import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class CodeTimeView extends ViewPart implements ISelectionListener {
-	
+
 	public static final Logger LOG = Logger.getLogger("CodeTimeView");
 
 	public CodeTimeView() {
@@ -50,8 +50,8 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 	public void init(IViewSite site) throws PartInitException {
 		super.init(site);
 	}
-	
-	
+
+
 	public static void initializeRefresh() {
 		try {
 			SwingUtilities.invokeLater(() -> {
@@ -63,9 +63,9 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 			System.err.println(e);
 		}
 	}
-	
+
 	public void refreshView() {
-		
+
 	}
 
 	@Override
@@ -87,12 +87,12 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 		browser.setText(buildHtml());
 		new CustomFunction (browser, "postMessage");
 	}
-	
+
 	static class CustomFunction extends BrowserFunction {
 		CustomFunction (Browser browser, String name) {
 			super (browser, name);
 		}
-		
+
 		private WebviewMessage getWebviewMessage(Object[] arguments) {
 			WebviewMessage message = new WebviewMessage();
 			if (arguments.length == 1) {
@@ -108,7 +108,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 			}
 			return message;
 		}
-		
+
 		@Override
 		public Object function (Object[] arguments) {
 			// [{"cmd":"login","payload":{}}]
@@ -148,7 +148,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 	                    break;
 	                case "viewDashboard":
 	                    SwingUtilities.invokeLater(() -> {
-	                    	UtilManager.launchUrl(ConfigManager.app_url + "/dashboard/code_time");
+	                    	UtilManager.launchUrl(ConfigManager.app_url + "/dashboard/code_time?view=summary");
 	                    });
 	                    break;
 	                case "enableFlowMode":
@@ -214,7 +214,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 	                    break;
                 }
             } catch (Exception e) {
-                
+
             }
 			return null;
 		}
@@ -252,7 +252,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 
 		}
 	}
-	
+
 	private String buildHtml() {
         JsonObject obj = new JsonObject();
         obj.addProperty("showing_statusbar", true);
@@ -263,7 +263,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
         if (resp.isOk()) {
             return resp.getJsonStr();
         }
-        
+
         return LoadError.get404Html();
     }
 
