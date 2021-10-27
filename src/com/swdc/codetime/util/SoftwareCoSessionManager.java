@@ -5,10 +5,8 @@
 package com.swdc.codetime.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
@@ -18,8 +16,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -27,10 +23,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.ide.IDE;
-import org.osgi.framework.Bundle;
 
 import com.google.gson.JsonObject;
-import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.codetime.managers.EclipseProjectUtil;
 
@@ -82,20 +76,6 @@ public class SoftwareCoSessionManager {
 			SWCoreLog.logErrorMessage("Failed to launch the software top 40: " + url);
 			SWCoreLog.logException(e);
 		}
-	}
-
-	protected File getReadmeFile() {
-		Bundle bundle = Platform.getBundle(CodeTimeActivator.PLUGIN_ID);
-		URL fileURL = bundle.getEntry("README.txt");
-		File file = null;
-		try {
-			file = new File(FileLocator.resolve(fileURL).toURI());
-		} catch (URISyntaxException e1) {
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		return file;
 	}
 
 	public static void launchFile(String fsPath, boolean isHtml) {
