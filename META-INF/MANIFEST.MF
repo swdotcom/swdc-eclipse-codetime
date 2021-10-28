@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Code Time
 Bundle-SymbolicName: com.swdc.codetime;singleton:=true
-Bundle-Version: 2.3.14
+Bundle-Version: 2.3.15
 Bundle-Activator: com.swdc.codetime.CodeTimeActivator
 Bundle-Vendor: Software.com
 Require-Bundle: org.eclipse.ui,
@@ -19,7 +19,7 @@ Bundle-ClassPath: .,
  extlibs/gson-2.8.2.jar,
  extlibs/apache-httpcomponents-httpclient.jar,
  extlibs/swdc-java-ops-1.1.3.jar
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-14
 Automatic-Module-Name: com.swdc.codetime
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.equinox.internal.p2.ui,
