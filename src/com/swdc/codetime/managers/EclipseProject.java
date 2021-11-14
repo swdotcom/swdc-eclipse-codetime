@@ -2,8 +2,7 @@ package com.swdc.codetime.managers;
 
 import java.io.File;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -57,7 +56,7 @@ public class EclipseProject implements IdeProject {
 
 	@Override
 	public Project getOpenProject() {
-		throw new NotImplementedException();
+		return null;
 	}
 
 	@Override

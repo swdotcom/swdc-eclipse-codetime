@@ -2,7 +2,7 @@ package com.swdc.codetime.models;
 
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.swdc.codetime.managers.EclipseProjectUtil;
 import com.swdc.codetime.managers.SessionDataManager;

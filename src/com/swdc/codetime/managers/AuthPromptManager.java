@@ -3,7 +3,7 @@ package com.swdc.codetime.managers;
 import javax.swing.Icon;
 import javax.swing.JOptionPane;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.swdc.codetime.util.SoftwareCoSessionManager;
 
