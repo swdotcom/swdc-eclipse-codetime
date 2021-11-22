@@ -5,6 +5,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.managers.StatusBarManager;
 import com.swdc.codetime.util.SoftwareCoUtils;
 
 public class StopMetricsHandler extends AbstractHandler {
@@ -13,7 +14,7 @@ public class StopMetricsHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 
 		CodeTimeActivator.SEND_TELEMTRY.set(false);
-        SoftwareCoUtils.setStatusLineMessage("Paused", "paw.png", "Enable metrics to resume");
+		StatusBarManager.setStatusLineMessage("Paused", "paw.png", "Enable metrics to resume");
 		return null;
 	}
 	

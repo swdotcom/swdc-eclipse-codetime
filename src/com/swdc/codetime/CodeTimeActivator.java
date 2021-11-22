@@ -32,11 +32,13 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.google.gson.JsonParser;
+import com.swdc.codetime.webview.CodeTimeView;
 import com.swdc.codetime.managers.EclipseProject;
 import com.swdc.codetime.managers.EclipseProjectUtil;
 import com.swdc.codetime.managers.ScreenManager;
 import com.swdc.codetime.managers.SessionDataManager;
 import com.swdc.codetime.managers.SessionStatusUpdateManager;
+import com.swdc.codetime.managers.StatusBarManager;
 import com.swdc.codetime.managers.ThemeModeInfoManager;
 import com.swdc.codetime.managers.WallClockManager;
 import com.swdc.codetime.managers.WebsocketMessageManager;
@@ -54,7 +56,6 @@ import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.ConfigManager.IdeType;
 import swdc.java.ops.manager.EventTrackerManager;
 import swdc.java.ops.manager.FileUtilManager;
-import swdc.java.ops.manager.UtilManager;
 import swdc.java.ops.model.CodeTime;
 import swdc.java.ops.model.CodeTime.FileInfo;
 import swdc.java.ops.model.ConfigOptions;
@@ -124,8 +125,11 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		options.pluginEditor = "eclipse";
 		options.softwareDir = SoftwareCoUtils.software_dir;
 
-		ConfigManager.init(options, () -> SessionDataManager.refreshSessionAndView(),
-				new WebsocketMessageManager(), new SessionStatusUpdateManager(), new ThemeModeInfoManager(),
+		ConfigManager.init(options,
+				() -> CodeTimeView.refreshView(),
+				new WebsocketMessageManager(),
+				new SessionStatusUpdateManager(),
+				new ThemeModeInfoManager(),
 				IdeType.eclipse);
 
 		initialized = true;
@@ -206,7 +210,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 				String version = SoftwareCoUtils.getVersion();
 				SWCoreLog.logInfoMessage("Code Time: Loaded v" + version + " on platform: " + SWT.getPlatform());
 
-				SoftwareCoUtils.setStatusLineMessage("Code Time", "paw.png", "Loaded v" + version);
+				StatusBarManager.setStatusLineMessage("Code Time", "paw.png", "Loaded v" + version);
 
 				// initialize the tracker
 				EventTrackerManager.getInstance().init(new EclipseProject());
@@ -528,9 +532,6 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		String readmeDisplayed = FileUtilManager.getItem("eclipse_CtReadme");
 
 		if (readmeDisplayed == null || Boolean.valueOf(readmeDisplayed) == false) {
-			SwingUtilities.invokeLater(() -> {
-            	UtilManager.launchUrl("https://github.com/swdotcom/swdc-eclipse-codetime");
-            });
 			FileUtilManager.setItem("eclipse_CtReadme", "true");
 
 			CodeTimeActivator.displayCodeTimeMetricsTree();

@@ -44,7 +44,6 @@ public class ScreenManager {
 				try {
 	                ideWindow.setFullScreen(true);
 	                isFullScreen = true;
-	                CodeTimeView.initializeRefresh();
 	            } catch (Exception e) {
 	                //
 	            }
@@ -62,7 +61,6 @@ public class ScreenManager {
 				try {
 					ideWindow.setFullScreen(false);
 					isFullScreen = false;
-					CodeTimeView.initializeRefresh();
 				} catch (Exception e) {
 					//
 				}

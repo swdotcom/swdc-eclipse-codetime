@@ -6,7 +6,6 @@ import javax.swing.SwingUtilities;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.swdc.codetime.util.SoftwareCoUtils;
 
 import swdc.java.ops.http.ClientResponse;
 import swdc.java.ops.http.OpsHttpClient;
@@ -16,10 +15,6 @@ import swdc.java.ops.model.ElapsedTime;
 import swdc.java.ops.model.SessionSummary;
 
 public class SessionDataManager {
-	
-	public static void refreshSessionAndView() {
-		
-	}
 
     public static void clearSessionSummaryData() {
         SessionSummary summary = new SessionSummary();
@@ -64,9 +59,8 @@ public class SessionDataManager {
     public static void updateSessionSummaryFromServer() {
         SessionSummary summary = SessionDataManager.getSessionSummaryFileData();
 
-        String jwt = FileUtilManager.getItem("jwt");
-        String api = "/sessions/summary";
-        ClientResponse resp = OpsHttpClient.softwareGet(api, jwt);
+        String api = "/api/v1/user/session_summary";
+        ClientResponse resp = OpsHttpClient.appGet(api);
         if (resp.isOk()) {
             try {
                 Type type = new TypeToken<SessionSummary>() {}.getType();
@@ -96,7 +90,7 @@ public class SessionDataManager {
     		// String icon = SoftwareCoUtils.showingStatusText() ? "paw.png" : "clock.png";
     		String msg = UtilManager.humanizeMinutes(summary.currentDayMinutes);
     		String iconName = summary.currentDayMinutes > summary.averageDailyMinutes ? "rocket.png" : "paw.png";
-    		SoftwareCoUtils.setStatusLineMessage(msg, iconName,
+    		StatusBarManager.setStatusLineMessage(msg, iconName,
     				"Active code time today. Click to see more from Code Time.");
         });
     }

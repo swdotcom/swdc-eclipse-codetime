@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
 import com.google.gson.JsonParser;
@@ -27,7 +26,6 @@ import com.swdc.codetime.managers.EclipseProjectUtil;
 import com.swdc.codetime.models.FileDetails;
 
 import swdc.java.ops.manager.EventTrackerManager;
-import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.UtilManager;
 import swdc.java.ops.model.Project;
 import swdc.java.ops.snowplow.entities.UIElementEntity;
@@ -53,9 +51,6 @@ public class SoftwareCoUtils {
 	public static String IDE_NAME = "eclipse";
 
 	private static String workspace_name = null;
-
-	private static boolean showStatusText = true;
-	private static String lastMsg = "";
 
 	static {
 		// discover ide info
@@ -141,10 +136,6 @@ public class SoftwareCoUtils {
 		}
 	}
 
-	public static boolean showingStatusText() {
-		return showStatusText;
-	}
-
 	public static void submitIssue() {
 		try {
 			UtilManager.launchUrl(issues_url);
@@ -172,62 +163,6 @@ public class SoftwareCoUtils {
 		} catch (Exception e) {
 			SWCoreLog.logException(e);
 		}
-	}
-
-	public static void toggleStatusBarText(UIInteractionType type) {
-		String cta_text = !showStatusText ? "Show status bar metrics" : "Hide status bar metrics";
-		showStatusText = !showStatusText;
-
-		UIElementEntity elementEntity = new UIElementEntity();
-		elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_toggle_status_bar_metrics_btn"
-				: "ct_toggle_status_bar_metrics_cmd";
-		elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
-		elementEntity.color = type.equals(UIInteractionType.click) ? "blue" : null;
-		elementEntity.cta_text = cta_text;
-		elementEntity.icon_name = type.equals(UIInteractionType.click) ? "slash-eye" : null;
-		EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
-	}
-
-	public static void setStatusLineMessage(final String statusMsg, final String iconName, final String tooltip) {
-		String statusTooltip = tooltip;
-		String name = FileUtilManager.getItem("name");
-
-		if (showStatusText) {
-			lastMsg = statusMsg;
-		}
-
-		if (statusTooltip == null) {
-			statusTooltip = "Active code time today. Click to see more from Code Time.";
-		}
-
-		if (statusTooltip.lastIndexOf(".") != statusTooltip.length() - 1) {
-			statusTooltip += ".";
-		}
-
-		if (name != null) {
-			statusTooltip += " Logged in as " + name;
-		}
-
-		final String finalTooltip = statusTooltip;
-
-		final IWorkbench workbench = PlatformUI.getWorkbench();
-		if (!workbench.getDisplay().isDisposed())
-			workbench.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					String statusTooltip = finalTooltip;
-					if (showStatusText) {
-						SWCoreStatusBar.get().setText(statusMsg);
-						SWCoreStatusBar.get().setIconName(iconName);
-					} else {
-						statusTooltip = lastMsg + " | " + tooltip;
-						SWCoreStatusBar.get().setText("");
-						SWCoreStatusBar.get().setIconName("clock.png");
-					}
-
-					SWCoreStatusBar.get().setTooltip(statusTooltip);
-					SWCoreStatusBar.get().update();
-				}
-			});
 	}
 
 	public static List<String> getCommandResult(List<String> cmdList, String dir) {

@@ -1,6 +1,5 @@
 package com.swdc.codetime.util;
 
-import org.eclipse.jface.action.LegacyActionTools;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -8,10 +7,10 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import com.swdc.codetime.CodeTimeActivator;
+import com.swdc.codetime.managers.FlowManager;
 
 import swdc.java.ops.manager.EventTrackerManager;
 import swdc.java.ops.snowplow.entities.UIElementEntity;
@@ -21,7 +20,8 @@ public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControl
 
 	private static SWCoreStatusBar ITEM;
 
-	private CLabel label;
+	private CLabel actLabel;
+	private CLabel flowLabel;
 
 	Listener listener = new Listener() {
 		@Override
@@ -37,8 +37,17 @@ public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControl
 	        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 		}
 	};
-
-	private String errorText;
+	
+	Listener flowListener = new Listener() {
+		@Override
+		public void handleEvent(Event event) {
+			if (FlowManager.isFlowModeEnabled()) {
+				FlowManager.exitFlowMode();
+			} else {
+				FlowManager.enterFlowMode(false);
+			}
+		}
+	};
 
 	private String errorDetail;
 
@@ -60,14 +69,6 @@ public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControl
 
 	public static SWCoreStatusBar get() {
 		return ITEM;
-	}
-
-	public String getErrorText() {
-		return errorText;
-	}
-
-	public void setErrorText(String errorText) {
-		this.errorText = errorText;
 	}
 
 	public String getErrorDetail() {
@@ -114,65 +115,74 @@ public class SWCoreStatusBar extends org.eclipse.ui.menus.WorkbenchWindowControl
 		layout.marginWidth = 0;
 		layout.wrap = false;
 		composite.setLayout(layout);
-		new Label(composite, SWT.SEPARATOR);
+		// new Label(composite, SWT.SEPARATOR);
 
-		label = new CLabel(composite, SWT.BOLD);
+		actLabel = new CLabel(composite, SWT.BOLD);
+		flowLabel = new CLabel(composite, SWT.BOLD);
 
 		update();
 
-		label.addListener(SWT.MouseDown, listener);
+		actLabel.addListener(SWT.MouseDown, listener);
+		flowLabel.addListener(SWT.MouseDown, flowListener);
 
 		return composite;
 	}
 
 	public void update() {
-		if (label != null && !label.isDisposed()) {
-			label.setForeground(label.getParent().getForeground());
-			if (errorText != null && !errorText.equals("")) {
-				if (errorDetail != null) {
-					label.setToolTipText(escape(errorDetail));
-				} else if (tooltip != null) {
-					label.setToolTipText(escape(tooltip));
-				}
-				label.setText("Code Time");
+		if (actLabel != null && !actLabel.isDisposed()) {
+			actLabel.setForeground(actLabel.getParent().getForeground());
+
+			if ((text == null || text.trim().equals("")) && !iconName.equals("clock.png")) {
+				text = "Code Time";
 			} else {
-				if ((text == null || text.trim().equals("")) && !iconName.equals("clock.png")) {
-					text = "Code Time";
-				} else {
-					text = text.trim();
-				}
+				text = text.trim();
 			}
 			iconName = iconName == null || iconName.trim().equals("") ? iconName = "paw.png" : iconName;
 
 			try {
-				// the parent layout update should handle image updates, no need to dispose
-				// if (label.getImage() != null) {
-				// label.getImage().dispose();
-				// }
 				ImageDescriptor imgDescriptor = SWCoreImages.create("icons/", iconName);
-				label.setImage(SWCoreImages.getImage(imgDescriptor));
+				actLabel.setImage(SWCoreImages.getImage(imgDescriptor));
 			} catch (Exception e) {
 				SWCoreLog.log(e);
 			}
 
 			if (tooltip != null) {
-				label.setToolTipText(tooltip.trim());
+				actLabel.setToolTipText(tooltip.trim());
 			}
-			label.setText(text);
+			actLabel.setText(text);
+		}
+		
+		if (flowLabel != null && !flowLabel.isDisposed()) {
+			String flowIcon = "dot-outlined.png";
+			String flowTooltip = "Enter Flow Mode";
+			if (FlowManager.isFlowModeEnabled()) {
+				flowIcon = "dot.png";
+				flowTooltip = "Exit Flow Mode";
+			}
+			try {
+				ImageDescriptor imgDescriptor = SWCoreImages.create("icons/", flowIcon);
+				flowLabel.setImage(SWCoreImages.getImage(imgDescriptor));
+			} catch (Exception e) {
+				SWCoreLog.log(e);
+			}
+			
+			flowLabel.setText("Flow");
+			flowLabel.setToolTipText(flowTooltip);
 		}
 
 		try {
-			label.layout(true);
-			label.getParent().layout(true);
+			actLabel.layout(true);
+			actLabel.getParent().layout(true);
 		} catch (Exception e) {
 			SWCoreLog.error("Unable to render the status bar text", e);
 		}
-	}
-
-	private String escape(String text) {
-		if (text == null)
-			return text;
-		return LegacyActionTools.escapeMnemonics(text);
+		
+		try {
+			flowLabel.layout(true);
+			flowLabel.getParent().layout(true);
+		} catch (Exception e) {
+			SWCoreLog.error("Unable to render the status bar flow text", e);
+		}
 	}
 
 }

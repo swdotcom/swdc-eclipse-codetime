@@ -16,7 +16,7 @@ public class SlackConnectHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		SwingUtilities.invokeLater(() -> {
 			SlackManager.connectSlackWorkspace(() -> {
-				CodeTimeView.initializeRefresh();
+				CodeTimeView.refreshView();
 			});
 		});
 		return null;

@@ -19,13 +19,8 @@ public class WallClockManager {
 
 	public static final Logger log = Logger.getLogger("WallClockManager");
 
-	private static final int SECONDS_INCREMENT = 30;
-
 	private static WallClockManager instance = null;
-	private Timer wallClockTimer;
 	private Timer newDayCheckerTimer;
-
-	private boolean isCurrentlyActive = true;
 
 	public static WallClockManager getInstance() {
 		if (instance == null) {
@@ -55,8 +50,6 @@ public class WallClockManager {
 			// Unfocus event
 			@Override
 			public void windowDeactivated(IWorkbenchWindow arg0) {
-				log.info("Window deactivated");
-				isCurrentlyActive = false;
 				if (CodeTimeActivator.task != null) {
 					// process the keystrokes
 					CodeTimeActivator.task.run();
@@ -72,15 +65,11 @@ public class WallClockManager {
 			// Focus event
 			@Override
 			public void windowActivated(IWorkbenchWindow arg0) {
-				isCurrentlyActive = true;
 				EventTrackerManager.getInstance().trackEditorAction("editor", "focus");
 			}
 		});
 
 		long one_min = 1000 * 60;
-
-		wallClockTimer = new Timer();
-		wallClockTimer.scheduleAtFixedRate(new UpdateWallClockTimeTask(), 1000 * 5, 1000 * SECONDS_INCREMENT);
 
 		newDayCheckerTimer = new Timer();
 		newDayCheckerTimer.scheduleAtFixedRate(new NewDayCheckerTask(), one_min, one_min * 10);
@@ -98,10 +87,7 @@ public class WallClockManager {
 
 	public void newDayChecker() {
 		if (UtilManager.isNewDay()) {
-			// clear the wc time and the session summary and the file change info summary
-			clearWcTime();
 			SessionDataManager.clearSessionSummaryData();
-			FileAggregateDataManager.clearFileChangeInfoSummaryData();
 
 			// update the current day
 			String day = UtilManager.getTodayInStandardFormat();
@@ -110,32 +96,6 @@ public class WallClockManager {
 			// update the last payload timestamp
 			FileUtilManager.setNumericItem("latestPayloadTimestampEndUtc", 0);
 		}
-	}
-
-	private class UpdateWallClockTimeTask extends TimerTask {
-		public void run() {
-			if (isCurrentlyActive) {
-				updateWcTime();
-			}
-		}
-	}
-
-	private void updateWcTime() {
-		long wctime = getWcTimeInSeconds() + SECONDS_INCREMENT;
-		FileUtilManager.setNumericItem("wctime", wctime);
-	}
-
-	private void clearWcTime() {
-		setWcTime(0);
-	}
-
-	public long getWcTimeInSeconds() {
-		return FileUtilManager.getNumericItem("wctime", 0L);
-	}
-
-	public void setWcTime(long seconds) {
-		FileUtilManager.setNumericItem("wctime", seconds);
-		updateWcTime();
 	}
 
 }

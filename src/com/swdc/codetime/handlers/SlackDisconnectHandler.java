@@ -16,7 +16,7 @@ public class SlackDisconnectHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		SwingUtilities.invokeLater(() -> {
 			SlackManager.disconnectSlackWorkspace(() -> {
-				CodeTimeView.initializeRefresh();
+				CodeTimeView.refreshView();
 			});
 		});
 		return null;
