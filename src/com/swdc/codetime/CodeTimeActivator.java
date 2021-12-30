@@ -284,6 +284,8 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 		try {
 			if (window != null) {
 				window.getActivePage().showView("com.swdc.codetime.webview.codeTimeView");
+				
+				initializeSidebarView();
 
 				if (ctMetricsTreeView != null) {
 					ctMetricsTreeView.setFocus();
@@ -293,6 +295,23 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 			}
 		} catch (Exception e) {
 			System.err.println(e);
+		}
+	}
+	
+	public static void initializeSidebarView() {
+		if (ctMetricsTreeView == null) {
+			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+			try {
+				ctMetricsTreeView = window.getActivePage().findView("com.swdc.codetime.webview.codeTimeView");
+				if (ctMetricsTreeView != null) {
+					// refresh it
+					CodeTimeView.refreshView();
+				}
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+		} else {
+			CodeTimeView.refreshView();
 		}
 	}
 
