@@ -14,6 +14,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
@@ -42,6 +43,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 
 	private static Browser browser = null;
 	private static Composite composite = null;
+	public static boolean reloadData = true;
 
 	public CodeTimeView() {
 		super();
@@ -50,27 +52,33 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 	public void init(IViewSite site) throws PartInitException {
 		super.init(site);
 	}
-
+	
 	public static void refreshView() {
-		browser.getDisplay().getDefault().syncExec(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					String html = buildHtml();
-					browser.setText(html);
-					composite.layout();
-				} catch (Exception e) {
-					System.err.println(e);
+		refreshView(false);
+	}
+
+	public static void refreshView(boolean reload) {
+		reloadData = reload;
+		if (browser != null) {
+			browser.getDisplay();
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						String html = buildHtml();
+						browser.setText(html);
+						composite.layout();
+					} catch (Exception e) {
+						System.err.println(e);
+					}
 				}
-			}
-			
-		});
+	
+			});
+		}
 	}
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -225,8 +233,6 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 
 	@Override
 	public void setFocus() {
-		// TODO Auto-generated method stub
-
 	}
 
 	protected static class CodeTimeContentViewer extends ContentViewer {
