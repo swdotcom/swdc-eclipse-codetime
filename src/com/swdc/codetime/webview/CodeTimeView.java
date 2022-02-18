@@ -27,6 +27,7 @@ import com.swdc.codetime.CodeTimeActivator;
 import com.swdc.codetime.managers.AuthPromptManager;
 import com.swdc.codetime.managers.FlowManager;
 import com.swdc.codetime.managers.StatusBarManager;
+import com.swdc.codetime.util.SoftwareCoUtils;
 
 import swdc.java.ops.http.ClientResponse;
 import swdc.java.ops.http.OpsHttpClient;
@@ -149,7 +150,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 					break;
 				case "submitAnIssue":
 					SwingUtilities.invokeLater(() -> {
-						UtilManager.submitIntellijIssue();
+						UtilManager.launchUrl(SoftwareCoUtils.issues_url);
 					});
 					break;
 				case "toggleStatusBar":
@@ -174,22 +175,17 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 					break;
 				case "manageSlackConnection":
 					SwingUtilities.invokeLater(() -> {
-						SlackManager.manageSlackConnections();
+						UtilManager.launchUrl(SoftwareCoUtils.app_url + "/data_sources/integration_types/slack");
 					});
 					break;
 				case "connectSlack":
 					SwingUtilities.invokeLater(() -> {
-						SlackManager.connectSlackWorkspace(() -> {
-							CodeTimeView.refreshView();
-						});
+						UtilManager.launchUrl(SoftwareCoUtils.app_url + "/data_sources/integration_types/slack");
 					});
 					break;
 				case "disconnectSlackWorkspace":
 					SwingUtilities.invokeLater(() -> {
-						IntegrationConnection integration = SlackManager.getSlackWorkspaceById(msg.id);
-						SlackManager.disconnectSlackAuth(integration, () -> {
-							CodeTimeView.refreshView();
-						});
+						UtilManager.launchUrl(SoftwareCoUtils.app_url + "/data_sources/integration_types/slack");
 					});
 					break;
 				case "registerAccount":

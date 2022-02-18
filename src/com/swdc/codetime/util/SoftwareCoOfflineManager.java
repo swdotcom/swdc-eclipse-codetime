@@ -6,12 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import swdc.java.ops.manager.FileUtilManager;
@@ -84,26 +79,6 @@ public class SoftwareCoOfflineManager {
 			} catch (Exception ex) {
 				/* ignore */}
 		}
-	}
-
-	public String getSessionSummaryInfoFileContent() {
-		String content = null;
-
-		String sessionSummaryFile = FileUtilManager.getSummaryInfoFile();
-		File f = new File(sessionSummaryFile);
-		if (f.exists()) {
-			try {
-				Path p = Paths.get(sessionSummaryFile);
-				synchronized (p) {
-					byte[] encoded = Files.readAllBytes(p);
-					content = new String(encoded, Charset.defaultCharset());
-				}
-				
-			} catch (Exception e) {
-				LOG.log(Level.WARNING, "Code Time: Error trying to read and json parse the session file.", e);
-			}
-		}
-		return content;
 	}
 
 }

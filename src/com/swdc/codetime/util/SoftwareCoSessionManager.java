@@ -150,9 +150,7 @@ public class SoftwareCoSessionManager {
         String plugin_uuid = FileUtilManager.getPluginUuid();
 
         JsonObject obj = new JsonObject();
-        obj.addProperty("plugin", "codetime");
         obj.addProperty("plugin_uuid", plugin_uuid);
-        obj.addProperty("pluginVersion", SoftwareCoUtils.getVersion());
         obj.addProperty("plugin_id", SoftwareCoUtils.pluginId);
         obj.addProperty("auth_callback_state", auth_callback_state);
         obj.addProperty("redirect", SoftwareCoUtils.app_url);
@@ -173,12 +171,12 @@ public class SoftwareCoSessionManager {
             	url = SoftwareCoUtils.app_url + "/onboarding";
             }
         } else if (loginType.equalsIgnoreCase("google")) {
-            url = SoftwareCoUtils.api_endpoint + "/auth/google";
+            url = SoftwareCoUtils.app_url + "/auth/google";
         } else if (loginType.equalsIgnoreCase("github")) {
             element_name = "ct_sign_up_github_btn";
             cta_text = "Sign up with GitHub";
             icon_name = "github";
-            url = SoftwareCoUtils.api_endpoint + "/auth/github";
+            url = SoftwareCoUtils.app_url + "/auth/github";
         }
 		
 		StringBuffer sb = new StringBuffer();
