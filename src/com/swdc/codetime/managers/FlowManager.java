@@ -8,6 +8,7 @@ import com.swdc.codetime.webview.CodeTimeView;
 
 import swdc.java.ops.http.FlowModeClient;
 import swdc.java.ops.manager.AccountManager;
+import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.FileUtilManager;
 import swdc.java.ops.manager.SlackManager;
 import swdc.java.ops.manager.UtilManager;
@@ -61,9 +62,7 @@ public class FlowManager {
 						JOptionPane.QUESTION_MESSAGE, icon, options, options[0]);
 
 				if (choice == 0) {
-					SlackManager.connectSlackWorkspace(() -> {
-						CodeTimeView.refreshView();
-					});
+					UtilManager.launchUrl(ConfigManager.app_url + "/data_sources/integration_types/slack");
 				} else {
 					FileUtilManager.setBooleanItem("eclipse_CtskipSlackConnect", true);
 					FlowManager.enterFlowMode(automated);
