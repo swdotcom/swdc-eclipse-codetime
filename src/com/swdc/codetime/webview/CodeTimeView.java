@@ -33,9 +33,7 @@ import swdc.java.ops.http.ClientResponse;
 import swdc.java.ops.http.OpsHttpClient;
 import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.FileUtilManager;
-import swdc.java.ops.manager.SlackManager;
 import swdc.java.ops.manager.UtilManager;
-import swdc.java.ops.model.IntegrationConnection;
 import swdc.java.ops.snowplow.events.UIInteractionType;
 
 public class CodeTimeView extends ViewPart implements ISelectionListener {
@@ -174,15 +172,7 @@ public class CodeTimeView extends ViewPart implements ISelectionListener {
 					});
 					break;
 				case "manageSlackConnection":
-					SwingUtilities.invokeLater(() -> {
-						UtilManager.launchUrl(SoftwareCoUtils.app_url + "/data_sources/integration_types/slack");
-					});
-					break;
 				case "connectSlack":
-					SwingUtilities.invokeLater(() -> {
-						UtilManager.launchUrl(SoftwareCoUtils.app_url + "/data_sources/integration_types/slack");
-					});
-					break;
 				case "disconnectSlackWorkspace":
 					SwingUtilities.invokeLater(() -> {
 						UtilManager.launchUrl(SoftwareCoUtils.app_url + "/data_sources/integration_types/slack");

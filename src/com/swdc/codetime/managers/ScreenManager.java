@@ -6,8 +6,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
-import com.swdc.codetime.webview.CodeTimeView;
-
 public class ScreenManager {
 
 	private static final IWorkbench workbench = PlatformUI.getWorkbench();

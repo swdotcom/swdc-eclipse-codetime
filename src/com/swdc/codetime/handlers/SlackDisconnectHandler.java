@@ -8,16 +8,16 @@ import org.eclipse.core.commands.ExecutionException;
 
 import com.swdc.codetime.webview.CodeTimeView;
 
+import swdc.java.ops.manager.ConfigManager;
 import swdc.java.ops.manager.SlackManager;
+import swdc.java.ops.manager.UtilManager;
 
 public class SlackDisconnectHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		SwingUtilities.invokeLater(() -> {
-			SlackManager.disconnectSlackWorkspace(() -> {
-				CodeTimeView.refreshView();
-			});
+			UtilManager.launchUrl(ConfigManager.app_url + "/data_sources/integration_types/slack");
 		});
 		return null;
 	}

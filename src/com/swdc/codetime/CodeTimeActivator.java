@@ -159,15 +159,8 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 
 				String jwt = FileUtilManager.getItem("jwt");
 				if (StringUtils.isBlank(jwt)) {
-					jwt = AccountManager.createAnonymousUser(false);
-					if (StringUtils.isBlank(jwt)) {
-						boolean serverIsOnline = SoftwareCoSessionManager.isServerOnline();
-						if (!serverIsOnline) {
-							showOfflinePrompt();
-						}
-					} else {
-						initializePluginWhenReady(true);
-					}
+					AccountManager.createAnonymousUser(false);
+					initializePluginWhenReady(true);
 				}
 				initializePluginWhenReady(false);
 			}

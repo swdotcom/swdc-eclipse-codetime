@@ -55,11 +55,6 @@ public class SoftwareCoSessionManager {
 		return instance;
 	}
 
-	public synchronized static boolean isServerOnline() {
-		ClientResponse resp = OpsHttpClient.softwareGet("/ping", null);
-		return resp.isOk();
-	}
-
 	public static void fetchCodeTimeMetricsDashboard() {
 		ClientResponse resp = OpsHttpClient.appGet("/settings/dashboard");
 
