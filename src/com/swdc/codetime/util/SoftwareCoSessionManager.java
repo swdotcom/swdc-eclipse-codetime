@@ -151,15 +151,7 @@ public class SoftwareCoSessionManager {
         obj.addProperty("redirect", SoftwareCoUtils.app_url);
 
 		String url = "";
-		String element_name = "ct_sign_up_email_btn";
-        String cta_text = "Sign up with email";
-        String icon_name = "envelope";
-        String icon_color = "blue";
         if (loginType == null || loginType.equalsIgnoreCase("software") || loginType.equalsIgnoreCase("email")) {
-            element_name = "ct_sign_up_email_btn";
-            cta_text = "Sign up with email";
-            icon_name = "envelope";
-            icon_color = "gray";
             if (isSignup) {
             	url = SoftwareCoUtils.app_url + "/email-signup";
             } else {
@@ -168,9 +160,6 @@ public class SoftwareCoSessionManager {
         } else if (loginType.equalsIgnoreCase("google")) {
             url = SoftwareCoUtils.app_url + "/auth/google";
         } else if (loginType.equalsIgnoreCase("github")) {
-            element_name = "ct_sign_up_github_btn";
-            cta_text = "Sign up with GitHub";
-            icon_name = "github";
             url = SoftwareCoUtils.app_url + "/auth/github";
         }
 		
@@ -203,17 +192,9 @@ public class SoftwareCoSessionManager {
 				SWCoreLog.logException(ex);
 			}
 		}
-		
-		UIElementEntity elementEntity = new UIElementEntity();
-        elementEntity.element_name = element_name;
-        elementEntity.element_location = "ct_menu_tree";
-        elementEntity.color = icon_color;
-        elementEntity.cta_text = cta_text;
-        elementEntity.icon_name = icon_name;
-        EventTrackerManager.getInstance().trackUIInteraction(UIInteractionType.click, elementEntity);
 	}
 
-	public static void launchWebDashboard(UIInteractionType type) {
+	public static void launchWebDashboard() {
 		if (StringUtils.isBlank(FileUtilManager.getItem("name"))) {
             SwingUtilities.invokeLater(() -> {
                 String msg = "Sign up or log in to see more data visualizations.";
@@ -232,14 +213,6 @@ public class SoftwareCoSessionManager {
 		String url = SoftwareCoUtils.webui_login_url;
 		try {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));
-			
-			UIElementEntity elementEntity = new UIElementEntity();
-	        elementEntity.element_name = type.equals(UIInteractionType.click) ? "ct_web_metrics_btn" : "ct_web_metrics_cmd";
-	        elementEntity.element_location = type.equals(UIInteractionType.click) ? "ct_menu_tree" : "ct_command_palette";
-	        elementEntity.color = type.equals(UIInteractionType.click) ? "blue" : null;
-	        elementEntity.cta_text = "See advanced metrics";
-	        elementEntity.icon_name = type.equals(UIInteractionType.click) ? "paw" : null;
-	        EventTrackerManager.getInstance().trackUIInteraction(type, elementEntity);
 		} catch (PartInitException | MalformedURLException e) {
 			SWCoreLog.logErrorMessage("Failed to launch the url: " + url);
 			SWCoreLog.logException(e);
