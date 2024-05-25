@@ -8,7 +8,7 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="extlibs/gson-2.8.2.jar"/>
 	<classpathentry kind="lib" path="extlibs/apache-httpcomponents-httpclient.jar"/>
-	<classpathentry kind="lib" path="extlibs/swdc-java-ops-1.1.4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="lib" path="extlibs/swdc-java-ops-1.1.7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
