@@ -73,7 +73,7 @@ public class CodeTimeActivator extends AbstractUIPlugin implements IStartup {
 	// The shared instance
 	private static CodeTimeActivator plugin;
 
-	public static final Logger LOG = Logger.getLogger("Software.com");
+	public static final Logger LOG = Logger.getLogger("antenna.dev");
 
 	public static JsonParser jsonParser = new JsonParser();
 

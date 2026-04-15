@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 by Software.com
+ * Copyright (c) 2018 by antenna.dev
  * All rights reserved
  */
 package com.swdc.codetime.util;
@@ -37,8 +37,8 @@ public class SoftwareCoUtils {
 
 	public static String issues_url = "https://github.com/swdotcom/swdc-eclipse-codetime/issues";
 
-	public final static String api_endpoint = "https://api.software.com";
-	public final static String app_url = "https://app.software.com";
+	public final static String api_endpoint = "https://api.antenna.dev";
+	public final static String app_url = "https://app.antenna.dev";
 	public final static String webui_login_url = app_url + "/login";
 	public final static String software_dir = ".software";
 
@@ -152,7 +152,7 @@ public class SoftwareCoUtils {
 	public static void submitFeedback() {
 		try {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser()
-					.openURL(new URL("mailto:cody@software.com"));
+					.openURL(new URL("mailto:cody@antenna.dev"));
 			UIElementEntity elementEntity = new UIElementEntity();
 			elementEntity.element_name = "ct_submit_feedback_btn";
 			elementEntity.element_location = "ct_menu_tree";

@@ -85,7 +85,7 @@
       <command
             categoryId="com.swdc.codetime.commands.category"
             id="com.swdc.codetime.commands.metrics.dashboard"
-            name="More data at Software.com">
+            name="More data at antenna.dev">
       </command>
       <command
             categoryId="com.swdc.codetime.commands.category"

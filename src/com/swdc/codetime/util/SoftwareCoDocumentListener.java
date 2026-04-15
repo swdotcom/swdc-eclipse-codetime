@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 by Software.com
+ * Copyright (c) 2018 by antenna.dev
  * All rights reserved
  */
 package com.swdc.codetime.util;

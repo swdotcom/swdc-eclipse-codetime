@@ -2,15 +2,15 @@
 <feature
       id="com.swdc.codetime"
       label="Code Time"
-      version="2.3.24"
-      provider-name="Software.com">
+      version="2.3.25"
+      provider-name="Antenna.dev">
 
    <description url="http://www.example.com/description">
       Code Time is an open source plugin for automatic programming metrics and time-tracking.
    </description>
 
    <copyright url="http://www.example.com/copyright">
-      Copyright (c) 2018 Software.co Technologies, Inc. All Rights
+      Copyright (c) 2018 Antenna.dev, Inc. All Rights
 Reserved.
    </copyright>
 
@@ -203,7 +203,7 @@ Reserved.
       same &quot;printed page&quot; as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright 2018 Software
+   Copyright 2018 Antenna.dev
 
    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
    you may not use this file except in compliance with the License.

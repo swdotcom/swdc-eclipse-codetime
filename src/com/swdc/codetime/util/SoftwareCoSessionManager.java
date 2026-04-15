@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 by Software.com
+ * Copyright (c) 2018 by antenna.dev
  * All rights reserved
  */
 package com.swdc.codetime.util;
@@ -39,7 +39,7 @@ import swdc.java.ops.snowplow.events.UIInteractionType;
 
 /**
  * 
- * Manages the plugin to software.com session
+ * Manages the plugin to antenna.dev session
  *
  */
 public class SoftwareCoSessionManager {
@@ -64,7 +64,7 @@ public class SoftwareCoSessionManager {
 	}
 
 	public static void launchSoftwareTopForty() {
-		String url = "https://api.software.com/music/top40";
+		String url = "https://api.antenna.dev/music/top40";
 		try {
 			PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));
 		} catch (PartInitException | MalformedURLException e) {
