@@ -45,7 +45,7 @@ public class InfoPreferencePage extends PreferencePage implements IWorkbenchPref
 
         new Label(summary, SWT.NONE);
         Link link = new Link(summary, SWT.NONE);
-        link.setText("<A>www.software.com</A>");
+        link.setText("<A>www.antenna.dev</A>");
         link.addSelectionListener(new SelectionAdapter()
         {
             @Override
@@ -53,7 +53,7 @@ public class InfoPreferencePage extends PreferencePage implements IWorkbenchPref
             {
                 try
                 {
-                    PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL("https://www.software.com/eclipse"));
+                    PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL("https://www.antenna.dev/eclipse"));
                 }
                 catch (Exception e)
                 {

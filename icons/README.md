@@ -1,6 +1,6 @@
 # Code Time
 
-[Code Time](https://www.software.com/code-time) is an open source plugin for automatic programming metrics and time-tracking.
+[Code Time](https://www.antenna.dev/code-time) is an open source plugin for automatic programming metrics and time-tracking.
 
 ![Marketplace](https://img.shields.io/jetbrains/plugin/v/10687-code-time.svg)
 ![Installs](https://img.shields.io/jetbrains/plugin/d/10687-code-time)
@@ -41,7 +41,7 @@ At the end of your first day, open Code Time in your side bar and click _Generat
 
 ## Web app data visualizations
 
-Click "See advanced metrics" in the Code Time side bar or visit [app.software.com](https://app.software.com/) to see more data visualizations. Here are a few examples of what you will see in your feed after your first week.
+Click "See advanced metrics" in the Code Time side bar or visit [app.antenna.dev](https://app.antenna.dev/) to see more data visualizations. Here are a few examples of what you will see in your feed after your first week.
 
 **Code Time heatmap**
 
@@ -81,6 +81,6 @@ Code Time also collects basic usage metrics to help us make informed decisions a
 
 Enjoying Code Time? Let us know how it’s going by tweeting or following us at [@software_hq](https://twitter.com/software_hq).
 
-We recently released a new beta plugin, Music Time for VS Code, which helps you find your most productive songs for coding. You can learn more [here](https://www.software.com).
+We recently released a new beta plugin, Music Time for VS Code, which helps you find your most productive songs for coding. You can learn more [here](https://www.antenna.dev).
 
-Have any questions? Please email us at [support@software.com](mailto:support@software.com) and we’ll get back to you as soon as we can.
+Have any questions? Please email us at [support@antenna.dev](mailto:support@antenna.dev) and we’ll get back to you as soon as we can.

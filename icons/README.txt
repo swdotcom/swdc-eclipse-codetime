@@ -34,7 +34,7 @@ GETTING STARTED
 WEB APP DATA VISUALIZATIONS
 ---------------------------
 
-Click "See advanced metrics" in the Code Time side bar or visit app.software.com to see more data visualizations. Here are a few examples of what you will see in your dashboard after your first week.
+Click "See advanced metrics" in the Code Time side bar or visit app.antenna.dev to see more data visualizations. Here are a few examples of what you will see in your dashboard after your first week.
 
 * Active code time
 
@@ -66,6 +66,6 @@ GET IN TOUCH
 
 Enjoying Code Time? Let us know how it’s going by tweeting or following us at @software_hq.
 
-We recently released a new beta plugin, Music Time for Visual Studio Code, which helps you find your most productive songs for coding. You can learn more at software.com/music-time.
+We recently released a new beta plugin, Music Time for Visual Studio Code, which helps you find your most productive songs for coding. You can learn more at antenna.dev/music-time.
 
-Have any questions? Please email us at support@software.com and we’ll get back to you as soon as we can.
+Have any questions? Please email us at support@antenna.dev and we’ll get back to you as soon as we can.
